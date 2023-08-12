@@ -14,11 +14,13 @@ impl HotReload {
         println!("HOT RELOADING ENABLED!");
         let (tx, rx) = std::sync::mpsc::channel();
 
-        let mut watcher =
-            notify::RecommendedWatcher::new(tx, Default::default()).unwrap();
+        let mut watcher = notify::RecommendedWatcher::new(tx, Default::default()).unwrap();
 
         watcher
-            .watch(Path::new(&"assets/shaders"), RecursiveMode::Recursive)
+            .watch(
+                Path::new(&concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/shaders")),
+                RecursiveMode::Recursive,
+            )
             .unwrap();
 
         Self { rx, watcher }
@@ -32,9 +34,7 @@ impl HotReload {
                 Ok(event) => {
                     let is_close_write = matches!(
                         event.kind,
-                        EventKind::Access(AccessKind::Close(
-                            notify::event::AccessMode::Write
-                        ))
+                        EventKind::Access(AccessKind::Close(notify::event::AccessMode::Write))
                     );
 
                     let is_temp = event

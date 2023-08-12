@@ -211,7 +211,7 @@ impl WgpuRenderer {
                     &context.device,
                     &context.queue,
                     $name,
-                    include_bytes!(concat!("../../assets/", $name, ".png")),
+                    include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/", $name, ".png")),
                     &texture_bind_group_layout,
                     &mut textures,
                     wgpu::AddressMode::Repeat,

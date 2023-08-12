@@ -3,13 +3,20 @@ use crate::*;
 #[macro_export]
 macro_rules! reloadable_wgsl_shader {
     ($name:literal) => {{
-        let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
+        let struct_prefix = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders/structs.wgsl"
+        ));
 
         cfg_if! {
             if #[cfg(feature = "ci-release")] {
-                let shader = include_str!(concat!("../../assets/shaders/", $name, ".wgsl"));
+                let shader = include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../assets/shaders/", $name, ".wgsl"));
             } else {
-                let path = concat!("assets/shaders/", $name, ".wgsl");
+                let path = concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../assets/shaders/", $name, ".wgsl");
                 info!("DEV loading shader: {}", path);
                 let shader: String = std::fs::read_to_string(path).unwrap().into();
             }
@@ -17,9 +24,7 @@ macro_rules! reloadable_wgsl_shader {
 
         wgpu::ShaderModuleDescriptor {
             label: Some(&format!("{} Shader", $name)),
-            source: wgpu::ShaderSource::Wgsl(
-                format!("{}{}", struct_prefix, shader).into()
-            ),
+            source: wgpu::ShaderSource::Wgsl(format!("{}{}", struct_prefix, shader).into()),
         }
     }};
 }
@@ -27,10 +32,15 @@ macro_rules! reloadable_wgsl_shader {
 #[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
-        let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
+        let struct_prefix = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders/structs.wgsl"
+        ));
 
-        let pp_prefix =
-            include_str!("../../assets/shaders/post_processing_vertex.wgsl");
+        let pp_prefix = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders/post_processing_vertex.wgsl"
+        ));
 
         let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
 
@@ -49,9 +59,13 @@ macro_rules! reloadable_wgsl_fragment_shader {
         cfg_if! {
             if #[cfg(feature = "ci-release")] {
                 let frag_part =
-                    include_str!(concat!("../../assets/shaders/", $name, ".wgsl"));
+                    include_str!(concat!(
+                        env!("CARGO_MANIFEST_DIR"),
+                        "/../assets/shaders/", $name, ".wgsl"));
             } else {
-                let path = concat!("assets/shaders/", $name, ".wgsl");
+                let path = concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../assets/shaders/", $name, ".wgsl");
                 info!("DEV loading shader: {}", path);
 
                 let frag_part = std::fs::read_to_string(path)
@@ -59,18 +73,11 @@ macro_rules! reloadable_wgsl_fragment_shader {
             }
         }
 
-        let full_shader = format!(
-            "{}{}",
-            frag_shader_prefix,
-            frag_part
-        );
+        let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
 
         wgpu::ShaderModuleDescriptor {
             label: Some($name),
-            source: wgpu::ShaderSource::Wgsl(
-                full_shader
-                .into(),
-            ),
+            source: wgpu::ShaderSource::Wgsl(full_shader.into()),
         }
     }};
 }
@@ -87,15 +94,8 @@ pub fn load_texture_from_engine_bytes(
     let handle = texture_path(name);
 
     let img = image::load_from_memory(bytes).expect("must be valid image");
-    let error_texture = Texture::from_image_ex(
-        device,
-        queue,
-        &img,
-        Some(name),
-        false,
-        address_mode,
-    )
-    .unwrap();
+    let error_texture =
+        Texture::from_image_ex(device, queue, &img, Some(name), false, address_mode).unwrap();
 
     let error_bind_group = device.simple_bind_group(
         &format!("{}_bind_group", name),
@@ -104,7 +104,11 @@ pub fn load_texture_from_engine_bytes(
     );
 
     ASSETS.borrow_mut().insert_handle(name, handle);
-    ASSETS.borrow_mut().texture_image_map.lock().insert(handle, img);
+    ASSETS
+        .borrow_mut()
+        .texture_image_map
+        .lock()
+        .insert(handle, img);
     textures.insert(handle, (error_bind_group, error_texture));
 }
 
@@ -113,8 +117,7 @@ pub fn simple_fragment_shader<'a>(
     frag: &'static str,
 ) -> wgpu::ShaderModuleDescriptor<'a> {
     let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
-    let frag_shader_prefix =
-        include_str!("../../assets/shaders/post_processing_vertex.wgsl");
+    let frag_shader_prefix = include_str!("../../assets/shaders/post_processing_vertex.wgsl");
 
     wgpu::ShaderModuleDescriptor {
         label: Some(name),
@@ -133,13 +136,12 @@ pub struct MipmapGenerator {
 impl MipmapGenerator {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         let blit_pipeline = {
-            let shader =
-                device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                    label: Some("Blit Shader"),
-                    source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
-                        include_str!("../../assets/shaders/blit.wgsl"),
-                    )),
-                });
+            let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("Blit Shader"),
+                source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!(
+                    "../../assets/shaders/blit.wgsl"
+                ))),
+            });
 
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("Blit Render Pipeline"),
@@ -166,7 +168,11 @@ impl MipmapGenerator {
 
         let blit_layout = blit_pipeline.get_bind_group_layout(0);
 
-        Self { format, blit_pipeline, blit_layout }
+        Self {
+            format,
+            blit_pipeline,
+            blit_layout,
+        }
     }
 
     pub fn generate_mipmaps(
@@ -203,39 +209,33 @@ impl MipmapGenerator {
             .collect::<Vec<_>>();
 
         for target_mip in 1..mip_count as usize {
-            let bind_group =
-                device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    layout: &self.blit_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(
-                                &views[target_mip - 1],
-                            ),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(&sampler),
-                        },
-                    ],
-                    label: None,
-                });
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &self.blit_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&views[target_mip - 1]),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&sampler),
+                    },
+                ],
+                label: None,
+            });
 
-            let mut rpass =
-                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    label: None,
-                    color_attachments: &[Some(
-                        wgpu::RenderPassColorAttachment {
-                            view: &views[target_mip],
-                            resolve_target: None,
-                            ops: wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                                store: true,
-                            },
-                        },
-                    )],
-                    depth_stencil_attachment: None,
-                });
+            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: None,
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &views[target_mip],
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: None,
+            });
 
             rpass.set_pipeline(&self.blit_pipeline);
             rpass.set_bind_group(0, &bind_group, &[]);
