@@ -1,0 +1,28 @@
+[package]
+name = "embi"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+use-wgpu = []
+
+demo = []
+dev = []
+embedded-assets = []
+quick-exit = []
+ci-release = []
+auto-exit = []
+
+tracy = ["embi-core/tracy", "embi-wgpu/tracy"]
+# tracy = ["embi-core/tracy", "blobs/tracy", "embi-wgpu/tracy"]
+
+jemalloc = ["embi-core/jemalloc"]
+
+[dependencies]
+embi-wgpu = { path = "../embi-wgpu" }
+embi-core = { path = "../embi-core" }
+
+# blobs = { git = "https://github.com/darthdeus/blobs" }
+
+mlua = { version = "0.8.9", features = ["lua54", "vendored"] }
