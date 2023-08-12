@@ -1,0 +1,10 @@
+[package]
+name = "embi"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Refreshingly simple."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
