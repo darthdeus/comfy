@@ -5,4 +5,5 @@ members = [
   "embi",
   "embi-core",
   "embi-wgpu",
+  "demos/bitmob",
 ]
