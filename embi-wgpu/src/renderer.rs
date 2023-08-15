@@ -84,6 +84,8 @@ pub struct WgpuRenderer {
 
     pub enable_z_buffer: bool,
 
+    pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
+
     pub textures: Arc<Mutex<TextureMap>>,
     pub tx_texture: Sender<LoadedImage>,
 }
@@ -97,6 +99,8 @@ impl WgpuRenderer {
         let instance = wgpu::Instance::default();
         let surface = unsafe { instance.create_surface(&window).unwrap() };
 
+        trace!("Requesting adapter");
+
         let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
             // power_preference: wgpu::PowerPreference::HighPerformance,
             power_preference: wgpu::PowerPreference::HighPerformance,
@@ -105,6 +109,8 @@ impl WgpuRenderer {
         });
 
         let adapter = adapter.await.unwrap();
+
+        trace!("Requesting device");
 
         let (device, queue) = adapter
             .request_device(
@@ -166,6 +172,8 @@ impl WgpuRenderer {
             view_formats: vec![],
         };
 
+        trace!("Configuring surface");
+
         surface.configure(&device, &config);
 
         let context = GraphicsContext {
@@ -174,6 +182,8 @@ impl WgpuRenderer {
             device: Arc::new(device),
             queue: Arc::new(queue),
         };
+
+        trace!("Loading builtin engine textures");
 
         let mut textures = HashMap::default();
 
@@ -435,6 +445,8 @@ impl WgpuRenderer {
         let global_lighting_params_bind_group =
             ArcHandle::new(global_lighting_params_bind_group);
 
+        trace!("Initializing egui");
+
         let egui_render_routine = EguiRenderRoutine::new(
             &context.device,
             config.format,
@@ -533,15 +545,17 @@ impl WgpuRenderer {
         let textures = Arc::new(Mutex::new(textures));
         let texture_bind_group_layout = Arc::new(texture_bind_group_layout);
 
+        let texture_creator = Arc::new(AtomicRefCell::new(
+            WgpuTextureCreator {
+                textures: textures.clone(),
+                layout: texture_bind_group_layout.clone(),
+                queue: context.queue.clone(),
+                device: context.device.clone(),
+            },
+        ));
+
         BLOOD_CANVAS
-            .set(AtomicRefCell::new(BloodCanvas::new(Box::new(
-                WgpuTextureCreator {
-                    textures: textures.clone(),
-                    layout: texture_bind_group_layout.clone(),
-                    queue: context.queue.clone(),
-                    device: context.device.clone(),
-                },
-            ))))
+            .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
 
@@ -760,6 +774,8 @@ impl WgpuRenderer {
             color: Color::new(0.1, 0.2, 0.3, 1.0),
 
             enable_z_buffer: false,
+
+            texture_creator,
 
             window,
 

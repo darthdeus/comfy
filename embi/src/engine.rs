@@ -279,6 +279,7 @@ impl RunGameLoop for EngineState {
     }
 
     fn set_renderer(&mut self, renderer: WgpuRenderer) {
+        self.texture_creator = Some(renderer.texture_creator.clone());
         self.renderer = Some(renderer);
     }
 
@@ -315,6 +316,7 @@ pub struct EngineState {
     pub fps_stats: MovingStats,
 
     pub renderer: Option<WgpuRenderer>,
+    pub texture_creator: Option<Arc<AtomicRefCell<WgpuTextureCreator>>>,
 
     pub lighting: GlobalLightingParams,
 
@@ -370,6 +372,7 @@ impl EngineState {
             cached_loader: RefCell::new(CachedImageLoader::new()),
 
             renderer: None,
+            texture_creator: None,
 
             draw: RefCell::new(Draw::new()),
 
@@ -994,6 +997,7 @@ impl EngineState {
 
     pub fn make_context(&mut self) -> EngineContext {
         let egui = self.renderer.as_ref().unwrap().egui_ctx();
+        let texture_creator = self.texture_creator.as_ref().unwrap();
 
         EngineContext {
             cached_loader: &self.cached_loader,
@@ -1029,6 +1033,8 @@ impl EngineState {
             quit_flag: &mut self.quit_flag,
 
             to_despawn: &mut self.to_despawn,
+
+            texture_creator,
         }
     }
 }

@@ -58,6 +58,8 @@ pub struct EngineContext<'a> {
     pub to_despawn: &'a RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
     pub flags: &'a RefCell<HashSet<String>>,
+
+    pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
 }
 
 impl<'a> EngineContext<'a> {

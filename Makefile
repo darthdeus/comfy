@@ -1,2 +1,2 @@
 default:
-	cargo run --bin bitmob
+	cargo test
