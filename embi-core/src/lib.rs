@@ -734,6 +734,16 @@ impl Color {
         )
     }
 
+    pub fn to_image_rgba(self) -> image::Rgba<u8> {
+        image::Rgba([
+            (self.r * 255.0) as u8,
+            (self.g * 255.0) as u8,
+            (self.b * 255.0) as u8,
+            (self.a * 255.0) as u8,
+        ])
+    }
+
+
     pub fn darken(&self, amount: f32) -> Color {
         let amount = 1.0 - amount;
         Color::new(self.r * amount, self.g * amount, self.b * amount, self.a)
