@@ -4,6 +4,14 @@ pub fn splat(v: f32) -> Vec2 {
     Vec2::splat(v)
 }
 
+pub fn isplat(v: i32) -> IVec2 {
+    IVec2::splat(v)
+}
+
+pub fn usplat(v: u32) -> UVec2 {
+    UVec2::splat(v)
+}
+
 pub fn simple_window(title: &str) -> egui::Window {
     egui::Window::new(title).resizable(false).collapsible(false)
 }
@@ -267,7 +275,6 @@ pub fn labeled_hover_aabb(
 
     labeled_aabb(label, aabb, color, z_index);
 }
-
 
 pub fn labeled_aabb(label: &str, aabb: &AABB, color: Color, z_index: i32) {
     draw_labeled_rect_corners(
@@ -1099,7 +1106,6 @@ pub fn draw_arrow(
     let len = tweak!(0.8);
     let spread = tweak!(0.15) * PI;
 
-
     // draw the arrow head
     draw_ray(
         end,
@@ -1145,7 +1151,6 @@ pub fn draw_revs(position: Vec2, r: f32, rev: f32, color: Color, z_index: i32) {
         z_index,
     );
 }
-
 
 pub fn draw_mesh(mesh: Mesh) {
     GLOBAL_STATE

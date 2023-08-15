@@ -94,8 +94,6 @@ impl WgpuRenderer {
     pub async fn new(window: Window, egui_winit: egui_winit::State) -> Self {
         let size = window.inner_size();
 
-        window.set_cursor_visible(false);
-
         let instance = wgpu::Instance::default();
         let surface = unsafe { instance.create_surface(&window).unwrap() };
 
@@ -221,7 +219,12 @@ impl WgpuRenderer {
                     &context.device,
                     &context.queue,
                     $name,
-                    include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/", $name, ".png")),
+                    include_bytes!(concat!(
+                        env!("CARGO_MANIFEST_DIR"),
+                        "/../assets/",
+                        $name,
+                        ".png"
+                    )),
                     &texture_bind_group_layout,
                     &mut textures,
                     wgpu::AddressMode::Repeat,
@@ -545,14 +548,13 @@ impl WgpuRenderer {
         let textures = Arc::new(Mutex::new(textures));
         let texture_bind_group_layout = Arc::new(texture_bind_group_layout);
 
-        let texture_creator = Arc::new(AtomicRefCell::new(
-            WgpuTextureCreator {
+        let texture_creator =
+            Arc::new(AtomicRefCell::new(WgpuTextureCreator {
                 textures: textures.clone(),
                 layout: texture_bind_group_layout.clone(),
                 queue: context.queue.clone(),
                 device: context.device.clone(),
-            },
-        ));
+            }));
 
         BLOOD_CANVAS
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))

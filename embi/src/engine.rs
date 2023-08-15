@@ -101,9 +101,10 @@ impl RunGameLoop for EngineState {
                 global_state.mouse_world = normalized + camera.center;
             }
 
-            renderer
-                .window()
-                .set_cursor_visible(global_state.mouse_locked);
+            // TODO: make this configurable
+            // renderer
+            //     .window()
+            //     .set_cursor_visible(global_state.mouse_locked);
         }
 
         if is_key_pressed(KeyCode::F1) {

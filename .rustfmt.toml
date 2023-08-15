@@ -1,0 +1,46 @@
+edition = "2021"
+tab_spaces = 4
+max_width = 80
+
+# max_width = 115
+# comment_width = 110
+# chain_width = 110
+# fn_call_width = 110
+
+binop_separator = "Back"
+blank_lines_upper_bound = 2
+brace_style = "SameLineWhere"
+
+combine_control_expr = false
+
+# fn_args_layout = "Compressed"
+fn_args_layout = "Tall"
+# fn_single_line = true
+
+force_multiline_blocks = true
+format_code_in_doc_comments = true
+
+format_strings = true
+
+# imports_indent = "Block"
+# imports_layout = "Mixed"
+
+# indent_style = "Block"
+
+# function_arguments = "Visual"
+
+# imports_granularity = "Crate"
+
+overflow_delimited_expr = true
+
+remove_nested_parens = true
+
+reorder_imports = true
+
+# group_imports = "StdExternalCrate"
+
+use_small_heuristics = "Max"
+
+where_single_line = true
+
+# wrap_comments = true
