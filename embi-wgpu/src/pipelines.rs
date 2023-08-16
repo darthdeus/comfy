@@ -21,6 +21,7 @@ pub fn load_shaders() -> ShaderMap {
     load_shader!("chromatic-aberration");
     load_shader!("darken");
     load_shader!("debug");
+    load_shader!("dither");
     load_shader!("film-grain");
     load_shader!("invert");
     load_shader!("palette");
