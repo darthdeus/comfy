@@ -755,6 +755,7 @@ dependencies = [
  "image",
  "include_dir",
  "inline_tweak",
+ "instant",
  "itertools",
  "jemalloc-ctl",
  "jemallocator",

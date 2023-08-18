@@ -109,8 +109,8 @@ pollster = { version = "0.3.0" }
 notify = "6.0.1"
 memory-stats = "1.1.0"
 
-
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+instant = "0.1"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [
   "Document",

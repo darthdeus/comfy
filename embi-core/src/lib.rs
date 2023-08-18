@@ -83,6 +83,9 @@ pub use tinyvec;
 pub use bimap::BiHashMap;
 pub use pid::Pid;
 
+#[cfg(target_arch = "wasm32")]
+pub use instant::{Duration, Instant};
+#[cfg(not(target_arch = "wasm32"))]
 pub use std::time::{Duration, Instant};
 
 pub use inline_tweak;

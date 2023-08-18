@@ -1,7 +1,5 @@
-use lazy_static::lazy_static;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use crate::*;
 
 pub struct TaskTimer {
     timers: Arc<Mutex<HashMap<String, Duration>>>,
