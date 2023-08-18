@@ -178,6 +178,11 @@ pub use wasm_bindgen_futures;
 #[cfg(target_arch = "wasm32")]
 pub use web_sys;
 
+#[cfg(target_arch = "wasm32")]
+pub use console_error_panic_hook;
+#[cfg(target_arch = "wasm32")]
+pub use console_log;
+
 pub use anymap::AnyMap;
 pub use bitflags::bitflags;
 pub use crossbeam;

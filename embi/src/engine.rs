@@ -47,16 +47,20 @@ impl RunGameLoop for EngineState {
             ASSETS.borrow_mut().process_load_queue();
             ASSETS.borrow_mut().process_sound_queue();
 
-            if let Some(texture_queue) = ASSETS.borrow_mut().current_queue.lock().take() {
+            if let Some(texture_queue) =
+                ASSETS.borrow_mut().current_queue.lock().take()
+            {
                 renderer.load_textures(texture_queue);
             }
 
-            let painter = renderer.egui_ctx().layer_painter(egui::LayerId::new(
-                egui::Order::Background,
-                egui::Id::new("text-painter"),
-            ));
+            let painter =
+                renderer.egui_ctx().layer_painter(egui::LayerId::new(
+                    egui::Order::Background,
+                    egui::Id::new("text-painter"),
+                ));
 
-            let text_queue = GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
+            let text_queue =
+                GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
 
             for text in text_queue {
                 let align = match text.align {
@@ -67,7 +71,8 @@ impl RunGameLoop for EngineState {
                     TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
                 };
 
-                let screen_pos = text.position.to_screen() / egui_scale_factor();
+                let screen_pos =
+                    text.position.to_screen() / egui_scale_factor();
 
                 painter.text(
                     egui::pos2(screen_pos.x, screen_pos.y),
@@ -94,8 +99,9 @@ impl RunGameLoop for EngineState {
                 global_state.screen_size.y - global_state.mouse_position.y,
             );
 
-            let normalized =
-                flipped_mouse_pos / global_state.screen_size * viewport - viewport / 2.0;
+            let normalized = flipped_mouse_pos / global_state.screen_size *
+                viewport -
+                viewport / 2.0;
 
             if !global_state.mouse_locked {
                 global_state.mouse_world = normalized + camera.center;
@@ -126,11 +132,15 @@ impl RunGameLoop for EngineState {
             blood_canvas_update_and_draw(|key, block| {
                 draw_texture_z_ex(
                     block.handle,
-                    (key.as_vec2() + splat(0.5)) * blood_block_world_size() as f32,
+                    (key.as_vec2() + splat(0.5)) *
+                        blood_block_world_size() as f32,
                     WHITE,
                     Z_BLOOD_CANVAS,
                     DrawTextureParams {
-                        dest_size: Some(splat(blood_block_world_size() as f32).as_world_size()),
+                        dest_size: Some(
+                            splat(blood_block_world_size() as f32)
+                                .as_world_size(),
+                        ),
                         blend_mode: BlendMode::Alpha,
                         ..Default::default()
                     },
@@ -140,7 +150,8 @@ impl RunGameLoop for EngineState {
 
         let renderer = self.renderer.as_mut().unwrap();
 
-        let mut mesh_queue = GLOBAL_STATE.borrow_mut().mesh_queue.drain(..).collect_vec();
+        let mut mesh_queue =
+            GLOBAL_STATE.borrow_mut().mesh_queue.drain(..).collect_vec();
 
         mesh_queue.sort_by_key(|x| x.mesh.z_index);
 
@@ -151,11 +162,8 @@ impl RunGameLoop for EngineState {
         let mut light = mouse_screen();
         light.y = screen_height() - light.y;
 
-        let frame_params = FrameParams {
-            frame: get_frame(),
-            delta,
-            time: get_time() as f32,
-        };
+        let frame_params =
+            FrameParams { frame: get_frame(), delta, time: get_time() as f32 };
 
         SINGLE_PARTICLES.borrow_mut().retain_mut(|particle| {
             particle.update(delta);
@@ -165,11 +173,8 @@ impl RunGameLoop for EngineState {
         // TODO: keep the same vec between frames
         let mut all_particles = Vec::new();
 
-        for (_, (player_t, _)) in self
-            .world
-            .borrow()
-            .query::<(&Transform, &PlayerTag)>()
-            .iter()
+        for (_, (player_t, _)) in
+            self.world.borrow().query::<(&Transform, &PlayerTag)>().iter()
         {
             // TODO; check that there is only one?
 
@@ -285,9 +290,7 @@ impl RunGameLoop for EngineState {
     }
 
     fn renderer(&mut self) -> &mut WgpuRenderer {
-        self.renderer
-            .as_mut()
-            .expect("renderer must be initialized")
+        self.renderer.as_mut().expect("renderer must be initialized")
     }
 
     fn resize(&mut self, new_size: UVec2) {
@@ -303,7 +306,8 @@ impl RunGameLoop for EngineState {
     }
 }
 
-pub type GameLoopBuilder = Box<dyn Fn(&mut EngineContext) -> Arc<Mutex<dyn GameLoop>>>;
+pub type GameLoopBuilder =
+    Box<dyn Fn(&mut EngineContext) -> Arc<Mutex<dyn GameLoop>>>;
 
 pub struct EngineState {
     pub cached_loader: RefCell<CachedImageLoader>,
@@ -345,13 +349,24 @@ pub struct EngineState {
 impl EngineState {
     // TODO: get rid of GameLoopBuilder and replace it with a library-like API
     pub fn new(config: GameConfig, builder: GameLoopBuilder) -> Self {
-        #[cfg(feature = "ci-release")]
-        std::panic::set_hook(Box::new(|info| {
-            error!("Panic: {:?}", info);
-        }));
+        cfg_if! {
+            if #[cfg(target_arch = "wasm32")] {
+                std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+                // console_log::init_with_level(log::Level::Info).expect("Couldn't initialize logger");
+                console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
+            } else {
+                #[cfg(feature = "ci-release")]
+                std::panic::set_hook(Box::new(|info| {
+                    error!("Panic: {:?}", info);
+                }));
 
-        // TODO: maybe we want to init this earlier?
-        initialize_logger();
+                // env_logger::init();
+                // TODO: zamyslet se
+                initialize_logger();
+            }
+        }
+
+
         srand(thread_rng().next_u64());
         set_main_camera_zoom(30.0);
 
@@ -361,9 +376,11 @@ impl EngineState {
             let handle = Sound::from_path("handle");
             let bytes = include_bytes!("../../assets/error.ogg");
 
-            let data =
-                StaticSoundData::from_cursor(std::io::Cursor::new(bytes), Default::default())
-                    .unwrap();
+            let data = StaticSoundData::from_cursor(
+                std::io::Cursor::new(bytes),
+                Default::default(),
+            )
+            .unwrap();
 
             assets.sound_ids.insert("error".to_string(), handle);
             assets.sounds.lock().insert(handle, data);
@@ -432,11 +449,8 @@ impl EngineState {
 
         AudioSystem::process_sounds();
 
-        let builder = if self.game_loop.is_none() {
-            self.builder.take()
-        } else {
-            None
-        };
+        let builder =
+            if self.game_loop.is_none() { self.builder.take() } else { None };
 
         let mut c = self.make_context();
 
@@ -503,7 +517,8 @@ impl EngineState {
                             ui.separator();
                         } else {
                             ui.horizontal(|ui| {
-                                let range = params.floats.get_mut(name).unwrap();
+                                let range =
+                                    params.floats.get_mut(name).unwrap();
                                 ui.label(*name);
 
                                 ui.add(
@@ -522,7 +537,8 @@ impl EngineState {
                     //     "Use spatial hashing",
                     // );
 
-                    let ints = ["bloom_alg", "physics_substeps", "tonemapping_alg"];
+                    let ints =
+                        ["bloom_alg", "physics_substeps", "tonemapping_alg"];
 
                     for name in ints.iter() {
                         if *name == "---" {
@@ -535,7 +551,9 @@ impl EngineState {
                                 ui.add(
                                     egui::DragValue::new(&mut range.value)
                                         .speed(0.1)
-                                        .clamp_range(range.min..=(range.max - 1)),
+                                        .clamp_range(
+                                            range.min..=(range.max - 1),
+                                        ),
                                 );
                             });
                         }
@@ -552,10 +570,16 @@ impl EngineState {
                 .title_bar(false)
                 .collapsible(false)
                 .show(c.egui, |ui| {
-                    ui.allocate_space(egui::vec2(0.0, 20.0 / egui_scale_factor()));
+                    ui.allocate_space(egui::vec2(
+                        0.0,
+                        20.0 / egui_scale_factor(),
+                    ));
 
                     let width = 300.0;
-                    let font = egui::FontId::new(26.0, egui::FontFamily::Name("james".into()));
+                    let font = egui::FontId::new(
+                        26.0,
+                        egui::FontFamily::Name("james".into()),
+                    );
 
                     let _params = ImageButtonParams {
                         font,
@@ -579,7 +603,8 @@ impl EngineState {
                         if ui
                             .add(
                                 egui::Button::new(
-                                    egui::RichText::new("Resume").color(WHITE.egui()),
+                                    egui::RichText::new("Resume")
+                                        .color(WHITE.egui()),
                                 )
                                 .fill(DARKGREEN.egui()),
                             )
@@ -590,12 +615,16 @@ impl EngineState {
                             *c.show_pause_menu = false;
                         }
 
-                        ui.allocate_space(egui::vec2(0.0, 5.0 / egui_scale_factor()));
+                        ui.allocate_space(egui::vec2(
+                            0.0,
+                            5.0 / egui_scale_factor(),
+                        ));
 
                         if ui
                             .add(
                                 egui::Button::new(
-                                    egui::RichText::new("Back to Main Menu").color(WHITE.egui()),
+                                    egui::RichText::new("Back to Main Menu")
+                                        .color(WHITE.egui()),
                                 )
                                 .fill(DARKRED.egui()),
                             )
@@ -604,11 +633,17 @@ impl EngineState {
                             error!("TODO :(");
                         }
 
-                        ui.allocate_space(egui::vec2(0.0, 20.0 / egui_scale_factor()));
+                        ui.allocate_space(egui::vec2(
+                            0.0,
+                            20.0 / egui_scale_factor(),
+                        ));
                     });
 
                     let _bg = nine_patch_rect_ex(
-                        egui::Rect::from_min_size(ui.clip_rect().left_top(), ui.min_size()),
+                        egui::Rect::from_min_size(
+                            ui.clip_rect().left_top(),
+                            ui.min_size(),
+                        ),
                         &mut c.cached_loader.borrow_mut(),
                         c.egui,
                         "panel-horizontal",
@@ -641,7 +676,9 @@ impl EngineState {
             transform.abs_scale = combined.scale;
         }
 
-        for (_, (transform, light)) in c.world_mut().query_mut::<(&Transform, &PointLight)>() {
+        for (_, (transform, light)) in
+            c.world_mut().query_mut::<(&Transform, &PointLight)>()
+        {
             add_light(Light::simple(
                 transform.position,
                 light.radius * light.radius_mod,
@@ -659,7 +696,9 @@ impl EngineState {
         let mut call_queue = vec![];
 
         if !*c.is_paused.borrow() {
-            for (entity, sprite) in c.world().query::<&mut AnimatedSprite>().iter() {
+            for (entity, sprite) in
+                c.world().query::<&mut AnimatedSprite>().iter()
+            {
                 if sprite.state.update_and_finished(c.delta) {
                     c.commands().despawn(entity);
 
@@ -689,7 +728,9 @@ impl EngineState {
         {
             let _span = span!("trails");
 
-            for (_, (trail, transform)) in c.world_mut().query_mut::<(&mut Trail, &Transform)>() {
+            for (_, (trail, transform)) in
+                c.world_mut().query_mut::<(&mut Trail, &Transform)>()
+            {
                 if !*c.is_paused.borrow() {
                     trail.update(transform.position, c.delta);
                 }
@@ -736,7 +777,8 @@ impl EngineState {
                 .iter()
                 .map(|(_, (sprite, transform))| sprite.to_quad_draw(transform));
 
-            let mut animated_sprite_query = world.query::<(&AnimatedSprite, &Transform)>();
+            let mut animated_sprite_query =
+                world.query::<(&AnimatedSprite, &Transform)>();
 
             let animated_sprite_iter = animated_sprite_query
                 .iter()
@@ -798,16 +840,11 @@ impl EngineState {
 
             // TODO: calculate world space font size
             for (text, position, color, size) in c.draw_mut().texts.drain(..) {
-                draw_text_ex(
-                    &text,
-                    position,
-                    TextAlign::Center,
-                    TextParams {
-                        color,
-                        font: egui::FontId::new(size, egui::FontFamily::Monospace),
-                        ..Default::default()
-                    },
-                );
+                draw_text_ex(&text, position, TextAlign::Center, TextParams {
+                    color,
+                    font: egui::FontId::new(size, egui::FontFamily::Monospace),
+                    ..Default::default()
+                });
             }
         }
 
@@ -825,9 +862,13 @@ impl EngineState {
                     ui.add_space(18.0);
 
                     ui.vertical_centered(|ui| {
-                        for notification in c.notifications.borrow_mut().notifications.iter() {
-                            let font =
-                                egui::FontId::new(16.0, egui::FontFamily::Name("james".into()));
+                        for notification in
+                            c.notifications.borrow_mut().notifications.iter()
+                        {
+                            let font = egui::FontId::new(
+                                16.0,
+                                egui::FontFamily::Name("james".into()),
+                            );
 
                             ui.add(egui::Label::new(
                                 egui::RichText::new(&notification.text)
@@ -853,7 +894,9 @@ impl EngineState {
                     // ui.painter().set(background_shape, bg);
                 });
         }
-        if cfg!(feature = "dev") && c.config().dev.recording_mode == RecordingMode::None {
+        if cfg!(feature = "dev") &&
+            c.config().dev.recording_mode == RecordingMode::None
+        {
             let errors = ERRORS.borrow();
 
             if !errors.data.is_empty() {
@@ -869,9 +912,9 @@ impl EngineState {
             }
         }
 
-        if cfg!(feature = "dev")
-            && c.config().dev.show_fps
-            && c.config().dev.recording_mode == RecordingMode::None
+        if cfg!(feature = "dev") &&
+            c.config().dev.show_fps &&
+            c.config().dev.recording_mode == RecordingMode::None
         {
             let _span = span!("perf counters");
 
@@ -885,7 +928,10 @@ impl EngineState {
                     let real_fps = get_fps();
 
                     let fps_color = if real_fps < 55 { RED } else { WHITE };
-                    ui.colored_label(fps_color.egui(), format!("FPS (real): {:.0}", real_fps));
+                    ui.colored_label(
+                        fps_color.egui(),
+                        format!("FPS (real): {:.0}", real_fps),
+                    );
 
                     ui.separator();
 
@@ -918,7 +964,9 @@ impl EngineState {
 
                     let mut particles = 0;
 
-                    for (_, particle_system) in c.world_mut().query_mut::<&ParticleSystem>() {
+                    for (_, particle_system) in
+                        c.world_mut().query_mut::<&ParticleSystem>()
+                    {
                         particles += particle_system.particles.len();
                     }
 
@@ -983,10 +1031,18 @@ impl EngineState {
 
                         jemalloc_ctl::epoch::advance().unwrap();
 
-                        let allocated = jemalloc_ctl::stats::allocated::read().unwrap();
-                        let resident = jemalloc_ctl::stats::resident::read().unwrap();
-                        ui.label(format!("{} MB allocated", allocated / (1024 * 1024)));
-                        ui.label(format!("{} MB resident", resident / (1024 * 1024)));
+                        let allocated =
+                            jemalloc_ctl::stats::allocated::read().unwrap();
+                        let resident =
+                            jemalloc_ctl::stats::resident::read().unwrap();
+                        ui.label(format!(
+                            "{} MB allocated",
+                            allocated / (1024 * 1024)
+                        ));
+                        ui.label(format!(
+                            "{} MB resident",
+                            resident / (1024 * 1024)
+                        ));
                     }
                 });
         }

@@ -114,17 +114,26 @@ impl WgpuRenderer {
 
         trace!("Requesting device");
 
+        #[cfg(not(target_arch = "wasm32"))]
+        let limits = wgpu::Limits {
+            max_texture_dimension_2d: 4096,
+            max_push_constant_size: 4,
+            ..wgpu::Limits::downlevel_defaults()
+        };
+
+        #[cfg(target_arch = "wasm32")]
+        let limits = wgpu::Limits {
+            max_texture_dimension_2d: 4096,
+            max_push_constant_size: 4,
+            ..wgpu::Limits::downlevel_webgl2_defaults()
+        };
+
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     // features: wgpu::Features::empty(),
                     features: wgpu::Features::PUSH_CONSTANTS,
-                    limits: wgpu::Limits {
-                        max_texture_dimension_2d: 4096,
-                        max_push_constant_size: 4,
-                        // ..wgpu::Limits::downlevel_webgl2_defaults()
-                        ..wgpu::Limits::downlevel_defaults()
-                    },
+                    limits,
                     label: None,
                 },
                 None,
@@ -166,9 +175,10 @@ impl WgpuRenderer {
             format: monitor_surface_format,
             width: size.width,
             height: size.height,
-            // TODO: fifo in release?
+            #[cfg(not(target_arch = "wasm32"))]
             present_mode: wgpu::PresentMode::Immediate,
-            // present_mode: wgpu::PresentMode::Fifo,
+            #[cfg(target_arch = "wasm32")]
+            present_mode: wgpu::PresentMode::Fifo,
             // TODO: not in build?
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
