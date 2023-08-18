@@ -360,12 +360,9 @@ impl EngineState {
                     error!("Panic: {:?}", info);
                 }));
 
-                // env_logger::init();
-                // TODO: zamyslet se
                 initialize_logger();
             }
         }
-
 
         srand(thread_rng().next_u64());
         set_main_camera_zoom(30.0);
