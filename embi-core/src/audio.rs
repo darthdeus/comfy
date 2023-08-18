@@ -41,7 +41,7 @@ pub fn play_random_sound(base_id: &str, amount: i32) {
 }
 
 pub fn play_music(id: &str) {
-    AudioSystem::get_mut().play_music(sound_id(id))
+    play_sound_id(sound_id(id));
 }
 
 pub fn play_sound_id(sound: Sound) {
@@ -67,8 +67,13 @@ pub struct PlaySoundCommand {
     pub settings: StaticSoundSettings,
 }
 
-pub static AUDIO_SYSTEM: Lazy<Mutex<AudioSystem>> =
-    Lazy::new(|| Mutex::new(AudioSystem::new()));
+thread_local! {
+    static AUDIO_SYSTEM: Lazy<RefCell<AudioSystem>> =
+        Lazy::new(|| RefCell::new(AudioSystem::new()));
+}
+
+// pub static AUDIO_SYSTEM: Lazy<Mutex<AudioSystem>> =
+//     Lazy::new(|| Mutex::new(AudioSystem::new()));
 
 // unsafe impl Sync for AudioSystem {}
 // unsafe impl Send for AudioSystem {}
@@ -233,19 +238,25 @@ impl AudioSystem {
         Self { system }
     }
 
-    pub fn get() -> impl Deref<Target = Self> {
-        AUDIO_SYSTEM.lock()
-    }
-
-    pub fn get_mut() -> impl DerefMut<Target = Self> {
-        AUDIO_SYSTEM.lock()
-    }
+    // pub fn get() -> impl Deref<Target = Self> {
+    //     AUDIO_SYSTEM.lock()
+    // }
+    //
+    // pub fn get_mut() -> impl DerefMut<Target = Self> {
+    //     AUDIO_SYSTEM.lock()
+    // }
 
     pub fn process_sounds() {
-        let mut audio = AudioSystem::get_mut();
-        if let Some(system) = audio.system.as_mut() {
-            system.process_sounds();
-        }
+        AUDIO_SYSTEM.with(|audio| {
+            if let Some(system) = audio.borrow_mut().system.as_mut() {
+                system.process_sounds();
+            }
+        });
+
+        // let mut audio = AudioSystem::get_mut();
+        // if let Some(system) = audio.system.as_mut() {
+        //     system.process_sounds();
+        // }
     }
 
     pub fn play_sound(
@@ -253,13 +264,15 @@ impl AudioSystem {
         settings: Option<StaticSoundSettings>,
         track: AudioTrack,
     ) {
-        let mut audio = AudioSystem::get_mut();
-        if let Some(system) = audio.system.as_mut() {
-            system.play_sound(sound, settings, track);
-        }
-    }
+        AUDIO_SYSTEM.with(|audio| {
+            if let Some(system) = audio.borrow_mut().system.as_mut() {
+                system.play_sound(sound, settings, track);
+            }
+        });
 
-    pub fn play_music(&mut self, sound: Sound) {
-        play_sound_id(sound);
+        // let mut audio = AudioSystem::get_mut();
+        // if let Some(system) = audio.system.as_mut() {
+        //     system.play_sound(sound, settings, track);
+        // }
     }
 }

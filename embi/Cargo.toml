@@ -25,5 +25,3 @@ embi-wgpu = { path = "../embi-wgpu" }
 embi-core = { path = "../embi-core" }
 
 # blobs = { git = "https://github.com/darthdeus/blobs" }
-
-mlua = { version = "0.8.9", features = ["lua54", "vendored"] }

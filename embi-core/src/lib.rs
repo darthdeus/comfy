@@ -6,13 +6,17 @@ mod audio;
 mod blood_canvas;
 mod camera;
 mod config;
+#[cfg(not(target_arch = "wasm32"))]
+mod desktop;
 mod errors;
 mod events;
 mod fast_sprite;
 mod global_state;
+#[cfg(not(target_arch = "wasm32"))]
 mod hot_reload;
 mod input;
 mod lighting;
+#[cfg(feature = "lua")]
 mod lua_export;
 mod math;
 mod perf_counters;
@@ -23,18 +27,23 @@ mod text;
 mod timer;
 mod tween;
 
+
 pub use crate::assets::*;
 pub use crate::audio::*;
 pub use crate::blood_canvas::*;
 pub use crate::camera::*;
 pub use crate::config::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::desktop::*;
 pub use crate::errors::*;
 pub use crate::events::*;
 pub use crate::fast_sprite::*;
 pub use crate::global_state::*;
+#[cfg(not(target_arch = "wasm32"))]
 pub use crate::hot_reload::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
+#[cfg(feature = "lua")]
 pub use crate::lua_export::*;
 pub use crate::math::*;
 pub use crate::perf_counters::*;
@@ -49,9 +58,6 @@ pub use std::any::Any;
 pub use std::collections::VecDeque;
 pub use std::hash::{Hash, Hasher};
 pub use std::num::NonZeroU32;
-
-pub use mlua;
-pub use mlua::{Table, UserData};
 
 pub const Z_BLOOD_CANVAS: i32 = 4;
 
@@ -68,7 +74,6 @@ pub use std::{
     sync::Arc,
 };
 
-pub use pollster;
 pub use rand::seq::SliceRandom;
 
 pub use arrayvec;
@@ -77,9 +82,6 @@ pub use tinyvec;
 
 pub use bimap::BiHashMap;
 pub use pid::Pid;
-
-pub use cosync;
-pub use cosync::{Cosync, CosyncInput};
 
 pub use std::time::{Duration, Instant};
 
@@ -130,9 +132,6 @@ pub use num_complex::Complex;
 pub use nanoserde;
 pub use nanoserde::{DeJson, SerJson};
 
-pub use rayon;
-pub use rayon::prelude::*;
-pub use spin_sleep::{self, LoopHelper};
 #[cfg(feature = "tracy")]
 pub use tracy_client;
 pub use winit::{
@@ -171,6 +170,13 @@ pub use ::rand::{
     distributions::Distribution, distributions::WeightedIndex,
     seq::IteratorRandom, thread_rng,
 };
+
+#[cfg(target_arch = "wasm32")]
+pub use wasm_bindgen;
+#[cfg(target_arch = "wasm32")]
+pub use wasm_bindgen_futures;
+#[cfg(target_arch = "wasm32")]
+pub use web_sys;
 
 pub use anymap::AnyMap;
 pub use bitflags::bitflags;
@@ -514,8 +520,6 @@ pub enum BlendMode {
     Additive,
     Alpha,
 }
-
-impl UserData for BlendMode {}
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextureParams {
@@ -983,6 +987,8 @@ pub trait Vec2Extensions {
     fn as_transform(&self) -> Transform;
     fn egui(&self) -> egui::Vec2;
     fn egui_pos(&self) -> egui::Pos2;
+
+    #[cfg(feature = "lua")]
     fn lua(&self) -> LuaVec2;
 }
 
@@ -1025,6 +1031,7 @@ impl Vec2Extensions for Vec2 {
         egui::pos2(self.x, self.y)
     }
 
+    #[cfg(feature = "lua")]
     fn lua(&self) -> LuaVec2 {
         LuaVec2(*self)
     }

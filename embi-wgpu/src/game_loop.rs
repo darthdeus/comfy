@@ -3,7 +3,7 @@ use winit::event_loop::ControlFlow;
 use crate::*;
 
 pub async fn wgpu_game_loop(
-    mut loop_helper: LoopHelper,
+    #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
     mut game_state: Box<dyn RunGameLoop>,
 ) {
     let event_loop = winit::event_loop::EventLoop::new();
@@ -24,6 +24,7 @@ pub async fn wgpu_game_loop(
         match event {
             Event::MainEventsCleared => {
                 let _span = span!("frame with vsync");
+                #[cfg(not(target_arch = "wasm32"))]
                 let _ = loop_helper.loop_start();
                 let frame_start = Instant::now();
 
@@ -39,6 +40,7 @@ pub async fn wgpu_game_loop(
                 set_frame_time(frame_start.elapsed().as_secs_f32());
 
                 let _span = span!("loop_sleep");
+                #[cfg(not(target_arch = "wasm32"))]
                 loop_helper.loop_sleep();
                 delta = frame_start.elapsed().as_secs_f32();
                 delta = delta.clamp(1.0 / 300.0, 1.0 / 15.0);

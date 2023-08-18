@@ -54,6 +54,7 @@ pub use embi_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn run_embi_main(run_game_loop: Box<dyn RunGameLoop>) {
     pollster::block_on(run_embi_main_async(run_game_loop));
 }
@@ -100,10 +101,16 @@ pub async fn run_embi_main_async(game_state: Box<dyn RunGameLoop>) {
     // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
     let target_framerate = 60;
 
+    #[cfg(not(target_arch = "wasm32"))]
     let loop_helper = spin_sleep::LoopHelper::builder()
         .build_with_target_rate(target_framerate);
 
-    wgpu_game_loop(loop_helper, game_state).await;
+    wgpu_game_loop(
+        #[cfg(not(target_arch = "wasm32"))]
+        loop_helper,
+        game_state,
+    )
+    .await;
 }
 
 pub fn timed_two_frames(

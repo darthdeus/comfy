@@ -101,6 +101,7 @@ pub struct Assets {
 
     pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
     pub current_queue: Arc<Mutex<Option<TextureLoadQueue>>>,
 
@@ -121,7 +122,9 @@ impl Assets {
 
         std::thread::spawn(move || {
             while let Ok(texture_queue) = recv.recv() {
-                // *queue.lock() = None;
+                #[cfg(target_arch = "wasm32")]
+                let iter = texture_queue.into_iter();
+                #[cfg(not(target_arch = "wasm32"))]
                 let iter = texture_queue.into_par_iter();
 
                 let texture_queue: Vec<_> = iter
@@ -186,12 +189,13 @@ impl Assets {
         let sounds_inner = sounds.clone();
 
         std::thread::spawn(move || {
+            #[cfg(not(target_arch = "wasm32"))]
             let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
             while let Ok(item) = rx_sound.recv() {
                 let sounds = sounds_inner.clone();
 
-                pool.install(move || {
+                let sound_loop = move || {
                     // TODO: do this properly
                     let settings = if item.path.contains("music") {
                         StaticSoundSettings::new().loop_region(..)
@@ -214,7 +218,13 @@ impl Assets {
                             );
                         }
                     }
-                });
+                };
+
+                #[cfg(target_arch = "wasm32")]
+                sound_loop();
+
+                #[cfg(not(target_arch = "wasm32"))]
+                pool.install(sound_loop);
             }
         });
 
@@ -231,6 +241,7 @@ impl Assets {
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
 
+            #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
             current_queue,

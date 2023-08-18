@@ -1,2 +1,3 @@
 default:
-	cargo test
+	make -C ~/projects/demos
+	# cargo test

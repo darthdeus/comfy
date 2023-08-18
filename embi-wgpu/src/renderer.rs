@@ -32,7 +32,7 @@ pub struct WgpuRenderer {
     pub context: GraphicsContext,
 
     pub surface: wgpu::Surface,
-    #[cfg(not(feature = "ci-release"))]
+    #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
     pub hot_reload: HotReload,
 
     pub config: wgpu::SurfaceConfiguration,
@@ -682,15 +682,14 @@ impl WgpuRenderer {
         let textures_inner = textures.clone();
 
         std::thread::spawn(move || {
+            #[cfg(not(target_arch = "wasm32"))]
             let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
-
-            // if true { return; }
 
             while let Ok(loaded_image) = rx_texture.recv() {
                 let context = context_inner.clone();
                 let textures = textures_inner.clone();
 
-                pool.install(|| {
+                let texture_loop = || {
                     let texture = Texture::from_image(
                         &context.device,
                         &context.queue,
@@ -709,7 +708,13 @@ impl WgpuRenderer {
                     textures
                         .lock()
                         .insert(loaded_image.handle, (bind_group, texture));
-                });
+                };
+
+                #[cfg(target_arch = "wasm32")]
+                texture_loop();
+
+                #[cfg(not(target_arch = "wasm32"))]
+                pool.install(texture_loop);
             }
         });
 
@@ -732,7 +737,7 @@ impl WgpuRenderer {
 
             pipelines: HashMap::new(),
             shaders: load_shaders(),
-            #[cfg(not(feature = "ci-release"))]
+            #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 
             vertex_buffer,
@@ -793,7 +798,7 @@ impl WgpuRenderer {
     pub fn render_post_processing(
         &mut self,
         screen_view: &wgpu::TextureView,
-        params: &GlobalLightingParams,
+        _params: &GlobalLightingParams,
     ) {
         let _span = span!("render_post_processing");
         let mut encoder = self.device.simple_encoder("Post Processing Encoder");
@@ -864,11 +869,11 @@ impl WgpuRenderer {
             input_bind_group = &effect.bind_group;
         }
 
-        self.bloom.blit_final(
-            &mut encoder,
-            &self.tonemapping_texture.view,
-            params,
-        );
+        // self.bloom.blit_final(
+        //     &mut encoder,
+        //     &self.tonemapping_texture.view,
+        //     params,
+        // );
 
         let tonemapping_pipeline =
             self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
@@ -1450,7 +1455,7 @@ impl WgpuRenderer {
             // self.window.center();
         }
 
-        #[cfg(not(feature = "ci-release"))]
+        #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
         if self.hot_reload.maybe_reload_shaders() {
             self.shaders = load_shaders();
             self.pipelines.clear();
