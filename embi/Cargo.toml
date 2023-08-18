@@ -19,6 +19,7 @@ tracy = ["embi-core/tracy", "embi-wgpu/tracy"]
 # tracy = ["embi-core/tracy", "blobs/tracy", "embi-wgpu/tracy"]
 
 jemalloc = ["embi-core/jemalloc"]
+lua = ["embi-core/lua"]
 
 [dependencies]
 embi-wgpu = { path = "../embi-wgpu" }

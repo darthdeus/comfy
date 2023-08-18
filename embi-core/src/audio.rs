@@ -68,7 +68,7 @@ pub struct PlaySoundCommand {
 }
 
 thread_local! {
-    static AUDIO_SYSTEM: Lazy<RefCell<AudioSystem>> =
+    pub static AUDIO_SYSTEM: Lazy<RefCell<AudioSystem>> =
         Lazy::new(|| RefCell::new(AudioSystem::new()));
 }
 

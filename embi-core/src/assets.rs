@@ -154,24 +154,6 @@ impl Assets {
                     })
                     .collect();
 
-                // let texture_queue = texture_queue
-                //     .into_iter()
-                //     .filter_map(|(path, handle, image)| {
-                //         if let Some(image) = image {
-                //             if image.width() == 0 || image.height() == 0 {
-                //                 error!("Image {} has 0 width or height", path);
-                //                 None
-                //             } else {
-                //                 image_map_inner
-                //                     .lock()
-                //                     .insert(handle, image.clone());
-                //                 Some((path, handle, image.clone()))
-                //             }
-                //         } else {
-                //         }
-                //     })
-                //     .collect_vec();
-
                 let mut queue = current_queue_inner.lock();
 
                 if let Some(queue) = queue.as_mut() {
@@ -181,6 +163,25 @@ impl Assets {
                 }
             }
         });
+
+        // let texture_queue = texture_queue
+        //     .into_iter()
+        //     .filter_map(|(path, handle, image)| {
+        //         if let Some(image) = image {
+        //             if image.width() == 0 || image.height() == 0 {
+        //                 error!("Image {} has 0 width or height", path);
+        //                 None
+        //             } else {
+        //                 image_map_inner
+        //                     .lock()
+        //                     .insert(handle, image.clone());
+        //                 Some((path, handle, image.clone()))
+        //             }
+        //         } else {
+        //         }
+        //     })
+        //     .collect_vec();
+
 
         let (tx_sound, rx_sound) =
             std::sync::mpsc::channel::<LoadSoundRequest>();

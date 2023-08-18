@@ -1,4 +1,4 @@
-use std::sync::mpsc::{channel, Sender};
+use std::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::*;
 
@@ -86,8 +86,12 @@ pub struct WgpuRenderer {
 
     pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
 
-    pub textures: Arc<Mutex<TextureMap>>,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub thread_pool: rayon::ThreadPool,
+    pub rx_texture: Receiver<LoadedImage>,
     pub tx_texture: Sender<LoadedImage>,
+
+    pub textures: Arc<Mutex<TextureMap>>,
 }
 
 impl WgpuRenderer {
@@ -677,47 +681,6 @@ impl WgpuRenderer {
 
         let (tx_texture, rx_texture) = channel::<LoadedImage>();
 
-        let context_inner = context.clone();
-        let tbgl = texture_bind_group_layout.clone();
-        let textures_inner = textures.clone();
-
-        std::thread::spawn(move || {
-            #[cfg(not(target_arch = "wasm32"))]
-            let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
-
-            while let Ok(loaded_image) = rx_texture.recv() {
-                let context = context_inner.clone();
-                let textures = textures_inner.clone();
-
-                let texture_loop = || {
-                    let texture = Texture::from_image(
-                        &context.device,
-                        &context.queue,
-                        &loaded_image.image,
-                        Some(&loaded_image.path),
-                        false,
-                    )
-                    .unwrap();
-
-                    let bind_group = context.device.simple_bind_group(
-                        &format!("{}_bind_group", loaded_image.path),
-                        &texture,
-                        &tbgl,
-                    );
-
-                    textures
-                        .lock()
-                        .insert(loaded_image.handle, (bind_group, texture));
-                };
-
-                #[cfg(target_arch = "wasm32")]
-                texture_loop();
-
-                #[cfg(not(target_arch = "wasm32"))]
-                pool.install(texture_loop);
-            }
-        });
-
         // TODO: resize
 
         let depth_texture = Texture::create_depth_texture(
@@ -731,9 +694,13 @@ impl WgpuRenderer {
             queue: context.queue.clone(),
             surface,
 
-            depth_texture: Arc::new(depth_texture),
+            #[cfg(not(target_arch = "wasm32"))]
+            thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
+            rx_texture,
             tx_texture,
+
+            depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
             shaders: load_shaders(),
@@ -1421,6 +1388,48 @@ impl WgpuRenderer {
 
             changed_recording_mode = true;
         }
+
+
+        // Load textures
+        {
+            while let Ok(loaded_image) = self.rx_texture.try_recv() {
+                let context = self.context.clone();
+                let textures = self.textures.clone();
+                let tbgl = self.texture_bind_group_layout.clone();
+
+                // let context_inner = context.clone();
+                // let tbgl = texture_bind_group_layout.clone();
+                // let textures_inner = textures.clone();
+
+                let texture_loop = || {
+                    let texture = Texture::from_image(
+                        &context.device,
+                        &context.queue,
+                        &loaded_image.image,
+                        Some(&loaded_image.path),
+                        false,
+                    )
+                    .unwrap();
+
+                    let bind_group = context.device.simple_bind_group(
+                        &format!("{}_bind_group", loaded_image.path),
+                        &texture,
+                        &tbgl,
+                    );
+
+                    textures
+                        .lock()
+                        .insert(loaded_image.handle, (bind_group, texture));
+                };
+
+                #[cfg(target_arch = "wasm32")]
+                texture_loop();
+
+                #[cfg(not(target_arch = "wasm32"))]
+                self.thread_pool.install(texture_loop);
+            }
+        }
+
 
         if changed_recording_mode {
             info!("Recording Mode: {:?}", params.config.dev.recording_mode);
