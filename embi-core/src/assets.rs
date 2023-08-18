@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Sender, Receiver};
 
 use crate::*;
 
@@ -100,6 +100,7 @@ pub struct Assets {
     pub sound_groups: HashMap<String, Vec<Sound>>,
 
     pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
+    pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
 
     #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
@@ -187,14 +188,42 @@ impl Assets {
             std::sync::mpsc::channel::<LoadSoundRequest>();
 
         let sounds = Arc::new(Mutex::new(HashMap::new()));
-        let sounds_inner = sounds.clone();
+        // let sounds_inner = sounds.clone();
 
-        std::thread::spawn(move || {
+        Self {
+            texture_send: Arc::new(Mutex::new(send)),
+            sound_send: Arc::new(Mutex::new(tx_sound)),
+            sound_recv: Arc::new(Mutex::new(rx_sound)),
+
+            textures: Default::default(),
+            texture_load_queue: Default::default(),
+            texture_image_map: image_map,
+
+            sound_ids: HashMap::default(),
+            sounds,
+            sound_handles: HashMap::default(),
+            sound_groups: HashMap::default(),
+
+            #[cfg(not(target_arch = "wasm32"))]
+            thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
+
+            current_queue,
+
+            sound_load_queue: vec![],
+
+            asset_source: None,
+        }
+    }
+
+    pub fn process_load_queue(&mut self) {
+        let _span = span!("process_load_queue");
+
+        {
             #[cfg(not(target_arch = "wasm32"))]
             let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
-            while let Ok(item) = rx_sound.recv() {
-                let sounds = sounds_inner.clone();
+            while let Ok(item) = self.sound_recv.lock().try_recv() {
+                let sounds = self.sounds.clone();
 
                 let sound_loop = move || {
                     // TODO: do this properly
@@ -227,34 +256,7 @@ impl Assets {
                 #[cfg(not(target_arch = "wasm32"))]
                 pool.install(sound_loop);
             }
-        });
-
-        Self {
-            texture_send: Arc::new(Mutex::new(send)),
-            sound_send: Arc::new(Mutex::new(tx_sound)),
-
-            textures: Default::default(),
-            texture_load_queue: Default::default(),
-            texture_image_map: image_map,
-
-            sound_ids: HashMap::default(),
-            sounds,
-            sound_handles: HashMap::default(),
-            sound_groups: HashMap::default(),
-
-            #[cfg(not(target_arch = "wasm32"))]
-            thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
-
-            current_queue,
-
-            sound_load_queue: vec![],
-
-            asset_source: None,
         }
-    }
-
-    pub fn process_load_queue(&mut self) {
-        let _span = span!("process_load_queue");
 
         let loaded_textures = self
             .texture_image_map
