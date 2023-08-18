@@ -1,4 +1,4 @@
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::{Receiver, Sender};
 
 use crate::*;
 
@@ -82,7 +82,8 @@ pub fn init_asset_source(
 }
 
 pub struct Assets {
-    pub texture_send: Arc<Mutex<std::sync::mpsc::Sender<Vec<LoadRequest>>>>,
+    pub texture_send: Arc<Mutex<Sender<Vec<LoadRequest>>>>,
+    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadRequest>>>>,
 
     pub textures: HashMap<String, TextureHandle>,
     pub texture_load_queue: Vec<(String, String)>,
@@ -116,54 +117,8 @@ impl Assets {
         let (send, recv) = std::sync::mpsc::channel::<Vec<LoadRequest>>();
 
         let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
-        let current_queue_inner = current_queue.clone();
 
         let image_map = Arc::new(Mutex::new(HashMap::new()));
-        let image_map_inner = image_map.clone();
-
-        std::thread::spawn(move || {
-            while let Ok(texture_queue) = recv.recv() {
-                #[cfg(target_arch = "wasm32")]
-                let iter = texture_queue.into_iter();
-                #[cfg(not(target_arch = "wasm32"))]
-                let iter = texture_queue.into_par_iter();
-
-                let texture_queue: Vec<_> = iter
-                    .filter_map(|request| {
-                        let image = image::load_from_memory(&request.bytes);
-
-                        match image {
-                            Ok(image) => {
-                                image_map_inner
-                                    .lock()
-                                    .insert(request.handle, image.clone());
-
-                                Some(LoadedImage {
-                                    path: request.path,
-                                    handle: request.handle,
-                                    image,
-                                })
-                            }
-                            Err(err) => {
-                                error!(
-                                    "Failed to load {} ... {}",
-                                    request.path, err
-                                );
-                                None
-                            }
-                        }
-                    })
-                    .collect();
-
-                let mut queue = current_queue_inner.lock();
-
-                if let Some(queue) = queue.as_mut() {
-                    queue.extend(texture_queue);
-                } else {
-                    *queue = Some(texture_queue);
-                }
-            }
-        });
 
         // let texture_queue = texture_queue
         //     .into_iter()
@@ -192,6 +147,8 @@ impl Assets {
 
         Self {
             texture_send: Arc::new(Mutex::new(send)),
+            texture_recv: Arc::new(Mutex::new(recv)),
+
             sound_send: Arc::new(Mutex::new(tx_sound)),
             sound_recv: Arc::new(Mutex::new(rx_sound)),
 
@@ -217,8 +174,55 @@ impl Assets {
 
     pub fn process_load_queue(&mut self) {
         let _span = span!("process_load_queue");
+        {
+            while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
+                #[cfg(target_arch = "wasm32")]
+                let iter = texture_queue.into_iter();
+                #[cfg(not(target_arch = "wasm32"))]
+                let iter = texture_queue.into_par_iter();
+
+                let image_map = self.texture_image_map.clone();
+                let current_queue = self.current_queue.clone();
+
+                let texture_queue: Vec<_> = iter
+                    .filter_map(|request| {
+                        let image = image::load_from_memory(&request.bytes);
+
+                        match image {
+                            Ok(image) => {
+                                image_map
+                                    .lock()
+                                    .insert(request.handle, image.clone());
+
+                                Some(LoadedImage {
+                                    path: request.path,
+                                    handle: request.handle,
+                                    image,
+                                })
+                            }
+                            Err(err) => {
+                                error!(
+                                    "Failed to load {} ... {}",
+                                    request.path, err
+                                );
+                                None
+                            }
+                        }
+                    })
+                    .collect();
+
+                let mut queue = current_queue.lock();
+
+                if let Some(queue) = queue.as_mut() {
+                    queue.extend(texture_queue);
+                } else {
+                    *queue = Some(texture_queue);
+                }
+            }
+        }
 
         {
+            // TODO: don't start threadpool in process
             #[cfg(not(target_arch = "wasm32"))]
             let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
