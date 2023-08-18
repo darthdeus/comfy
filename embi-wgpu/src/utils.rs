@@ -9,7 +9,7 @@ macro_rules! reloadable_wgsl_shader {
         ));
 
         cfg_if! {
-            if #[cfg(feature = "ci-release")] {
+            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let shader = include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
                     "/../assets/shaders/", $name, ".wgsl"));
@@ -57,7 +57,7 @@ macro_rules! reloadable_wgsl_fragment_shader {
         //     .expect(&format!("shader at {path} must exist"));
 
         cfg_if! {
-            if #[cfg(feature = "ci-release")] {
+            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let frag_part =
                     include_str!(concat!(
                         env!("CARGO_MANIFEST_DIR"),

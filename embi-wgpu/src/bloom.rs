@@ -314,6 +314,7 @@ impl Bloom {
                 // self.gl.bind_texture(glow::TEXTURE_2D, Some(tex));
                 // draw_quad(&self.gl);
 
+                // TODO: without push constants we need to pass this in a uniform
                 let horizontal_u: u32 = i as u32;
 
                 draw_post_processing_output(
@@ -326,7 +327,8 @@ impl Bloom {
                     &self.pingpong[i].texture.view,
                     true,
                     None,
-                    Some(bytemuck::cast_slice(&[horizontal_u])),
+                    None,
+                    // Some(bytemuck::cast_slice(&[horizontal_u])),
                 );
 
                 horizontal = !horizontal;
