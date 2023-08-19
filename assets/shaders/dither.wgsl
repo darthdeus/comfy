@@ -13,7 +13,7 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
     // var randomValue = fract(sin(dot(uv + vec2<f32>(noise), vec2<f32>(12.9898, 78.233))) * 43758.5453);
     var randomValue = fract(sin(dot(uv + vec2<f32>(uv), vec2<f32>(12.9898, 78.233))) * (43758.5453 + noise));
 
-    let dither_enabled = false;
+    let dither_enabled = true;
 
     // return vec4<f32>(randomValue, randomValue, randomValue, 1.0);
 
