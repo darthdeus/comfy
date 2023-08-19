@@ -56,7 +56,8 @@ pub fn set_main_camera_zoom(zoom: f32) {
 
 
 pub fn egui_scale_factor() -> f32 {
-    GLOBAL_STATE.borrow().egui_scale_factor
+    // GLOBAL_STATE.borrow().egui_scale_factor
+    1.0
 }
 
 pub fn world_to_gl_screen(position: Vec2) -> Vec2 {

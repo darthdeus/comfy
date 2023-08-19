@@ -470,7 +470,8 @@ impl WgpuRenderer {
             1,
             config.width,
             config.height,
-            window.scale_factor() as f32,
+            // window.scale_factor() as f32,
+            1.0,
         );
 
         info!("Initializing with scale factor: {}", window.scale_factor());
@@ -1654,13 +1655,15 @@ impl WgpuRenderer {
     }
 
     pub fn scale_factor(&self) -> f32 {
-        self.window.scale_factor() as f32
+        // self.window.scale_factor() as f32
+        1.0
     }
 
     pub fn resize(&mut self, new_size: UVec2) {
         let _span = span!("resize");
 
-        let scale_factor = self.window.scale_factor() as f32;
+        // let scale_factor = self.window.scale_factor() as f32;
+        let scale_factor = 1.0;
 
         let new_size =
             winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);

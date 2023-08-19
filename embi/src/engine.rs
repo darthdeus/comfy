@@ -20,7 +20,8 @@ impl RunGameLoop for EngineState {
             let mut state = GLOBAL_STATE.borrow_mut();
 
             set_time(get_time() + delta as f64);
-            state.egui_scale_factor = self.egui().pixels_per_point();
+            // state.egui_scale_factor = self.egui().pixels_per_point();
+            state.egui_scale_factor = 1.0;
             state.fps = (1.0 / delta) as i32;
         }
 
