@@ -1469,6 +1469,7 @@ dependencies = [
 [[package]]
 name = "koryto"
 version = "0.1.1"
+source = "git+https://github.com/darthdeus/koryto#7ecd3ded18b89f1fd8b4759ac151d36747a98eef"
 dependencies = [
  "futures",
  "thunderdome",
