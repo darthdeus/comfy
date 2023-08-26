@@ -23,6 +23,7 @@ pub async fn wgpu_game_loop(
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
+        info!("scale factor = {}", window.scale_factor());
         window.set_inner_size(PhysicalSize::new(wasm_width, wasm_height));
 
         use winit::platform::web::WindowExtWebSys;

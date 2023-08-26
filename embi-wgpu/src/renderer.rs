@@ -624,7 +624,7 @@ impl WgpuRenderer {
         // make_effect!("film-grain");
 
         // make_effect!("copy");
-        make_effect!("dither");
+        // make_effect!("dither");
         make_effect!("copy");
 
         // make_effect!("palette");

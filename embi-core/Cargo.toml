@@ -38,7 +38,7 @@ epaint = "0.22.0"
 egui-winit = { version = "0.22.0", optional = true, default-features = false, features = [
 ] }
 
-koryto = { git = "https://github.com/darthdeus/koryto" }
+# koryto = { git = "https://github.com/darthdeus/koryto" }
 # koryto = { path = "../../koryto" }
 
 include_dir = { git = "https://github.com/darthdeus/include_dir" }
