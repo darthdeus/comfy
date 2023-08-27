@@ -1,7 +1,7 @@
-// struct PushConstants {
-//     horizontal: u32,
-// };
-// var<push_constant> push_constants: PushConstants;
+struct PushConstants {
+    horizontal: u32,
+};
+var<push_constant> push_constants: PushConstants;
 
 @fragment
 fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
@@ -19,17 +19,17 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
 
     // let horizontal = 1u;
 
-    // if (push_constants.horizontal == 1u) {
+    if (push_constants.horizontal == 1u) {
         for (var i: u32 = 1u; i < 5u; i = i + 1u) {
             result += textureSample(r_color, r_sampler, vertex.tex_coords + vec2<f32>(tex_offset.x * f32(i), 0.0)).rgb * weight[i];
             result += textureSample(r_color, r_sampler, vertex.tex_coords - vec2<f32>(tex_offset.x * f32(i), 0.0)).rgb * weight[i];
         }
-    // } else {
-    //     for (var i: u32 = 1u; i < 5u; i = i + 1u) {
-    //         result += textureSample(r_color, r_sampler, vertex.tex_coords + vec2<f32>(0.0, tex_offset.y * f32(i))).rgb * weight[i];
-    //         result += textureSample(r_color, r_sampler, vertex.tex_coords - vec2<f32>(0.0, tex_offset.y * f32(i))).rgb * weight[i];
-    //     }
-    // }
+    } else {
+        for (var i: u32 = 1u; i < 5u; i = i + 1u) {
+            result += textureSample(r_color, r_sampler, vertex.tex_coords + vec2<f32>(0.0, tex_offset.y * f32(i))).rgb * weight[i];
+            result += textureSample(r_color, r_sampler, vertex.tex_coords - vec2<f32>(0.0, tex_offset.y * f32(i))).rgb * weight[i];
+        }
+    }
 
     return vec4<f32>(result, 1.0);
 }

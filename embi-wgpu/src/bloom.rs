@@ -327,8 +327,10 @@ impl Bloom {
                     &self.pingpong[i].texture.view,
                     true,
                     None,
+                    #[cfg(feature = "push-constants")]
+                    Some(bytemuck::cast_slice(&[horizontal_u])),
+                    #[cfg(not(feature = "push-constants"))]
                     None,
-                    // Some(bytemuck::cast_slice(&[horizontal_u])),
                 );
 
                 horizontal = !horizontal;
@@ -340,7 +342,6 @@ impl Bloom {
         }
 
         let use_mipmaps = false;
-
 
         if use_mipmaps {
             self.mipmap_generator.generate_mipmaps(

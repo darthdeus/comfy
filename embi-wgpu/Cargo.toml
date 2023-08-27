@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+default = ["push-constants"]
+
 ci-release = []
 tracy = []
+push-constants = []
 
 [dependencies]
 embi-core = { path = "../embi-core", features = ["use-wgpu"] }

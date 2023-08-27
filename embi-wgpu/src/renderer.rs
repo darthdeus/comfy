@@ -117,22 +117,26 @@ impl WgpuRenderer {
         #[cfg(not(target_arch = "wasm32"))]
         let limits = wgpu::Limits {
             max_texture_dimension_2d: 4096,
-            // max_push_constant_size: 4,
+            #[cfg(feature = "push-constants")]
+            max_push_constant_size: 4,
             ..wgpu::Limits::downlevel_defaults()
         };
 
         #[cfg(target_arch = "wasm32")]
         let limits = wgpu::Limits {
             max_texture_dimension_2d: 4096,
-            // max_push_constant_size: 4,
+            #[cfg(feature = "push-constants")]
+            max_push_constant_size: 4,
             ..wgpu::Limits::downlevel_webgl2_defaults()
         };
 
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
+                    #[cfg(not(feature = "push-constants"))]
                     features: wgpu::Features::empty(),
-                    // features: wgpu::Features::PUSH_CONSTANTS,
+                    #[cfg(feature = "push-constants")]
+                    features: wgpu::Features::PUSH_CONSTANTS,
                     limits,
                     label: None,
                 },
