@@ -1,6 +1,6 @@
 
-# default: example-shapes
-default: profile-startup
+default: example-shapes
+# default: profile-startup
 
 example-shapes:
 	cargo run --example shapes

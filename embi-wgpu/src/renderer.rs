@@ -501,13 +501,6 @@ impl WgpuRenderer {
             };
         }
 
-        // load_font!("orbitron", "fonts/Orbitron-Regular");
-        // load_font!("orbitron-bold", "fonts/Orbitron-Bold");
-        // load_font!("orbitron-var", "fonts/Orbitron-VariableFont_wght");
-        // load_font!("fira", "FiraMono-Medium");
-        // load_font!("monogram", "monogram");
-        // load_font!("james", "FredokaOne-Regular");
-
         egui_ctx.set_fonts(fonts);
 
         let textures = Arc::new(Mutex::new(textures));
