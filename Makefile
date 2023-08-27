@@ -3,7 +3,7 @@ default: example-shapes
 # default: profile-startup
 
 example-shapes:
-	cargo run --example shapes
+	cargo run --example animated_shapes
 
 tests:
 	cargo test
