@@ -1,4 +1,8 @@
-default:
+
+# default: example-shapes
+default: profile-startup
+
+example-shapes:
 	cargo run --example shapes
 
 tests:

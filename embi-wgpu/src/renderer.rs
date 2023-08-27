@@ -248,7 +248,6 @@ impl WgpuRenderer {
 
         load_engine_tex!("error");
         load_engine_tex!("1px");
-        load_engine_tex!("trail");
         load_engine_tex!("test-grid");
 
         let mut camera_uniform = CameraUniform::new();
@@ -470,23 +469,17 @@ impl WgpuRenderer {
             1,
             config.width,
             config.height,
-            // window.scale_factor() as f32,
-            1.0,
+            window.scale_factor() as f32,
         );
 
         info!("Initializing with scale factor: {}", window.scale_factor());
 
         let egui_ctx = egui::Context::default();
 
-        let mut fonts = egui::FontDefinitions::default();
+        let fonts = egui::FontDefinitions::default();
 
-        // fonts.font_data.insert(
-        //     "fira".to_owned(),
-        //     egui::FontData::from_static(include_bytes!(
-        //         "../../assets/FiraMono-Medium.ttf"
-        //     )),
-        // );
-
+        // TODO: expose this for easier user defined fonts
+        #[allow(unused_macros)]
         macro_rules! load_font {
             ($family_name:literal, $file_name:literal) => {
                 let family_name = $family_name.to_string();
@@ -508,55 +501,12 @@ impl WgpuRenderer {
             };
         }
 
-        load_font!("orbitron", "fonts/Orbitron-Regular");
-        load_font!("orbitron-bold", "fonts/Orbitron-Bold");
-        load_font!("orbitron-var", "fonts/Orbitron-VariableFont_wght");
-        load_font!("fira", "FiraMono-Medium");
-        load_font!("monogram", "monogram");
-        load_font!("james", "FredokaOne-Regular");
-
-        // {
-        //     fonts.font_data.insert(
-        //         "monogram".to_owned(),
-        //         egui::FontData::from_static(include_bytes!(
-        //             "../../assets/monogram.ttf"
-        //         )),
-        //     );
-        //
-        //     fonts
-        //         .families
-        //         .insert(egui::FontFamily::Name("monogram".into()), vec![
-        //             "monogram".to_string(),
-        //         ]);
-        // }
-        //
-        //
-        // {
-        //     fonts.font_data.insert(
-        //         "james".to_owned(),
-        //         egui::FontData::from_static(include_bytes!(
-        //             "../../assets/FredokaOne-Regular.ttf"
-        //         )),
-        //     );
-        //
-        //     fonts
-        //         .families
-        //         .insert(egui::FontFamily::Name("james".into()), vec![
-        //             "james".to_string()
-        //         ]);
-        // }
-
-        // fonts
-        //     .families
-        //     .get_mut(&egui::FontFamily::Proportional)
-        //     .unwrap()
-        //     .insert(0, "fira".to_owned());
-        //
-        // fonts
-        //     .families
-        //     .get_mut(&egui::FontFamily::Monospace)
-        //     .unwrap()
-        //     .push("fira".to_owned());
+        // load_font!("orbitron", "fonts/Orbitron-Regular");
+        // load_font!("orbitron-bold", "fonts/Orbitron-Bold");
+        // load_font!("orbitron-var", "fonts/Orbitron-VariableFont_wght");
+        // load_font!("fira", "FiraMono-Medium");
+        // load_font!("monogram", "monogram");
+        // load_font!("james", "FredokaOne-Regular");
 
         egui_ctx.set_fonts(fonts);
 
@@ -1662,8 +1612,7 @@ impl WgpuRenderer {
     pub fn resize(&mut self, new_size: UVec2) {
         let _span = span!("resize");
 
-        // let scale_factor = self.window.scale_factor() as f32;
-        let scale_factor = 1.0;
+        let scale_factor = self.window.scale_factor() as f32;
 
         let new_size =
             winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
@@ -1682,7 +1631,6 @@ impl WgpuRenderer {
         );
 
         self.egui_winit.set_pixels_per_point(scale_factor);
-        info!("Scale factor = {}", scale_factor);
     }
 
     pub fn egui_ctx(&self) -> &egui::Context {
