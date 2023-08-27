@@ -719,7 +719,7 @@ impl WgpuRenderer {
     pub fn render_post_processing(
         &mut self,
         screen_view: &wgpu::TextureView,
-        _params: &GlobalLightingParams,
+        params: &GlobalLightingParams,
     ) {
         let _span = span!("render_post_processing");
         let mut encoder = self.device.simple_encoder("Post Processing Encoder");
@@ -790,11 +790,11 @@ impl WgpuRenderer {
             input_bind_group = &effect.bind_group;
         }
 
-        // self.bloom.blit_final(
-        //     &mut encoder,
-        //     &self.tonemapping_texture.view,
-        //     params,
-        // );
+        self.bloom.blit_final(
+            &mut encoder,
+            &self.tonemapping_texture.view,
+            params,
+        );
 
         let tonemapping_pipeline =
             self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
