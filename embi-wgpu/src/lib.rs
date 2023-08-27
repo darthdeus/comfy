@@ -9,7 +9,6 @@ pub use winit::event::{
     WindowEvent,
 };
 
-mod arc;
 mod blood_canvas;
 mod bloom;
 mod egui_integration;
@@ -22,7 +21,6 @@ mod renderer;
 mod texture;
 mod utils;
 
-pub use crate::arc::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
 pub use crate::egui_integration::*;

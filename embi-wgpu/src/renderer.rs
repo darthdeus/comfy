@@ -64,7 +64,7 @@ pub struct WgpuRenderer {
     pub lights_bind_group_layout: wgpu::BindGroupLayout,
 
     pub global_lighting_params_buffer: wgpu::Buffer,
-    pub global_lighting_params_bind_group: ArcBindGroup,
+    pub global_lighting_params_bind_group: Arc<wgpu::BindGroup>,
     pub global_lighting_params_bind_group_layout: wgpu::BindGroupLayout,
 
     pub bloom: Bloom,
@@ -459,7 +459,7 @@ impl WgpuRenderer {
             });
 
         let global_lighting_params_bind_group =
-            ArcHandle::new(global_lighting_params_bind_group);
+            Arc::new(global_lighting_params_bind_group);
 
         trace!("Initializing egui");
 

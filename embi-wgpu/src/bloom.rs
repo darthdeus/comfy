@@ -52,7 +52,7 @@ pub struct Bloom {
 
     pub pingpong: [FrameBuffer; 2],
 
-    pub lighting_params: ArcBindGroup,
+    pub lighting_params: Arc<wgpu::BindGroup>,
 }
 
 impl Bloom {
@@ -61,7 +61,7 @@ impl Bloom {
         config: &wgpu::SurfaceConfiguration,
         layout: &wgpu::BindGroupLayout,
         format: wgpu::TextureFormat,
-        lighting_params: ArcBindGroup,
+        lighting_params: Arc<wgpu::BindGroup>,
         lighting_params_layout: &wgpu::BindGroupLayout,
     ) -> Self {
         // let threshold = PostProcessingEffect::new_with_mip(
