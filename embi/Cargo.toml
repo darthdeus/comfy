@@ -5,8 +5,10 @@ edition = "2021"
 license = "MIT or Apache"
 
 [features]
-default = []
+default = ["color-backtrace"]
 use-wgpu = []
+
+color-backtrace = []
 
 demo = []
 dev = []
@@ -24,5 +26,3 @@ lua = ["embi-core/lua"]
 [dependencies]
 embi-wgpu = { path = "../embi-wgpu" }
 embi-core = { path = "../embi-core" }
-
-# blobs = { git = "https://github.com/darthdeus/blobs" }

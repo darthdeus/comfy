@@ -269,77 +269,81 @@ impl Assets {
             .cloned()
             .collect::<HashSet<_>>();
 
-        let asset_source = self
-            .asset_source
-            .as_ref()
-            .expect("AssetSource must be initialized by the game");
+        if let Some(asset_source) = self.asset_source.as_ref() {
+            let load_path_queue = self
+                .texture_load_queue
+                .drain(..)
+                .filter(|(key, _relative_path)| {
+                    !loaded_textures.contains(&texture_id_unchecked(key))
+                })
+                .map(|(key, relative_path)| {
+                    let handle = texture_id_unchecked(&key);
 
-        let load_path_queue = self
-            .texture_load_queue
-            .drain(..)
-            .filter(|(key, _relative_path)| {
-                !loaded_textures.contains(&texture_id_unchecked(key))
-            })
-            .map(|(key, relative_path)| {
-                let handle = texture_id_unchecked(&key);
+                    self.textures.insert(key, handle);
 
-                self.textures.insert(key, handle);
+                    if cfg!(any(feature = "ci-release", target_arch = "wasm32"))
+                    {
+                        info!("Embedded texture {}", relative_path);
 
-                if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
-                    info!("Embedded texture {}", relative_path);
+                        // let file = dir.get_file(&path);
+                        // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
+                        // let contents = std::fs::read(&relative_path);
+                        let file = asset_source
+                            .dir
+                            .get_file(&relative_path)
+                            .unwrap_or_else(|| {
+                                panic!("Failed to load {}", relative_path);
+                            });
 
-                    // let file = dir.get_file(&path);
-                    // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
-                    // let contents = std::fs::read(&relative_path);
-                    let file = asset_source
-                        .dir
-                        .get_file(&relative_path)
-                        .unwrap_or_else(|| {
-                            panic!("Failed to load {}", relative_path);
-                        });
+                        (relative_path, handle, Ok(file.contents().to_vec()))
+                    } else {
+                        let absolute_path =
+                            (asset_source.base_path)(&relative_path);
 
-                    (relative_path, handle, Ok(file.contents().to_vec()))
-                } else {
-                    let absolute_path =
-                        (asset_source.base_path)(&relative_path);
+                        info!(
+                            "File texture: {} ... {}",
+                            relative_path, absolute_path
+                        );
 
-                    info!(
-                        "File texture: {} ... {}",
-                        relative_path, absolute_path
-                    );
+                        let absolute_path =
+                            std::path::Path::new(&absolute_path)
+                                .canonicalize()
+                                .unwrap()
+                                .to_string_lossy()
+                                .to_string();
 
-                    let absolute_path = std::path::Path::new(&absolute_path)
-                        .canonicalize()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string();
+                        trace!("Loading absolute path {}", absolute_path);
 
-                    trace!("Loading absolute path {}", absolute_path);
+                        let contents = std::fs::read(absolute_path);
 
-                    let contents = std::fs::read(absolute_path);
+                        contents.as_ref().unwrap();
 
-                    contents.as_ref().unwrap();
+                        (relative_path, handle, contents)
+                    }
+                })
+                .filter_map(|(relative_path, handle, data)| {
+                    if let Ok(data) = data {
+                        Some(LoadRequest {
+                            path: relative_path,
+                            handle,
+                            bytes: data,
+                        })
+                    } else {
+                        error!("Error loading {}", relative_path);
+                        None
+                    }
+                })
+                .collect_vec();
 
-                    (relative_path, handle, contents)
-                }
-            })
-            .filter_map(|(relative_path, handle, data)| {
-                if let Ok(data) = data {
-                    Some(LoadRequest {
-                        path: relative_path,
-                        handle,
-                        bytes: data,
-                    })
-                } else {
-                    error!("Error loading {}", relative_path);
-                    None
-                }
-            })
-            .collect_vec();
+            let texture_queue = load_path_queue;
 
-        let texture_queue = load_path_queue;
-
-        self.texture_send.lock().send(texture_queue).log_err();
+            self.texture_send.lock().send(texture_queue).log_err();
+        } else {
+            assert!(
+                self.texture_load_queue.is_empty(),
+                "AssetSource must be initialized before textures are loaded"
+            );
+        }
     }
 
     pub fn process_sound_queue(&mut self) {
@@ -359,22 +363,20 @@ impl Assets {
         //     .map(|(path, bytes)| (path, Ok(bytes)))
         //     .collect_vec();
 
-        let asset_source = self
-            .asset_source
-            .as_ref()
-            .expect("AssetSource must be initialized by the game");
+        if let Some(asset_source) = self.asset_source.as_ref() {
+            for (key, relative_path) in self.sound_load_queue.drain(..) {
+                let handle = Sound::from_path(&key);
 
-        for (key, relative_path) in self.sound_load_queue.drain(..) {
-            let handle = Sound::from_path(&key);
+                if self.sounds.lock().contains_key(&handle) {
+                    continue;
+                }
 
-            if self.sounds.lock().contains_key(&handle) {
-                continue;
-            }
+                self.sound_ids.insert(key.to_string(), handle);
 
-            self.sound_ids.insert(key.to_string(), handle);
-
-            let item =
-                if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
+                let item = if cfg!(any(
+                    feature = "ci-release",
+                    target_arch = "wasm32"
+                )) {
                     info!("Embedded Sound {}", relative_path);
 
                     let file = asset_source
@@ -411,7 +413,13 @@ impl Assets {
                     }
                 };
 
-            self.sound_send.lock().send(item).log_err();
+                self.sound_send.lock().send(item).log_err();
+            }
+        } else {
+            assert!(
+                self.sound_load_queue.is_empty(),
+                "AssetSource must be initialized before sounds are loaded"
+            );
         }
 
         // let sound_queue = self

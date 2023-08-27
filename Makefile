@@ -1,3 +1,7 @@
 default:
-	make -C ~/projects/demos
-	# cargo test
+	cargo run --example shapes
+
+tests:
+	cargo test
+
+	# make -C ~/projects/demos
