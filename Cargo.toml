@@ -6,3 +6,8 @@ members = [
   "embi-core",
   "embi-wgpu",
 ]
+
+[profile.dev]
+opt-level = 3
+[profile.dev.package."*"]
+opt-level = 3

@@ -5,17 +5,17 @@ edition = "2021"
 license = "MIT or Apache"
 
 [features]
-default = ["color-backtrace"]
+default = ["color-backtrace", "quick-exit"]
 use-wgpu = []
 
 color-backtrace = []
+exit-after-startup = []
 
 demo = []
 dev = []
 embedded-assets = []
 quick-exit = []
 ci-release = []
-auto-exit = []
 
 tracy = ["embi-core/tracy", "embi-wgpu/tracy"]
 # tracy = ["embi-core/tracy", "blobs/tracy", "embi-wgpu/tracy"]

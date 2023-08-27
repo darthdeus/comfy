@@ -7,16 +7,8 @@ define_versions!();
 define_main!(run);
 
 pub async fn run() {
-    cfg_if! {
-        if #[cfg(feature = "demo")] {
-             let game_name = "BITMOB (DEMO)";
-        } else {
-             let game_name = "BITMOB";
-        }
-    };
-
     let config = GameConfig {
-        game_name,
+        game_name: "Shapes Example",
         version: version_str(),
 
         lighting: GlobalLightingParams {
@@ -40,6 +32,7 @@ pub async fn run() {
 }
 
 pub struct GameState {}
+
 impl GameState {
     pub fn new(_c: &mut EngineContext) -> Self {
         Self {}
@@ -74,4 +67,5 @@ impl GameLoop for Game {
     fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
-fn game_update(state: &GameState, c: &mut EngineContext) {}
+fn game_update(_state: &GameState, _c: &mut EngineContext) {
+}

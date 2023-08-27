@@ -11,7 +11,8 @@ pub struct HotReload {
 
 impl HotReload {
     pub fn new() -> Self {
-        println!("HOT RELOADING ENABLED!");
+        println!("SHADER HOT RELOADING ENABLED!");
+
         let (tx, rx) = std::sync::mpsc::channel();
 
         let mut watcher = notify::RecommendedWatcher::new(tx, Default::default()).unwrap();

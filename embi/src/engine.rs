@@ -427,22 +427,17 @@ impl EngineState {
         self.renderer.as_mut().unwrap().begin_frame();
     }
 
-    fn egui(&mut self) -> &egui::Context {
-        self.renderer.as_mut().unwrap().egui_ctx()
-    }
-
+    #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
     pub fn update(&mut self) {
+        #[cfg(feature = "exit-after-startup")]
+        std::process::exit(0);
+
         let _span = span!("game-state update");
 
         #[cfg(any(feature = "quick-exit", feature = "dev"))]
         if is_key_down(KeyCode::F1) && is_key_pressed(KeyCode::Escape) {
             println!("fast exit");
             std::process::exit(0);
-        }
-
-        #[cfg(feature = "auto-exit")]
-        if get_time() > 3.1 {
-            self.quit_flag = true;
         }
 
         AudioSystem::process_sounds();
@@ -530,11 +525,6 @@ impl EngineState {
 
                     ui.separator();
 
-                    // ui.checkbox(
-                    //     &mut c.physics_mut().use_spatial_hash,
-                    //     "Use spatial hashing",
-                    // );
-
                     let ints =
                         ["bloom_alg", "physics_substeps", "tonemapping_alg"];
 
@@ -556,98 +546,6 @@ impl EngineState {
                             });
                         }
                     }
-                });
-        }
-
-        if *c.is_paused.borrow() && *c.show_pause_menu {
-            egui::Window::new("Game Paused")
-                .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
-                // .frame(egui::Frame::default())
-                .resizable(false)
-                // .auto_sized()
-                .title_bar(false)
-                .collapsible(false)
-                .show(c.egui, |ui| {
-                    ui.allocate_space(egui::vec2(
-                        0.0,
-                        20.0 / egui_scale_factor(),
-                    ));
-
-                    let width = 300.0;
-                    let font = egui::FontId::new(
-                        26.0,
-                        egui::FontFamily::Name("james".into()),
-                    );
-
-                    let _params = ImageButtonParams {
-                        font,
-                        background_color: WHITE,
-                        wrap_width: width,
-                        fixed_width: Some(width),
-                    };
-
-                    let _background_shape = ui.painter().add(egui::Shape::Noop);
-                    // ui.set_min_size(screen_size);
-
-                    ui.vertical_centered(|ui| {
-                        // let response = image_button_ex(
-                        //     "Resume",
-                        //     &mut c,
-                        //     ui,
-                        //     "button-red",
-                        //     params.clone(),
-                        // );
-
-                        if ui
-                            .add(
-                                egui::Button::new(
-                                    egui::RichText::new("Resume")
-                                        .color(WHITE.egui()),
-                                )
-                                .fill(DARKGREEN.egui()),
-                            )
-                            .clicked()
-                        {
-                            // if response.clicked() {
-                            *c.is_paused.borrow_mut() = false;
-                            *c.show_pause_menu = false;
-                        }
-
-                        ui.allocate_space(egui::vec2(
-                            0.0,
-                            5.0 / egui_scale_factor(),
-                        ));
-
-                        if ui
-                            .add(
-                                egui::Button::new(
-                                    egui::RichText::new("Back to Main Menu")
-                                        .color(WHITE.egui()),
-                                )
-                                .fill(DARKRED.egui()),
-                            )
-                            .clicked()
-                        {
-                            error!("TODO :(");
-                        }
-
-                        ui.allocate_space(egui::vec2(
-                            0.0,
-                            20.0 / egui_scale_factor(),
-                        ));
-                    });
-
-                    let _bg = nine_patch_rect_ex(
-                        egui::Rect::from_min_size(
-                            ui.clip_rect().left_top(),
-                            ui.min_size(),
-                        ),
-                        &mut c.cached_loader.borrow_mut(),
-                        c.egui,
-                        "panel-horizontal",
-                    );
-
-                    // ui.painter().set(background_shape, bg);
                 });
         }
 
