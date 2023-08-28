@@ -1,6 +1,6 @@
 #![allow(clippy::new_without_default)]
 
-use embi::*;
+use bod::*;
 
 example_game!("Shapes Example", update);
 
@@ -15,5 +15,7 @@ fn update(_c: &mut EngineContext) {
         let z_index = i as i32;
 
         draw_circle(center, radius, color, z_index);
+
+        draw_arc(Vec2::ZERO, i.scal)
     }
 }

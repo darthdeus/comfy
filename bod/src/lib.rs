@@ -43,25 +43,25 @@ pub use std::{
     },
 };
 
-pub use embi_core;
-pub use embi_core::{Assets, *};
+pub use bod_core;
+pub use bod_core::{Assets, *};
 
 pub use std::path::Path;
 
-pub use embi_core::*;
+pub use bod_core::*;
 
-pub use embi_wgpu;
-pub use embi_wgpu::*;
+pub use bod_wgpu;
+pub use bod_wgpu::*;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn run_embi_main(run_game_loop: Box<dyn RunGameLoop>) {
-    pollster::block_on(run_embi_main_async(run_game_loop));
+pub fn run_bod_main(run_game_loop: Box<dyn RunGameLoop>) {
+    pollster::block_on(run_bod_main_async(run_game_loop));
 }
 
-pub async fn run_embi_main_async(game_state: Box<dyn RunGameLoop>) {
+pub async fn run_bod_main_async(game_state: Box<dyn RunGameLoop>) {
     if cfg!(feature = "tracy") {
         info!("CONNECTING TO TRACY");
     } else {
@@ -80,8 +80,8 @@ pub async fn run_embi_main_async(game_state: Box<dyn RunGameLoop>) {
     // if cfg!(feature = "dev") {
     //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
     //         .with_max_level(tracing::Level::INFO)
-    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,
-    // embi=info")         .finish()
+    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,bod=info")
+    //         .finish()
     //         .with(tracing_tracy::TracyLayer::default());
     //
     //     tracing::subscriber::set_global_default(subscriber).unwrap();

@@ -1,5 +1,5 @@
 use crate::*;
-use embi_core::random::*;
+use bod_core::random::*;
 
 pub static SINGLE_PARTICLES: Lazy<AtomicRefCell<Vec<Particle>>> =
     Lazy::new(|| AtomicRefCell::new(Vec::new()));

@@ -1,5 +1,5 @@
 [package]
-name = "embi"
+name = "bod"
 version = "0.1.0"
 edition = "2021"
 license = "MIT or Apache"
@@ -17,12 +17,12 @@ embedded-assets = []
 quick-exit = []
 ci-release = []
 
-tracy = ["embi-core/tracy", "embi-wgpu/tracy"]
-# tracy = ["embi-core/tracy", "blobs/tracy", "embi-wgpu/tracy"]
+tracy = ["bod-core/tracy", "bod-wgpu/tracy"]
+# tracy = ["bod-core/tracy", "blobs/tracy", "bod-wgpu/tracy"]
 
-jemalloc = ["embi-core/jemalloc"]
-lua = ["embi-core/lua"]
+jemalloc = ["bod-core/jemalloc"]
+lua = ["bod-core/lua"]
 
 [dependencies]
-embi-wgpu = { path = "../embi-wgpu" }
-embi-core = { path = "../embi-core" }
+bod-wgpu = { path = "../bod-wgpu" }
+bod-core = { path = "../bod-core" }

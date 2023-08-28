@@ -1,7 +1,7 @@
 #![allow(clippy::uninlined_format_args)]
 #![allow(clippy::new_without_default)]
 
-pub use embi_core::*;
+pub use bod_core::*;
 pub use wgpu::util::DeviceExt;
 
 pub use winit::event::{

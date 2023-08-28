@@ -2,9 +2,9 @@
 resolver = "2"
 
 members = [
-  "embi",
-  "embi-core",
-  "embi-wgpu",
+  "bod",
+  "bod-core",
+  "bod-wgpu",
 ]
 
 [profile.dev]

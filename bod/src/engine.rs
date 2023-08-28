@@ -1,4 +1,4 @@
-use embi_wgpu::{RunGameLoop, WgpuRenderer};
+use bod_wgpu::{RunGameLoop, WgpuRenderer};
 
 use crate::*;
 
