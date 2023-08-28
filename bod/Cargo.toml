@@ -3,6 +3,7 @@ name = "bod"
 version = "0.1.0"
 edition = "2021"
 license = "MIT or Apache"
+description = "Pragmatic 2D game framework for Rust"
 
 [features]
 default = ["color-backtrace", "quick-exit"]

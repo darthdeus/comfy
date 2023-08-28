@@ -13,7 +13,7 @@ may be forced to dig into the source code and possibly tweak things
 manually. That being said, the source code is designed to be simple and
 modifiable.
 
-> `bod` means `dot` in czech, as in a single pixel dot.
+> `bod` means `point` or `dot` in czech, meaning both a single pixel, and a point in 2d space.
 
 # Features
 
