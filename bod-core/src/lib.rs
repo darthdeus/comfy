@@ -74,6 +74,7 @@ pub use std::{
     sync::Arc,
 };
 
+use num_traits::NumCast;
 pub use rand::seq::SliceRandom;
 
 pub use arrayvec;
@@ -81,12 +82,15 @@ pub use smallvec::{self, SmallVec};
 pub use tinyvec;
 
 pub use bimap::BiHashMap;
+pub use num_traits;
 pub use pid::Pid;
 
 #[cfg(target_arch = "wasm32")]
 pub use instant::{Duration, Instant};
 #[cfg(not(target_arch = "wasm32"))]
 pub use std::time::{Duration, Instant};
+
+pub use notify;
 
 pub use inline_tweak;
 pub use inline_tweak::tweak;
@@ -127,6 +131,9 @@ pub use once_cell::{
 };
 pub use parking_lot::Mutex;
 pub use rand::{distributions::uniform::SampleUniform, Rng, RngCore};
+
+#[cfg(all(feature = "memory-stats", not(target_arch = "wasm32")))]
+pub use memory_stats;
 
 pub use num_complex::Complex;
 
@@ -1547,6 +1554,33 @@ pub fn is_point_in_rotated_rect(
     // Check if the point is within the rectangle
     (new_point.x.abs() <= rect_size.x / 2.0) &&
         (new_point.y.abs() <= rect_size.y / 2.0)
+}
+
+// pub fn rescale(
+//     value: i32,
+//     from: Range<i32>,
+//     to: Range<i32>,
+// ) -> f32 {
+//     let value = value.max(from.start).min(from.end);
+//     let from_range = from.end - from.start;
+//     let to_range = to.end - to.start;
+//
+//     to.start as f32 +
+//         (value - from.start) as f32 / from_range as f32 * to_range as f32
+// }
+
+pub fn rescale<T: NumCast>(value: T, from: Range<T>, to: Range<T>) -> f32 {
+    let value: f32 = NumCast::from(value).unwrap_or(0.0);
+    let from_start = NumCast::from(from.start).unwrap_or(0.0);
+    let from_end = NumCast::from(from.end).unwrap_or(0.0);
+    let to_start = NumCast::from(to.start).unwrap_or(0.0);
+    let to_end = NumCast::from(to.end).unwrap_or(0.0);
+
+    let value = value.max(from_start).min(from_end);
+    let from_range = from_end - from_start;
+    let to_range = to_end - to_start;
+
+    to_start + (value - from_start) / from_range * to_range
 }
 
 #[derive(Copy, Clone, Debug)]

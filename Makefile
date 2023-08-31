@@ -1,9 +1,11 @@
+# EXAMPLE=animated_shapes
+EXAMPLE=sprite
 
-default: example-shapes
+default: example
 # default: profile-startup
 
-example-shapes:
-	cargo run --example animated_shapes
+example:
+	cargo run --example $(EXAMPLE)
 
 tests:
 	cargo test

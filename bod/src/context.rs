@@ -13,9 +13,7 @@ pub struct RbdSyncSettings {
 
 impl RbdSyncSettings {
     pub fn new() -> Self {
-        Self {
-            copy_rotation: false,
-        }
+        Self { copy_rotation: false }
     }
 
     pub fn copy_rotation(self, copy_rotation: bool) -> Self {
@@ -23,10 +21,13 @@ impl RbdSyncSettings {
     }
 }
 
-pub type ContextFn = Box<dyn FnOnce(&mut EngineContext) + Sync + Send + 'static>;
+pub type ContextFn =
+    Box<dyn FnOnce(&mut EngineContext) + Sync + Send + 'static>;
 
 pub struct EngineContext<'a> {
     pub cached_loader: &'a RefCell<CachedImageLoader>,
+    pub graphics_context: &'a GraphicsContext,
+    pub textures: &'a Arc<Mutex<TextureMap>>,
 
     pub draw: &'a RefCell<Draw>,
 
@@ -69,8 +70,6 @@ impl<'a> EngineContext<'a> {
         *self.world = Rc::new(RefCell::new(World::new()));
         blood_canvas_reset();
     }
-
-    // pub fn commands(&self) -> impl Deref<Target = CommandBuffer> {
 
     pub fn commands(&self) -> core::cell::RefMut<CommandBuffer> {
         self.commands.borrow_mut()
@@ -119,9 +118,9 @@ impl<'a> EngineContext<'a> {
     pub fn early_update(&mut self) {
         let _span = span!("early_update");
 
-        if is_key_pressed(KeyCode::Backquote)
-            && is_key_down(KeyCode::LCtrl)
-            && is_key_down(KeyCode::LAlt)
+        if is_key_pressed(KeyCode::Backquote) &&
+            is_key_down(KeyCode::LCtrl) &&
+            is_key_down(KeyCode::LAlt)
         {
             let mut config = self.config.borrow_mut();
             config.dev.show_debug = !config.dev.show_debug;
@@ -174,10 +173,13 @@ impl<'a> EngineContext<'a> {
             );
         }
 
-        let is_paused = *self.is_paused.borrow() || self.flags.borrow_mut().contains(PAUSE_DESPAWN);
+        let is_paused = *self.is_paused.borrow() ||
+            self.flags.borrow_mut().contains(PAUSE_DESPAWN);
 
         if !is_paused {
-            for (entity, despawn) in self.world.borrow_mut().query_mut::<&mut DespawnAfter>() {
+            for (entity, despawn) in
+                self.world.borrow_mut().query_mut::<&mut DespawnAfter>()
+            {
                 despawn.0 -= delta;
 
                 if despawn.0 <= 0.0 {
@@ -199,22 +201,31 @@ pub struct CachedImageLoader {
 
 impl CachedImageLoader {
     pub fn new() -> Self {
-        Self {
-            images: HashMap::new(),
-        }
+        Self { images: HashMap::new() }
     }
 
-    pub fn load_or_err(&mut self, ctx: &egui::Context, path: &str) -> (egui::TextureId, UVec2) {
-        self.load(ctx, path)
-            .unwrap_or_else(|| self.load(ctx, "error").unwrap())
+    pub fn load_or_err(
+        &mut self,
+        ctx: &egui::Context,
+        path: &str,
+    ) -> (egui::TextureId, UVec2) {
+        self.load(ctx, path).unwrap_or_else(|| self.load(ctx, "error").unwrap())
     }
 
-    pub fn image_or_err(&mut self, ctx: &egui::Context, path: &str) -> egui::TextureId {
+    pub fn image_or_err(
+        &mut self,
+        ctx: &egui::Context,
+        path: &str,
+    ) -> egui::TextureId {
         self.cached_load(ctx, path)
             .unwrap_or_else(|| self.cached_load(ctx, "error").unwrap())
     }
 
-    pub fn load(&mut self, ctx: &egui::Context, path: &str) -> Option<(egui::TextureId, UVec2)> {
+    pub fn load(
+        &mut self,
+        ctx: &egui::Context,
+        path: &str,
+    ) -> Option<(egui::TextureId, UVec2)> {
         // TODO: make cached loader return error id instead of failing
         let mut failed = false;
 
@@ -230,14 +241,22 @@ impl CachedImageLoader {
             })?;
 
             let image = Assets::load_image_data(path, texture)?;
-            let (width, height) = (image.width() as usize, image.height() as usize);
+            let (width, height) =
+                (image.width() as usize, image.height() as usize);
 
             let rgba = image.into_rgba8();
             let image_data = rgba.as_raw();
 
-            let egui_image = egui::ColorImage::from_rgba_unmultiplied([width, height], image_data);
+            let egui_image = egui::ColorImage::from_rgba_unmultiplied(
+                [width, height],
+                image_data,
+            );
 
-            let handle = ctx.load_texture(path, egui_image, egui::TextureOptions::LINEAR);
+            let handle = ctx.load_texture(
+                path,
+                egui_image,
+                egui::TextureOptions::LINEAR,
+            );
 
             // let texture_id = ctx.add_image(handle);
             // let tex = ctx.load_texture(path, image.clone(),
@@ -258,7 +277,11 @@ impl CachedImageLoader {
         Some((image.id(), *size))
     }
 
-    pub fn cached_load(&mut self, ctx: &egui::Context, path: &str) -> Option<egui::TextureId> {
+    pub fn cached_load(
+        &mut self,
+        ctx: &egui::Context,
+        path: &str,
+    ) -> Option<egui::TextureId> {
         self.load(ctx, path).map(|x| x.0)
     }
 }
@@ -272,12 +295,7 @@ pub struct CombatText {
 
 impl CombatText {
     pub fn new(position: Vec2, text: String, color: Color, size: f32) -> Self {
-        Self {
-            position,
-            text,
-            color,
-            size,
-        }
+        Self { position, text, color, size }
     }
 }
 
@@ -306,12 +324,11 @@ pub fn spawn_combat_text(
 }
 
 pub fn combat_text_system(c: &mut EngineContext) {
-    for (_, (combat_text, lifetime)) in c
-        .world
-        .borrow_mut()
-        .query_mut::<(&mut CombatText, &DespawnAfter)>()
+    for (_, (combat_text, lifetime)) in
+        c.world.borrow_mut().query_mut::<(&mut CombatText, &DespawnAfter)>()
     {
-        let progress = (COMBAT_TEXT_LIFETIME - lifetime.0) / COMBAT_TEXT_LIFETIME;
+        let progress =
+            (COMBAT_TEXT_LIFETIME - lifetime.0) / COMBAT_TEXT_LIFETIME;
 
         // let dims = measure_text(
         //     &combat_text.text,
@@ -327,7 +344,8 @@ pub fn combat_text_system(c: &mut EngineContext) {
 
         // let screen_pos = world_to_screen(pos) / egui_scale_factor();
 
-        let font = egui::FontId::new(16.0, egui::FontFamily::Name("james".into()));
+        let font =
+            egui::FontId::new(16.0, egui::FontFamily::Name("james".into()));
 
         draw_text_ex(
             &combat_text.text,
@@ -337,11 +355,7 @@ pub fn combat_text_system(c: &mut EngineContext) {
             // pos.x,
             // pos.y,
             TextAlign::Center,
-            TextParams {
-                font,
-                color: combat_text.color,
-                ..Default::default()
-            },
+            TextParams { font, color: combat_text.color, ..Default::default() },
         );
     }
 }

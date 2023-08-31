@@ -6,15 +6,15 @@ pub async fn wgpu_game_loop(
     #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
     mut game_state: Box<dyn RunGameLoop>,
 ) {
-    let wasm_width = 960;
-    let wasm_height = 560;
+    #[cfg(target_arch = "wasm32")]
+    let resolution = winit::dpi::PhysicalSize::new(960, 560);
+    #[cfg(not(target_arch = "wasm32"))]
+    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
 
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
         .with_title(game_state.title())
-        // .with_inner_size(winit::dpi::PhysicalSize::new(1920, 1080))
-        // TODO: testing WASM resolution
-        .with_inner_size(winit::dpi::PhysicalSize::new(wasm_width, wasm_height))
+        .with_inner_size(resolution)
         .build(&event_loop)
         .unwrap();
 
@@ -23,7 +23,6 @@ pub async fn wgpu_game_loop(
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
-        info!("scale factor = {}", window.scale_factor());
         window.set_inner_size(PhysicalSize::new(wasm_width, wasm_height));
 
         use winit::platform::web::WindowExtWebSys;
@@ -36,10 +35,9 @@ pub async fn wgpu_game_loop(
                 Some(())
             })
             .expect("Couldn't append canvas to document body.");
-
-        // web_sys::window().
     }
 
+    info!("scale factor = {}", window.scale_factor());
 
     let egui_winit = egui_winit::State::new(&event_loop);
 

@@ -17,12 +17,12 @@ macro_rules! define_main {
                 wasm_bindgen_futures::spawn_local($run());
             }
         }
-    }
+    };
 }
 
 #[macro_export]
 macro_rules! example_game {
-    ($name:literal, $update:ident) => {
+    ($name:literal, $setup:ident, $update:ident) => {
         define_main!(run);
 
         pub async fn run() {
@@ -59,13 +59,19 @@ macro_rules! example_game {
         }
 
         impl GameLoop for Game {
-            fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
+            fn performance_metrics(
+                &self,
+                _world: &mut World,
+                _ui: &mut egui::Ui,
+            ) {
+            }
 
             fn early_update(&mut self, _c: &mut EngineContext) {}
 
             fn update(&mut self, c: &mut EngineContext) {
                 if self.state.is_none() {
                     self.state = Some(GameState::new(c));
+                    $setup(c);
                 }
 
                 if let Some(state) = self.state.as_mut() {
@@ -79,6 +85,11 @@ macro_rules! example_game {
         fn game_update(_state: &GameState, c: &mut EngineContext) {
             $update(c);
         }
+    };
 
-    }
+    ($name:literal, $update:ident) => {
+        fn setup(_c: &mut EngineContext) {}
+
+        example_game!($name, setup, $update);
+    };
 }

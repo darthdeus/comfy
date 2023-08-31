@@ -83,32 +83,33 @@ macro_rules! reloadable_wgsl_fragment_shader {
 }
 
 pub fn load_texture_from_engine_bytes(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
+    context: &GraphicsContext,
     name: &str,
     bytes: &[u8],
-    texture_bind_group_layout: &wgpu::BindGroupLayout,
     textures: &mut TextureMap,
     address_mode: wgpu::AddressMode,
 ) {
     let handle = texture_path(name);
 
     let img = image::load_from_memory(bytes).expect("must be valid image");
-    let error_texture =
-        Texture::from_image_ex(device, queue, &img, Some(name), false, address_mode).unwrap();
+    let error_texture = Texture::from_image_ex(
+        &context.device,
+        &context.queue,
+        &img,
+        Some(name),
+        false,
+        address_mode,
+    )
+    .unwrap();
 
-    let error_bind_group = device.simple_bind_group(
+    let error_bind_group = context.device.simple_bind_group(
         &format!("{}_bind_group", name),
         &error_texture,
-        texture_bind_group_layout,
+        &context.texture_bind_group_layout,
     );
 
     ASSETS.borrow_mut().insert_handle(name, handle);
-    ASSETS
-        .borrow_mut()
-        .texture_image_map
-        .lock()
-        .insert(handle, img);
+    ASSETS.borrow_mut().texture_image_map.lock().insert(handle, img);
     textures.insert(handle, (error_bind_group, error_texture));
 }
 
@@ -117,7 +118,8 @@ pub fn simple_fragment_shader<'a>(
     frag: &'static str,
 ) -> wgpu::ShaderModuleDescriptor<'a> {
     let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
-    let frag_shader_prefix = include_str!("../../assets/shaders/post_processing_vertex.wgsl");
+    let frag_shader_prefix =
+        include_str!("../../assets/shaders/post_processing_vertex.wgsl");
 
     wgpu::ShaderModuleDescriptor {
         label: Some(name),
@@ -136,12 +138,13 @@ pub struct MipmapGenerator {
 impl MipmapGenerator {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         let blit_pipeline = {
-            let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("Blit Shader"),
-                source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!(
-                    "../../assets/shaders/blit.wgsl"
-                ))),
-            });
+            let shader =
+                device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("Blit Shader"),
+                    source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
+                        include_str!("../../assets/shaders/blit.wgsl"),
+                    )),
+                });
 
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("Blit Render Pipeline"),
@@ -168,11 +171,7 @@ impl MipmapGenerator {
 
         let blit_layout = blit_pipeline.get_bind_group_layout(0);
 
-        Self {
-            format,
-            blit_pipeline,
-            blit_layout,
-        }
+        Self { format, blit_pipeline, blit_layout }
     }
 
     pub fn generate_mipmaps(
@@ -209,33 +208,39 @@ impl MipmapGenerator {
             .collect::<Vec<_>>();
 
         for target_mip in 1..mip_count as usize {
-            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &self.blit_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&views[target_mip - 1]),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(&sampler),
-                    },
-                ],
-                label: None,
-            });
+            let bind_group =
+                device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    layout: &self.blit_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(
+                                &views[target_mip - 1],
+                            ),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::Sampler(&sampler),
+                        },
+                    ],
+                    label: None,
+                });
 
-            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: None,
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &views[target_mip],
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: None,
-            });
+            let mut rpass =
+                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: None,
+                    color_attachments: &[Some(
+                        wgpu::RenderPassColorAttachment {
+                            view: &views[target_mip],
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                                store: true,
+                            },
+                        },
+                    )],
+                    depth_stencil_attachment: None,
+                });
 
             rpass.set_pipeline(&self.blit_pipeline);
             rpass.set_bind_group(0, &bind_group, &[]);

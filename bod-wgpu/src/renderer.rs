@@ -24,11 +24,11 @@ pub struct GraphicsContext {
     pub adapter: Arc<wgpu::Adapter>,
     pub device: Arc<wgpu::Device>,
     pub queue: Arc<wgpu::Queue>,
+    // Shared for all regular textures/sprites
+    pub texture_bind_group_layout: Arc<wgpu::BindGroupLayout>,
 }
 
 pub struct WgpuRenderer {
-    pub device: Arc<wgpu::Device>,
-    pub queue: Arc<wgpu::Queue>,
     pub context: GraphicsContext,
 
     pub surface: wgpu::Surface,
@@ -192,20 +192,12 @@ impl WgpuRenderer {
 
         surface.configure(&device, &config);
 
-        let context = GraphicsContext {
-            instance: Arc::new(instance),
-            adapter: Arc::new(adapter),
-            device: Arc::new(device),
-            queue: Arc::new(queue),
-        };
-
         trace!("Loading builtin engine textures");
 
         let mut textures = HashMap::default();
 
-        let texture_bind_group_layout = context
-            .device
-            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
@@ -231,11 +223,18 @@ impl WgpuRenderer {
                 label: Some("texture_bind_group_layout"),
             });
 
+        let context = GraphicsContext {
+            instance: Arc::new(instance),
+            adapter: Arc::new(adapter),
+            device: Arc::new(device),
+            queue: Arc::new(queue),
+            texture_bind_group_layout: Arc::new(texture_bind_group_layout),
+        };
+
         macro_rules! load_engine_tex {
             ($name: literal) => {{
                 load_texture_from_engine_bytes(
-                    &context.device,
-                    &context.queue,
+                    &context,
                     $name,
                     include_bytes!(concat!(
                         env!("CARGO_MANIFEST_DIR"),
@@ -243,7 +242,6 @@ impl WgpuRenderer {
                         $name,
                         ".png"
                     )),
-                    &texture_bind_group_layout,
                     &mut textures,
                     wgpu::AddressMode::Repeat,
                 );
@@ -508,12 +506,11 @@ impl WgpuRenderer {
         egui_ctx.set_fonts(fonts);
 
         let textures = Arc::new(Mutex::new(textures));
-        let texture_bind_group_layout = Arc::new(texture_bind_group_layout);
 
         let texture_creator =
             Arc::new(AtomicRefCell::new(WgpuTextureCreator {
                 textures: textures.clone(),
-                layout: texture_bind_group_layout.clone(),
+                layout: context.texture_bind_group_layout.clone(),
                 queue: context.queue.clone(),
                 device: context.device.clone(),
             }));
@@ -531,7 +528,7 @@ impl WgpuRenderer {
                     $name,
                     &context.device,
                     &[
-                        &texture_bind_group_layout,
+                        &context.texture_bind_group_layout,
                         &global_lighting_params_bind_group_layout,
                     ],
                     &config,
@@ -587,7 +584,7 @@ impl WgpuRenderer {
         let first_pass_bind_group = context.device.simple_bind_group(
             "First Pass Bind Group",
             &first_pass_texture,
-            &texture_bind_group_layout,
+            &context.texture_bind_group_layout,
         );
 
         let tonemapping_texture = Texture::create_scaled_mip_surface_texture(
@@ -602,7 +599,7 @@ impl WgpuRenderer {
         let tonemapping_bind_group = context.device.simple_bind_group(
             "Tonemapping Bind Group",
             &tonemapping_texture,
-            &texture_bind_group_layout,
+            &context.texture_bind_group_layout,
         );
 
         let quad = QuadUniform { clip_position: [0.0, 0.0], size: [0.2, 0.2] };
@@ -616,7 +613,7 @@ impl WgpuRenderer {
         let bloom = Bloom::new(
             &context.device,
             &config,
-            &texture_bind_group_layout,
+            &context.texture_bind_group_layout,
             render_texture_format,
             global_lighting_params_bind_group.clone(),
             &global_lighting_params_bind_group_layout,
@@ -648,8 +645,6 @@ impl WgpuRenderer {
         );
 
         Self {
-            device: context.device.clone(),
-            queue: context.queue.clone(),
             surface,
 
             #[cfg(not(target_arch = "wasm32"))]
@@ -691,7 +686,9 @@ impl WgpuRenderer {
             global_lighting_params_bind_group,
             global_lighting_params_bind_group_layout,
 
-            texture_bind_group_layout,
+            texture_bind_group_layout: context
+                .texture_bind_group_layout
+                .clone(),
 
             tonemapping_texture,
             tonemapping_bind_group,
@@ -726,12 +723,13 @@ impl WgpuRenderer {
         params: &GlobalLightingParams,
     ) {
         let _span = span!("render_post_processing");
-        let mut encoder = self.device.simple_encoder("Post Processing Encoder");
+        let mut encoder =
+            self.context.device.simple_encoder("Post Processing Encoder");
 
         let mut input_bind_group = &self.first_pass_bind_group;
 
         self.bloom.draw(
-            &self.device,
+            &self.context.device,
             &self.texture_bind_group_layout,
             &self.first_pass_bind_group,
             &mut encoder,
@@ -766,7 +764,7 @@ impl WgpuRenderer {
 
                     create_post_processing_pipeline(
                         &effect.name,
-                        &self.device,
+                        &self.context.device,
                         self.render_texture_format,
                         &[
                             &self.texture_bind_group_layout,
@@ -855,7 +853,7 @@ impl WgpuRenderer {
             render_pass.draw(0..3, 0..1);
         }
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
     pub fn render_debug(&mut self, surface_view: &wgpu::TextureView) {
@@ -907,14 +905,14 @@ impl WgpuRenderer {
 
 
         for (i, bind_group) in bind_groups.iter().enumerate() {
-            self.queue.write_buffer(
+            self.context.queue.write_buffer(
                 &self.quad_ubg.buffer,
                 0,
                 bytemuck::cast_slice(&[quads[i]]),
             );
 
             let mut encoder =
-                self.device.simple_encoder("Debug Render Encoder");
+                self.context.device.simple_encoder("Debug Render Encoder");
             {
                 // let mut render_pass = encoder.simple_render_pass(
                 //     "Debug Render Pass",
@@ -949,20 +947,21 @@ impl WgpuRenderer {
                 render_pass.draw(0..6, 0..1);
             }
 
-            self.queue.submit(std::iter::once(encoder.finish()));
+            self.context.queue.submit(std::iter::once(encoder.finish()));
         }
     }
 
     pub fn render_egui(&self, view: &wgpu::TextureView) {
         let _span = span!("render_egui");
 
-        let mut encoder = self.device.simple_encoder("egui Render Encoder");
+        let mut encoder =
+            self.context.device.simple_encoder("egui Render Encoder");
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
                 &self.egui_ctx,
-                &self.device,
-                &self.queue,
+                &self.context.device,
+                &self.context.queue,
                 &mut encoder,
             );
 
@@ -980,7 +979,7 @@ impl WgpuRenderer {
             );
         }
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
     pub fn on_event(&mut self, event: &winit::event::WindowEvent) -> bool {
@@ -1062,17 +1061,18 @@ impl WgpuRenderer {
         // let all_vertices = mesh_draw[0].mesh.vertices.clone();
         // let all_indices = mesh_draw[0].mesh.indices.clone();
 
-        let mut encoder = self.device.simple_encoder("Mesh Render Encoder");
+        let mut encoder =
+            self.context.device.simple_encoder("Mesh Render Encoder");
 
         self.vertex_buffer.ensure_size_and_copy(
-            &self.device,
-            &self.queue,
+            &self.context.device,
+            &self.context.queue,
             bytemuck::cast_slice(all_vertices.as_slice()),
         );
 
         self.index_buffer.ensure_size_and_copy(
-            &self.device,
-            &self.queue,
+            &self.context.device,
+            &self.context.queue,
             bytemuck::cast_slice(all_indices.as_slice()),
         );
 
@@ -1131,7 +1131,7 @@ impl WgpuRenderer {
             }
         }
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
     pub fn render_particles(
@@ -1224,17 +1224,18 @@ impl WgpuRenderer {
             all_vertices.extend(vertices);
         }
 
-        let mut encoder = self.device.simple_encoder("Particle Render Encoder");
+        let mut encoder =
+            self.context.device.simple_encoder("Particle Render Encoder");
 
         self.vertex_buffer.ensure_size_and_copy(
-            &self.device,
-            &self.queue,
+            &self.context.device,
+            &self.context.queue,
             bytemuck::cast_slice(all_vertices.as_slice()),
         );
 
         self.index_buffer.ensure_size_and_copy(
-            &self.device,
-            &self.queue,
+            &self.context.device,
+            &self.context.queue,
             bytemuck::cast_slice(all_indices.as_slice()),
         );
 
@@ -1303,7 +1304,7 @@ impl WgpuRenderer {
             }
         }
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
     pub fn as_mut_any(&mut self) -> &mut dyn Any {
@@ -1438,13 +1439,13 @@ impl WgpuRenderer {
                     .clamp(0.0, 200.0);
         }
 
-        self.queue.write_buffer(
+        self.context.queue.write_buffer(
             &self.global_lighting_params_buffer,
             0,
             bytemuck::cast_slice(&[*params.lighting]),
         );
 
-        self.queue.write_buffer(
+        self.context.queue.write_buffer(
             &self.camera_buffer,
             0,
             bytemuck::cast_slice(&[self.camera_uniform]),
@@ -1461,7 +1462,7 @@ impl WgpuRenderer {
             light_uniform.num_lights += 1;
         }
 
-        self.queue.write_buffer(
+        self.context.queue.write_buffer(
             &self.lights_buffer,
             0,
             bytemuck::cast_slice(&[light_uniform]),
@@ -1618,7 +1619,7 @@ impl WgpuRenderer {
             self.size = new_size;
             self.config.width = new_size.width;
             self.config.height = new_size.height;
-            self.surface.configure(&self.device, &self.config);
+            self.surface.configure(&self.context.device, &self.config);
         }
 
         self.egui_render_routine.borrow_mut().resize(

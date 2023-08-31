@@ -9,6 +9,7 @@ description = "Pragmatic 2D game framework for Rust"
 default = ["color-backtrace", "quick-exit"]
 use-wgpu = []
 
+memory-stats = ["bod-core/memory-stats"]
 color-backtrace = []
 exit-after-startup = []
 

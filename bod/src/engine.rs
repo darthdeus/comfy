@@ -898,25 +898,28 @@ impl EngineState {
                     }
                     ui.separator();
 
-                    // #[cfg(not(target_arch = "wasm32"))]
-                    // {
-                    //     let _span = tracy_span!("memory_stats");
-                    //
-                    //     if let Some(usage) = memory_stats::memory_stats() {
-                    //         ui.label(format!(
-                    //             "Physical Mem: {} MB",
-                    //             usage.physical_mem / (1024 * 1024)
-                    //         ));
-                    //         ui.label(format!(
-                    //             "Virtual Mem: {} MB",
-                    //             usage.virtual_mem / (1024 * 1024)
-                    //         ));
-                    //     } else {
-                    //         ui.label(format!(
-                    //             "Couldn't get the current memory usage :("
-                    //         ));
-                    //     }
-                    // }
+                    #[cfg(all(
+                        feature = "memory-stats",
+                        not(target_arch = "wasm32")
+                    ))]
+                    {
+                        let _span = span!("memory_stats");
+
+                        if let Some(usage) = memory_stats::memory_stats() {
+                            ui.label(format!(
+                                "Physical Mem: {} MB",
+                                usage.physical_mem / (1024 * 1024)
+                            ));
+                            ui.label(format!(
+                                "Virtual Mem: {} MB",
+                                usage.virtual_mem / (1024 * 1024)
+                            ));
+                        } else {
+                            ui.label(format!(
+                                "Couldn't get the current memory usage :("
+                            ));
+                        }
+                    }
 
                     #[cfg(feature = "jemalloc")]
                     {
@@ -949,11 +952,14 @@ impl EngineState {
     }
 
     pub fn make_context(&mut self) -> EngineContext {
-        let egui = self.renderer.as_ref().unwrap().egui_ctx();
+        let renderer = self.renderer.as_ref().unwrap();
+        let egui = renderer.egui_ctx();
         let texture_creator = self.texture_creator.as_ref().unwrap();
 
         EngineContext {
             cached_loader: &self.cached_loader,
+            graphics_context: &renderer.context,
+            textures: &renderer.textures,
             delta: delta(),
 
             egui,
