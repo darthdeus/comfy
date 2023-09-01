@@ -104,7 +104,8 @@ pub fn draw_texture_z_ex(
     };
 
     draw_mesh_ex(mesh, TextureParams {
-        shader: params.shader.clone(),
+        // TODO: shader
+        shader: None,
         blend_mode: params.blend_mode,
     });
 }
@@ -1166,6 +1167,7 @@ pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
         .push(MeshDraw { mesh, texture_params });
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct DrawTextureParams {
     pub dest_size: Option<Size>,
     pub source_rect: Option<IRect>,
@@ -1174,7 +1176,6 @@ pub struct DrawTextureParams {
     pub flip_x: bool,
     pub flip_y: bool,
     pub pivot: Option<Vec2>,
-    pub shader: Option<String>,
     pub blend_mode: BlendMode,
 }
 
@@ -1188,7 +1189,6 @@ impl Default for DrawTextureParams {
             pivot: None,
             flip_x: false,
             flip_y: false,
-            shader: None,
             blend_mode: BlendMode::None,
         }
     }
