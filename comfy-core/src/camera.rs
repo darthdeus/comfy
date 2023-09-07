@@ -66,37 +66,11 @@ pub fn world_to_gl_screen(position: Vec2) -> Vec2 {
 }
 
 pub fn world_to_screen(position: Vec2) -> Vec2 {
-    let camera = main_camera();
-    let viewport = camera.world_viewport();
-
-    let position = position - camera.center;
-
-    let state = GLOBAL_STATE.borrow();
-
-    let moved = position + viewport / 2.0;
-    let normalized = moved / viewport;
-    let normalized = vec2(normalized.x, 1.0 - normalized.y);
-
-    normalized * state.screen_size
-    // vec2(
-    //     normalized.x * state.screen_size.x / state.egui_scale_factor,
-    //     normalized.y * state.screen_size.y / state.egui_scale_factor,
-    // )
+    main_camera().world_to_screen(position)
 }
 
 pub fn screen_to_world(position: Vec2) -> Vec2 {
-    let camera = main_camera();
-    let viewport = camera.world_viewport();
-    let camera_center = camera.center;
-
-    let state = GLOBAL_STATE.borrow();
-
-    let normalized = position / state.screen_size;
-    let normalized = vec2(normalized.x, 1.0 - normalized.y);
-
-    let world_unoffset = (normalized - 0.5) * viewport;
-
-    world_unoffset + camera_center
+    main_camera().screen_to_world(position)
 }
 
 // TODO: use this for zoom
@@ -307,6 +281,40 @@ impl MainCamera {
             -range,
             range,
         )
+    }
+
+    pub fn screen_to_world(&self, position: Vec2) -> Vec2 {
+        let camera = main_camera();
+        let viewport = camera.world_viewport();
+        let camera_center = camera.center;
+
+        let state = GLOBAL_STATE.borrow();
+
+        let normalized = position / state.screen_size;
+        let normalized = vec2(normalized.x, 1.0 - normalized.y);
+
+        let world_unoffset = (normalized - 0.5) * viewport;
+
+        world_unoffset + camera_center
+    }
+
+    pub fn world_to_screen(&self, position: Vec2) -> Vec2 {
+        let camera = main_camera();
+        let viewport = camera.world_viewport();
+
+        let position = position - camera.center;
+
+        let state = GLOBAL_STATE.borrow();
+
+        let moved = position + viewport / 2.0;
+        let normalized = moved / viewport;
+        let normalized = vec2(normalized.x, 1.0 - normalized.y);
+
+        normalized * state.screen_size
+        // vec2(
+        //     normalized.x * state.screen_size.x / state.egui_scale_factor,
+        //     normalized.y * state.screen_size.y / state.egui_scale_factor,
+        // )
     }
 }
 
