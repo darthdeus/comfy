@@ -216,3 +216,10 @@ Examples
 - [x] text
 - [ ] blood canvas
 - [ ] raytracing
+- [ ] physics
+- [ ] SFX
+- [ ] looped music + filter + egui
+- [ ] postprocessing
+- [ ] lighting
+- [ ] top-down minigame
+- [ ] platformer minigame

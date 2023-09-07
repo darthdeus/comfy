@@ -1,18 +1,6 @@
 use comfy::*;
 
-example_game!("Particles Example", setup, update);
-
-fn lerped_color(colors: &[Color], t: f32) -> Color {
-    let n = colors.len() - 1;
-    let tt = t * n as f32;
-    let idx = tt as usize;
-    let frac = tt.fract();
-
-    let color1 = colors[idx % colors.len()];
-    let color2 = colors[(idx + 1) % colors.len()];
-
-    color1.lerp(color2, frac)
-}
+example_game!("Particles Example", update);
 
 // fn setup(c: &mut EngineContext) {
 //     c.world_mut()
