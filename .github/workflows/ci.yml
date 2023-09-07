@@ -20,6 +20,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
+
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
+
       - uses: actions/cache@v3
         with:
           path: |
