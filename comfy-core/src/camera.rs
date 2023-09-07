@@ -40,15 +40,20 @@ pub fn screen_height() -> f32 {
 }
 
 pub fn screenshake(timer: f32, amount: f32) {
-    let mut camera = main_camera();
+    let mut camera = main_camera_mut();
 
     camera.shake_timer = timer;
     camera.shake_amount = amount;
 }
 
-pub fn main_camera() -> AtomicRefMut<'static, MainCamera> {
+pub fn main_camera() -> AtomicRef<'static, MainCamera> {
+    MAIN_CAMERA.borrow()
+}
+
+pub fn main_camera_mut() -> AtomicRefMut<'static, MainCamera> {
     MAIN_CAMERA.borrow_mut()
 }
+
 
 pub fn set_main_camera_zoom(zoom: f32) {
     MAIN_CAMERA.borrow_mut().zoom = zoom;

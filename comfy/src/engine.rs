@@ -86,7 +86,7 @@ impl RunGameLoop for EngineState {
             }
 
             let mut global_state = GLOBAL_STATE.borrow_mut();
-            let mut camera = main_camera();
+            let mut camera = main_camera_mut();
 
             let width = renderer.width();
             let height = renderer.height();

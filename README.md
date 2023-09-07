@@ -1,10 +1,11 @@
 # What is `comfy`?
 
-Comfy is a 2D game framework built in Rust. It's designed to be opinionated,
-pragmatic, and easy to use. It uses [wgpu](https://wgpu.rs/) and
+Comfy is an ergonomic 2D game engine built in Rust. It's designed to be
+opinionated, productive, and easy to use. It uses [wgpu](https://wgpu.rs/) and
 [winit](https://docs.rs/winit/latest/winit/), which makes it cross-platform,
-currently supporting Windows, Linux, MacOS and WASM. Inspired by macroquad, it
-is designed to just work and fill most of the common use cases.
+currently supporting Windows, Linux, MacOS and WASM. Inspired by macroquad,
+Raylib, Love2D and many others, it is designed to just work and fill most of
+the common use cases.
 
 **Warning**: comfy is currently under heavy development. While there are
 games already being made using comfy, the API is not yet stable and
@@ -15,25 +16,40 @@ modifiable.
 
 > `comfy` is named comfy, because it is very comfy to use.
 
+The ultimate goal of comfy is to do the obvious thing as simply as possible
+without unnecessray ceremony. If something is annoying to use, it is a bug that
+should be fixed. We're not necessarily aiming at beginner friendliness, but
+rather productive and ergonomic APIs. If you're a beginner, comfy should be
+easy to pick up, but it might not be as polished as some of the other
+alternatives. The goal of comfy is ultimately not polish, cleanliness of API,
+clean design, type safety, extensibility, or maximum features. It's an engine
+that gets out of your way so you can make your game.
+
 # Features
 
 - Simple and productive API.
 - Immediate mode rendering for sprites, text and shapes with automatic batching. If you want to draw a circle, you call a function `draw_circle`.
+- 2D lighting with HDR, tonemapping and bloom.
 - Built-in support for z-index, meaning you don't have to worry about the order of your draw calls.
 - [egui](https://egui.rs/) support built in.
 - Parallel asset loading with support for most image and audio formats.
 - No complex ECS or abstractions to learn. Just build your game and let comfy get out of your way.
 - Simple audio using [kira](https://docs.rs/kira/latest/kira/). If you want to play a sound, you call a function `play_sound`.
 - Simple 2D camera.
+- Text rendering (currently using egui).
+- Lots of utilities for common tasks.
 
 # Design goals
 
+- Heavy focus on ergonomics and productivity.
 - No magic.
-- Heavy focus on 2D games.
+- Targeted at 2D games.
 - Opinionated and useful defaults.
 - **Simple** immediate mode APIs for almost everything.
-- Exposed and simple internals for when you need more.
-- Lots of utilities for common tasks.
+- Exposed internals for when you need more. Nothing is private.
+- Reasonable compile times. Comfy is slower to compile than macroquad, but we
+  want to avoid things getting out of hand. End users are not going to be
+  required to use any proc macros.
 
 # Non-goals
 
@@ -44,10 +60,18 @@ modifiable.
 - ECS based engine. While comfy does embed [hecs](https://docs.rs/hecs) and
   provides some helpers for using it, it is by no means required or even
   optimal for most cases.
-- Modularity. comfy is not a modular engine. It's an opinionated toolkit
+- Modularity. Comfy is not a modular engine. It's an opinionated toolkit
   with defaults that make sense for most games. There is no intention of
   having a plugin system or the ability to replace wgpu with something
   else.
+- Maximum performance. Comfy is not designed to be the fastest engine out
+  there. There are many tradeoffs made for the sake of ergonomics and ease of
+  use, some of which affect performance. If you're looking for the fastest way
+  to draw a million quads, comfy is not for you. If however you have a
+  legitimate use case where the performance is not good enough, please open an
+  issue. There is a lot of low hanging fruit with respect to performance, but
+  as the development is driven by real world usage, unless something shows up
+  in a profiler in a game, it's unlikely to be optimized further.
 
 # Getting started
 
@@ -134,6 +158,16 @@ There are many other frameworks/engines in Rust, but I haven't had a chance to
 interact with those in any significant way, hence why they're not in this
 comparison.
 
+# Roadmap
+
+The following goals are not in any particular order, but should come reasonably
+soon. Comfy is not an aetheral project that will only materialize in 2 years.
+Only features that require maximum few weeks of work are listed here.
+
+- Custom shaders/materials.
+- Configurable post processing.
+- 2D shadowcasters with soft shadows.
+
 # License
 
 comfy is free and open source and dual licensed under MIT and Apache 2.0 licenses.
@@ -146,4 +180,3 @@ Examples
 - [x] text
 - [ ] blood canvas
 - [ ] raytracing
-

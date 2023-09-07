@@ -65,7 +65,7 @@ pub struct EngineContext<'a> {
 
 impl<'a> EngineContext<'a> {
     pub fn reset_world_and_physics(&mut self) {
-        main_camera().center = Vec2::ZERO;
+        main_camera_mut().center = Vec2::ZERO;
         *self.is_paused.borrow_mut() = false;
         *self.world = Rc::new(RefCell::new(World::new()));
         blood_canvas_reset();
@@ -188,7 +188,7 @@ impl<'a> EngineContext<'a> {
             }
         }
 
-        main_camera().update(delta);
+        main_camera_mut().update(delta);
         self.commands().run_on(&mut self.world.borrow_mut());
         self.world.borrow_mut().flush();
     }
