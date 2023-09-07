@@ -1,6 +1,6 @@
 #![allow(clippy::new_without_default)]
 
-use bod::*;
+use comfy::*;
 
 example_game!("Animated Shapes Example", update);
 

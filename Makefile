@@ -1,5 +1,6 @@
 # EXAMPLE=animated_shapes
-EXAMPLE=sprite
+# EXAMPLE=sprite
+EXAMPLE=text
 
 default: example
 # default: profile-startup

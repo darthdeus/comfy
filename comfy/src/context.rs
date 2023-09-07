@@ -349,7 +349,7 @@ pub fn combat_text_system(c: &mut EngineContext) {
 
         draw_text_ex(
             &combat_text.text,
-            Position::world(pos.x, pos.y),
+            pos,
             // screen_pos.x,
             // screen_pos.y,
             // pos.x,

@@ -37,7 +37,7 @@ macro_rules! example_game {
                 Box::new(move |_c| Arc::new(Mutex::new(Game::new()))),
             ));
 
-            run_bod_main_async(game_state).await;
+            run_comfy_main_async(game_state).await;
         }
 
         pub struct GameState {}

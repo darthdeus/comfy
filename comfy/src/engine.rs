@@ -1,4 +1,4 @@
-use bod_wgpu::{RunGameLoop, WgpuRenderer};
+use comfy_wgpu::{RunGameLoop, WgpuRenderer};
 
 use crate::*;
 
@@ -72,8 +72,9 @@ impl RunGameLoop for EngineState {
                     TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
                 };
 
+                // TODO: maybe better way of doing this?
                 let screen_pos =
-                    text.position.to_screen() / egui_scale_factor();
+                    text.position.as_world().to_screen() / egui_scale_factor();
 
                 painter.text(
                     egui::pos2(screen_pos.x, screen_pos.y),

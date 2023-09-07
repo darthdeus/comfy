@@ -1,5 +1,6 @@
 use crate::*;
-use bod_core::random::*;
+
+use comfy_core::random::*;
 
 pub static SINGLE_PARTICLES: Lazy<AtomicRefCell<Vec<Particle>>> =
     Lazy::new(|| AtomicRefCell::new(Vec::new()));

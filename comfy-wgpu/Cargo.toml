@@ -1,5 +1,5 @@
 [package]
-name = "bod-wgpu"
+name = "comfy-wgpu"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,7 +11,7 @@ tracy = []
 push-constants = []
 
 [dependencies]
-bod-core = { path = "../bod-core", features = ["use-wgpu"] }
+comfy-core = { path = "../comfy-core", features = ["use-wgpu"] }
 
 wgpu = { version = "0.16.0", features = ["expose-ids"] }
 wgpu-types = "0.16.0"

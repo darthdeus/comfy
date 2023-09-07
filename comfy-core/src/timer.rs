@@ -32,7 +32,7 @@ impl Timer {
     ///
     /// # Example
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// ```
     pub fn from_seconds(duration: f32, repeating: bool) -> Self {
@@ -47,7 +47,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.tick(Duration::from_secs_f32(1.5));
@@ -64,7 +64,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.tick(Duration::from_secs_f32(1.5));
@@ -84,7 +84,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.tick(Duration::from_secs_f32(0.5));
@@ -108,7 +108,7 @@ impl Timer {
     ///
     /// #
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.set_elapsed(Duration::from_secs(2));
@@ -125,7 +125,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let timer = Timer::new(Duration::from_secs(1), false);
     /// assert_eq!(timer.duration(), Duration::from_secs(1));
@@ -139,7 +139,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.5, false);
     /// timer.set_duration(Duration::from_secs(1));
@@ -154,7 +154,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let mut timer = Timer::from_seconds(1.0, true);
     /// assert!(timer.repeating());
     /// ```
@@ -167,7 +167,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let mut timer = Timer::from_seconds(1.0, true);
     /// timer.set_repeating(false);
     /// assert!(!timer.repeating());
@@ -189,7 +189,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// let mut repeating = Timer::from_seconds(1.0, true);
@@ -241,7 +241,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.pause();
@@ -259,7 +259,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.pause();
@@ -279,7 +279,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// assert!(!timer.paused());
     /// timer.pause();
@@ -298,7 +298,7 @@ impl Timer {
     ///
     /// Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, false);
     /// timer.tick(Duration::from_secs_f32(1.5));
@@ -317,7 +317,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(2.0, false);
     /// timer.tick(Duration::from_secs_f32(0.5));
@@ -332,7 +332,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(2.0, false);
     /// timer.tick(Duration::from_secs_f32(0.5));
@@ -351,7 +351,7 @@ impl Timer {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut timer = Timer::from_seconds(1.0, true);
     /// timer.tick(Duration::from_secs_f32(6.0));
@@ -494,7 +494,7 @@ mod tests {
 /// # Examples
 ///
 /// ```
-/// # use bod_core::{Timer, Stopwatch};
+/// # use comfy_core::{Timer, Stopwatch};
 /// use std::time::Duration;
 /// let mut stopwatch = Stopwatch::new();
 /// assert_eq!(stopwatch.elapsed_secs(), 0.0);
@@ -521,7 +521,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let stopwatch = Stopwatch::new();
     /// assert_eq!(stopwatch.elapsed_secs(), 0.0);
     /// assert_eq!(stopwatch.paused(), false);
@@ -535,7 +535,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.tick(Duration::from_secs(1));
@@ -555,7 +555,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.tick(Duration::from_secs(1));
@@ -574,7 +574,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.set_elapsed(Duration::from_secs_f32(1.0));
@@ -591,7 +591,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.tick(Duration::from_secs_f32(1.5));
@@ -609,7 +609,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.pause();
@@ -626,7 +626,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.pause();
@@ -645,7 +645,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// let mut stopwatch = Stopwatch::new();
     /// assert!(!stopwatch.paused());
     /// stopwatch.pause();
@@ -662,7 +662,7 @@ impl Stopwatch {
     ///
     /// # Examples
     /// ```
-    /// # use bod_core::{Timer, Stopwatch};
+    /// # use comfy_core::{Timer, Stopwatch};
     /// use std::time::Duration;
     /// let mut stopwatch = Stopwatch::new();
     /// stopwatch.tick(Duration::from_secs_f32(1.5));

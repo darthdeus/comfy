@@ -102,7 +102,7 @@ pub struct Draw {
     pub circles: Vec<(Position, f32, Color)>,
     pub textures: Vec<QueuedTexture>,
     pub lines: Vec<QueuedLine>,
-    pub texts: Vec<(String, Position, Color, f32)>,
+    pub texts: Vec<(String, Vec2, Color, f32)>,
 
     pub drawables: Vec<Drawable>,
 }
@@ -190,7 +190,7 @@ impl Draw {
     pub fn text(
         &mut self,
         text: String,
-        position: Position,
+        position: Vec2,
         color: Color,
         size: f32,
     ) {

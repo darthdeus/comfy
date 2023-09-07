@@ -2,9 +2,9 @@
 resolver = "2"
 
 members = [
-  "bod",
-  "bod-core",
-  "bod-wgpu",
+  "comfy",
+  "comfy-core",
+  "comfy-wgpu",
 ]
 
 [profile.dev]

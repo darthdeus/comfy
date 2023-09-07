@@ -1,0 +1,30 @@
+[package]
+name = "comfy"
+version = "0.1.0"
+edition = "2021"
+license = "MIT or Apache"
+description = "A comfy 2d game engine in Rust."
+
+[features]
+default = ["color-backtrace", "quick-exit"]
+use-wgpu = []
+
+memory-stats = ["comfy-core/memory-stats"]
+color-backtrace = []
+exit-after-startup = []
+
+demo = []
+dev = []
+embedded-assets = []
+quick-exit = []
+ci-release = []
+
+tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
+# tracy = ["comfy-core/tracy", "blobs/tracy", "comfy-wgpu/tracy"]
+
+jemalloc = ["comfy-core/jemalloc"]
+lua = ["comfy-core/lua"]
+
+[dependencies]
+comfy-wgpu = { path = "../comfy-wgpu" }
+comfy-core = { path = "../comfy-core" }

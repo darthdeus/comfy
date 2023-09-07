@@ -250,7 +250,7 @@ pub fn draw_labeled_rect_corners(
 ) {
     draw_text_ex(
         label,
-        (center + vec2(-size.x, size.y) / 2.0).as_world(),
+        center + vec2(-size.x, size.y) / 2.0,
         TextAlign::BottomLeft,
         TextParams {
             font: egui::FontId::new(

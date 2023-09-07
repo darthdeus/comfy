@@ -1,4 +1,4 @@
-use bod::*;
+use comfy::*;
 
 example_game!("Sprite Example", setup, update);
 
@@ -42,13 +42,6 @@ fn update(_c: &mut EngineContext) {
     let params = DrawTextureParams {
         dest_size: Some(dest_size),
         source_rect: Some(src_rect),
-        // scroll_offset: todo!(),
-        // rotation: todo!(),
-        // flip_x: todo!(),
-        // flip_y: todo!(),
-        // pivot: todo!(),
-        // shader: todo!(),
-        // blend_mode: todo!(),
         ..Default::default()
     };
 

@@ -45,8 +45,7 @@ impl Default for TextParams {
 
 pub fn draw_text_ex(
     text: &str,
-    // TODO: change this to vec2
-    position: Position,
+    position: Vec2,
     align: TextAlign,
     params: TextParams,
 ) {
@@ -64,7 +63,7 @@ pub fn draw_text_ex(
 pub fn draw_text(text: &str, position: Vec2, color: Color, align: TextAlign) {
     GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
         text: text.to_string(),
-        position: position.as_world(),
+        position,
         color,
         font: TextParams::default().font,
         align,
@@ -73,7 +72,7 @@ pub fn draw_text(text: &str, position: Vec2, color: Color, align: TextAlign) {
 
 pub struct DrawText {
     pub text: String,
-    pub position: Position,
+    pub position: Vec2,
     pub font: egui::FontId,
     pub color: Color,
     pub align: TextAlign,

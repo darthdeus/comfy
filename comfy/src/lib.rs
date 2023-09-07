@@ -43,25 +43,25 @@ pub use std::{
     },
 };
 
-pub use bod_core;
-pub use bod_core::{Assets, *};
+pub use comfy_core;
+pub use comfy_core::{Assets, *};
 
 pub use std::path::Path;
 
-pub use bod_core::*;
+pub use comfy_core::*;
 
-pub use bod_wgpu;
-pub use bod_wgpu::*;
+pub use comfy_wgpu;
+pub use comfy_wgpu::*;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn run_bod_main(run_game_loop: Box<dyn RunGameLoop>) {
-    pollster::block_on(run_bod_main_async(run_game_loop));
+pub fn run_comfy_main(run_game_loop: Box<dyn RunGameLoop>) {
+    pollster::block_on(run_comfy_main_async(run_game_loop));
 }
 
-pub async fn run_bod_main_async(game_state: Box<dyn RunGameLoop>) {
+pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
     if cfg!(feature = "tracy") {
         info!("CONNECTING TO TRACY");
     } else {

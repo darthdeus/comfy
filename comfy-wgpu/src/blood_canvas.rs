@@ -1,5 +1,5 @@
 use crate::*;
-pub use bod_core::*;
+pub use comfy_core::*;
 
 pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
 
