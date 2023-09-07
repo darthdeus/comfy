@@ -27,9 +27,10 @@ fn update(_c: &mut EngineContext) {
     let color = lerped_color(&colors, color_t);
 
     draw_text(text, Vec2::ZERO, color, TextAlign::Center);
+
     draw_text_ex(
         &text[..text_idx.clamp(5, text.len())],
-        vec2(0.0, 1.0),
+        vec2(0.0, -2.0),
         TextAlign::Center,
         TextParams {
             color,

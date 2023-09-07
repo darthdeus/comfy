@@ -143,7 +143,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 Examples
 
 - [ ] particles
-- [ ] text
+- [x] text
 - [ ] blood canvas
 - [ ] raytracing
 
