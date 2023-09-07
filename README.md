@@ -1,3 +1,9 @@
+[![Crates.io](https://img.shields.io/crates/v/comfy.svg)](https://crates.io/crates/comfy)
+[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/darthdeus/comfy#license)
+[![Crates.io](https://img.shields.io/crates/d/comfy.svg)](https://crates.io/crates/comfy)
+[![Rust](https://github.com/darthdeus/comfy/workflows/CI/badge.svg)](https://github.com/darthdeus/comfy/actions)
+[![Discord](https://img.shields.io/discord/691052431525675048.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/M8hySjuG48)
+
 # What is `comfy`?
 
 Comfy is an ergonomic 2D game engine built in Rust. It's designed to be
