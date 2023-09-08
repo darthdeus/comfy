@@ -173,6 +173,7 @@ The following goals are not in any particular order, but should come reasonably
 soon. Comfy is not an aetheral project that will only materialize in 2 years.
 Only features that require maximum few weeks of work are listed here.
 
+- Camera render targets
 - Custom shaders/materials.
 - Configurable post processing.
 - 2D shadowcasters with soft shadows.
@@ -212,7 +213,11 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 
 Examples
 
-- [ ] particles
+- [ ] simple sprite
+- [ ] simple text
+- [ ] simple shapes
+- [x] simple particles
+- [ ] particle systems
 - [x] text
 - [ ] blood canvas
 - [ ] raytracing
