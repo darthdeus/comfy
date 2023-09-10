@@ -7,8 +7,7 @@ pub static MAIN_CAMERA: Lazy<AtomicRefCell<MainCamera>> =
 
 pub const LINE_W: f32 = 2.0;
 
-static PX: AtomicU32 =
-    AtomicU32::new(unsafe { std::mem::transmute(0.0347f32) });
+static PX: AtomicU32 = AtomicU32::new(unsafe { std::mem::transmute(0.0347f32) });
 
 pub fn set_px(value: f32) {
     PX.store(value.to_bits(), Ordering::SeqCst);
@@ -54,11 +53,9 @@ pub fn main_camera_mut() -> AtomicRefMut<'static, MainCamera> {
     MAIN_CAMERA.borrow_mut()
 }
 
-
 pub fn set_main_camera_zoom(zoom: f32) {
     MAIN_CAMERA.borrow_mut().zoom = zoom;
 }
-
 
 pub fn egui_scale_factor() -> f32 {
     GLOBAL_STATE.borrow().egui_scale_factor
@@ -88,7 +85,12 @@ pub struct DampedSpring {
 
 impl DampedSpring {
     pub fn new(target: f32, damping: f32) -> DampedSpring {
-        DampedSpring { value: target, target, velocity: 0.0, damping }
+        DampedSpring {
+            value: target,
+            target,
+            velocity: 0.0,
+            damping,
+        }
     }
 
     pub fn update(&mut self) {
@@ -175,17 +177,17 @@ impl MainCamera {
                 let mut new_center = self.center;
 
                 if dx > DEADZONE_WIDTH / 2.0 {
-                    new_center.x = player_position.x -
-                        DEADZONE_WIDTH / 2.0 * player_position.x.signum();
+                    new_center.x =
+                        player_position.x - DEADZONE_WIDTH / 2.0 * player_position.x.signum();
                 }
 
                 if dy > DEADZONE_HEIGHT / 2.0 {
-                    new_center.y = player_position.y -
-                        DEADZONE_HEIGHT / 2.0 * player_position.y.signum();
+                    new_center.y =
+                        player_position.y - DEADZONE_HEIGHT / 2.0 * player_position.y.signum();
                 }
 
-                self.center = self.center +
-                    (new_center - self.center) * self.smoothing_speed * delta;
+                self.center =
+                    self.center + (new_center - self.center) * self.smoothing_speed * delta;
             }
         }
 
@@ -264,7 +266,7 @@ impl MainCamera {
         let hx = self.zoom / 2.0;
         let hy = self.zoom / 2.0 / self.aspect_ratio;
 
-        let range = 500.0;
+        let range = 1000.0;
 
         const SHAKE: f32 = 0.2;
 
@@ -321,6 +323,11 @@ impl MainCamera {
         //     normalized.y * state.screen_size.y / state.egui_scale_factor,
         // )
     }
+
+    pub fn world_to_render_px(&self, position: Vec2, render_scale: f32) -> IVec2 {
+        let px = self.world_to_screen(position).as_ivec2();
+        (px.as_vec2() * render_scale).as_ivec2()
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -339,12 +346,18 @@ impl Position {
     }
 
     pub fn screen_px(x: f32, y: f32) -> Self {
-        Self::Screen { x: ScreenVal::Px(x), y: ScreenVal::Px(y) }
+        Self::Screen {
+            x: ScreenVal::Px(x),
+            y: ScreenVal::Px(y),
+        }
     }
 
     // TODO: rename to screen & percent
     pub fn screen_percent(x: f32, y: f32) -> Self {
-        Self::Screen { x: ScreenVal::Percent(x), y: ScreenVal::Percent(y) }
+        Self::Screen {
+            x: ScreenVal::Percent(x),
+            y: ScreenVal::Percent(y),
+        }
     }
 
     pub fn vec2(self) -> Vec2 {
@@ -358,10 +371,7 @@ impl Position {
         match self {
             Position::World { x, y } => vec2(x, y),
             Position::Screen { x, y } => {
-                screen_to_world(vec2(
-                    x.to_px(screen_width()),
-                    y.to_px(screen_height()),
-                ))
+                screen_to_world(vec2(x.to_px(screen_width()), y.to_px(screen_height())))
             }
         }
     }
@@ -369,9 +379,7 @@ impl Position {
     pub fn to_screen(self) -> Vec2 {
         match self {
             Position::World { x, y } => world_to_screen(vec2(x, y)),
-            Position::Screen { x, y } => {
-                vec2(x.to_px(screen_width()), y.to_px(screen_height()))
-            }
+            Position::Screen { x, y } => vec2(x.to_px(screen_width()), y.to_px(screen_height())),
         }
     }
 }
@@ -418,19 +426,15 @@ impl Value {
 
         match self {
             Value::World(val) => val,
-            Value::Px(val) => {
-                match axis {
-                    Axis::X => val / screen_width() * viewport.x,
-                    Axis::Y => val / screen_height() * viewport.y,
-                }
-            }
+            Value::Px(val) => match axis {
+                Axis::X => val / screen_width() * viewport.x,
+                Axis::Y => val / screen_height() * viewport.y,
+            },
             // TODO: simplify
-            Value::Percent(percent) => {
-                match axis {
-                    Axis::X => percent * viewport.x,
-                    Axis::Y => percent * viewport.y,
-                }
-            }
+            Value::Percent(percent) => match axis {
+                Axis::X => percent * viewport.x,
+                Axis::Y => percent * viewport.y,
+            },
         }
     }
 }
@@ -443,15 +447,24 @@ pub struct Size {
 
 impl Size {
     pub fn world(width: f32, height: f32) -> Self {
-        Size { width: Value::World(width), height: Value::World(height) }
+        Size {
+            width: Value::World(width),
+            height: Value::World(height),
+        }
     }
 
     pub fn screen(width: f32, height: f32) -> Self {
-        Size { width: Value::Px(width), height: Value::Px(height) }
+        Size {
+            width: Value::Px(width),
+            height: Value::Px(height),
+        }
     }
 
     pub fn percent(width: f32, height: f32) -> Self {
-        Size { width: Value::Percent(width), height: Value::Percent(height) }
+        Size {
+            width: Value::Percent(width),
+            height: Value::Percent(height),
+        }
     }
 
     pub fn to_world(self) -> Vec2 {

@@ -69,6 +69,7 @@ impl TextureCreator for WgpuTextureCreator {
         handle
     }
 
+    // TODO: flip order of params for better readability?
     fn update_texture(&self, image: &DynamicImage, handle: TextureHandle) {
         let size = wgpu::Extent3d {
             width: image.width(),
