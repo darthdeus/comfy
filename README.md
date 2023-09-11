@@ -245,6 +245,12 @@ Only features that require maximum few weeks of work are listed here.
 - Gamepad & touchpad support.
 - Antialiasing.
 - 2D shadowcasters with soft shadows.
+- Asset packing without `include_dir`. Right now comfy relies on either its
+  builtin use of [include_dir](https://github.com/darthdeus/include_dir) (a
+  small fork with a few extra features), or the user handling asset loading
+  manually. There are many other ways of packing assets, and it would be cool
+  to support those, but we don't currently because for reasonably (<1GB) sized
+  assets `include_dir` works well enough.
 - Text rendering without egui. Right now all text (drawn with `draw_text` and
   friends) is rendered using `egui`'s painter on a separate layer. This gives
   us a lot of features in terms of text rendering, but also comes with some
@@ -279,6 +285,9 @@ advanced examples, as well as small example games, are welcome.
 Comfy is not currently aiming for heavy documentation coverage due to the rapid
 pace of development. Examples are preferred to documentation as they're easier
 to fix when APIs change. Most things should be self-explanatory.
+
+If you'd like to chat about anything comfy related, [join our discord
+server](https://discord.gg/M8hySjuG48).
 
 # License
 
