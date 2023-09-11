@@ -31,6 +31,18 @@ alternatives. The goal of comfy is ultimately not polish, cleanliness of API,
 clean design, type safety, extensibility, or maximum features. It's an engine
 that gets out of your way so you can make your game.
 
+There is nothing that fundamentally prevents comfy from becoming a 3D engine,
+but the last thing we want is to try to fight rend3 or bevy in terms of PBR
+accuracy or skeletal animations. Comfy is not fighting against Unreal Engine 5.
+It would be nice if [simple](https://store.steampowered.com/app/824600/HROT/)
+[stylized](https://store.steampowered.com/app/1055540/A_Short_Hike/)
+[3D](https://store.steampowered.com/app/219890/Antichamber/)
+[games](https://store.steampowered.com/app/219890/Antichamber/) were ultimately
+possible, but we want to get all of the basic building blocks for 2D first.
+Some internals of comfy (batching and z-sorting) will need to be re-implemented
+to allow for this and ultimately more performant rendering techniques, but this
+should not happen at the cost of API clarity and ergonomics for most 2D games.
+
 # Features
 
 - Simple and productive API.
@@ -291,3 +303,15 @@ Examples
 - [ ] lighting
 - [ ] top-down minigame
 - [ ] platformer minigame
+
+# Games using comfy
+
+Comfy is being used by [LogLog Games](https://loglog.games/), and currently
+used in a few of our games, two of which you can check out on Steam.
+
+- [NANOVOID](https://store.steampowered.com/app/2326430/NANOVOID) - 2d top down tactical space shooter.
+- [BITGUN Survivors](https://store.steampowered.com/app/2081500/BITGUN_Survivors) - open world take on the vampire survivors genre, a spiritual successor to our last big Rust game [BITGUN](https://store.steampowered.com/app/1673940/BITGUN).
+
+We've also used comfy in a few smaller games, e.g. our [1-bit jam
+entry](https://logloggames.itch.io/bitmob-1-bit-jam) where we experimented with
+CPU textures and 2D raytracing.
