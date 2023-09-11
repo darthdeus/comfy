@@ -1,7 +1,8 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=sprite
 # EXAMPLE=text
-EXAMPLE=particles
+# EXAMPLE=particles
+EXAMPLE=post_processing
 
 default: example
 # default: profile-startup

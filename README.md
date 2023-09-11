@@ -111,6 +111,60 @@ very highly recommend giving macroquad a try. While it is not perfect it has
 helped me build a bunch of small games, and most importantly I had fun while
 making them.
 
+### Differences between `comfy` and `macroquad`
+
+Macroquad is the biggest inspiration to comfy, and as such there are many
+things which are similar, but there are quite a few differences.
+
+**Coordinate systems:**
+
+- Macroquad's coordinate system is `[0, 0]` in top left, `y`-down, measured in
+  pixels.
+- Comfy's coordinate system is `[0, 0]` in the center, `y`-up, measured in
+  world units. Default camera has zoom set to `30`, which means you can see
+  roughly `30` world units. In a pixel-art game with 16x16 sprites, you would
+  ideally set your camera's zoom so each sprite is `1` world unit.
+
+**Z-index built in**. In macroquad, draw calls happen in the order you call
+them. In comfy, almost everything (excluding text and UI) accepts a `z_index:
+i32`. This means you don't need to sort the calls yourself, comfy will do it
+for you while still batching the draw calls as best it can.
+
+**HDR render textures**: Macroquad targets GLES2/3 to support as many platforms
+as possible, and as such it can't support RGBA16F textures. Comfy targets
+desktop and WASM through WebGL 2, both of which allow `f16` textures, and thus
+all rendering is done with HDR and tonemapped accordingly. This allows our
+bloom implementation to work off of HDR colors and greatly simplify working
+with lights, as the light intensity can go well beyond 1.
+
+**Batteries included**: Comfy includes many extra things that macroquad does
+not, for example egui itself is part of comfy and likely will remain this way
+until a better alternative comes along. Macroquad and miniquad provide small
+flexible building blocks, while comfy aims to be a full and relatively
+opinionated way of making games.
+
+There are many more subtle differences, but in principle you can think of as
+comfy as "macroquad with more batteries included, built on top of wgpu, with
+less cross platform capabilities". Note that because comfy builds on wgpu and
+not OpenGL we don't have the same immediate mode interactions with Gthat
+because comfy builds on wgpu and not OpenGL we don't have the same immediate
+mode interactions with GL. This makes some things more difficult, e.g. render
+targets, changing shader uniforms, etc.
+
+Comfy intends to support all of these features, but it will take a bit more
+development. Many engines (e.g. bevy and rend3) end up using render graphs in
+order to expose the rendering logic to users. While these are very flexible and
+offer high performance their APIs are anything but simple.
+
+Since our intention is not to support AAA graphics the goal should be to find
+some form of middle ground, where we could achieve something similar to
+macroquad in terms of API simplicity, expressivity, and fun, while utilizing
+all of the power wgpu has to offer.
+
+The ultimate design goal of comfy is that most of its API should be
+understandable from just looking at the type signatures, without needing to
+study documentation in depth, and without excessive footguns.
+
 ## [rend3](https://rend3.rs/)
 
 I don't have much experience with rend3 apart from digging a bit through its
@@ -173,10 +227,19 @@ The following goals are not in any particular order, but should come reasonably
 soon. Comfy is not an aetheral project that will only materialize in 2 years.
 Only features that require maximum few weeks of work are listed here.
 
+- Configurable post processing.
 - Camera render targets
 - Custom shaders/materials.
-- Configurable post processing.
+- Gamepad & touchpad support.
+- Antialiasing.
 - 2D shadowcasters with soft shadows.
+- Text rendering without egui. Right now all text (drawn with `draw_text` and
+  friends) is rendered using `egui`'s painter on a separate layer. This gives
+  us a lot of features in terms of text rendering, but also comes with some
+  limitations. The goal is to implement text rendering on top of just wgpu.
+  We've tried a few different approaches (e.g. `glyphon`) but ultimately found none
+  to be easy enough to just replace what we have in `egui`, and since no games were
+  yet blocked on more flexible rendering this remains a relatively low priority problem.
 
 # Contributing
 
