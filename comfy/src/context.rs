@@ -1,3 +1,5 @@
+use comfy_wgpu::wgpu::SurfaceConfiguration;
+
 use crate::*;
 
 pub const PAUSE_DESPAWN: &str = "PAUSE_DESPAWN";
@@ -28,6 +30,8 @@ pub struct EngineContext<'a> {
     pub cached_loader: &'a RefCell<CachedImageLoader>,
     pub graphics_context: &'a GraphicsContext,
     pub textures: &'a Arc<Mutex<TextureMap>>,
+    pub surface_config: &'a SurfaceConfiguration,
+    pub render_texture_format: wgpu::TextureFormat,
 
     pub draw: &'a RefCell<Draw>,
 

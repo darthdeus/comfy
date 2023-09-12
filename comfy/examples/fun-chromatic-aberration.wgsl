@@ -10,7 +10,13 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
 
     let center_boost: f32 = 0.2; // Change this value to control the minimum aberration at the center
 
-    let off: f32 = (params.chromatic_aberration * vignette_strength + center_boost * params.chromatic_aberration) / params.resolution.x;
+    // let res_x = params.resolution.x;
+    // let ca_amount = params.chromatic_aberration;
+
+    let res_x = 1920.0;
+    let ca_amount = 5.0;
+
+    let off: f32 = (ca_amount * vignette_strength + center_boost * ca_amount) / res_x;
 
     var color: vec3<f32>;
 

@@ -961,6 +961,9 @@ impl EngineState {
             cached_loader: &self.cached_loader,
             graphics_context: &renderer.context,
             textures: &renderer.textures,
+            surface_config: &renderer.config,
+            render_texture_format: renderer.render_texture_format,
+
             delta: delta(),
 
             egui,

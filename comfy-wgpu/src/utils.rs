@@ -30,6 +30,30 @@ macro_rules! reloadable_wgsl_shader {
 }
 
 #[macro_export]
+macro_rules! include_wgsl_fragment_shader {
+    ($name:literal) => {{
+        let struct_prefix = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders/structs.wgsl"
+        ));
+
+        let pp_prefix = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders/user_post_processing_vertex.wgsl"
+        ));
+
+        let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
+        let frag_part = include_str!($name);
+        let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
+
+        wgpu::ShaderModuleDescriptor {
+            label: Some($name),
+            source: wgpu::ShaderSource::Wgsl(full_shader.into()),
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
         let struct_prefix = include_str!(concat!(
