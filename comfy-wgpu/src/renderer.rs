@@ -68,7 +68,7 @@ pub struct WgpuRenderer {
     pub global_lighting_params_bind_group_layout: wgpu::BindGroupLayout,
 
     pub bloom: Bloom,
-    pub post_processing_effects: Vec<PostProcessingEffect>,
+    pub post_processing_effects: RefCell<Vec<PostProcessingEffect>>,
 
     pub render_texture_format: wgpu::TextureFormat,
 
@@ -666,7 +666,7 @@ impl WgpuRenderer {
             config,
             size,
 
-            post_processing_effects,
+            post_processing_effects: RefCell::new(post_processing_effects),
             bloom,
 
             egui_winit,
@@ -735,11 +735,10 @@ impl WgpuRenderer {
             &mut encoder,
         );
 
-        let enabled_effects = self
-            .post_processing_effects
-            .iter()
-            .filter(|x| x.enabled)
-            .collect_vec();
+        let post_processing_effects = self.post_processing_effects.borrow();
+
+        let enabled_effects =
+            post_processing_effects.iter().filter(|x| x.enabled).collect_vec();
 
         for (i, effect) in enabled_effects.iter().enumerate() {
             let output_texture_view = if i == enabled_effects.len() - 1 {
@@ -864,8 +863,9 @@ impl WgpuRenderer {
         bind_groups.push(&self.bloom.blur_bind_group);
 
         let size = 0.3;
+        let post_processing_effects = self.post_processing_effects.borrow();
 
-        for effect in &self.post_processing_effects {
+        for effect in post_processing_effects.iter() {
             if effect.enabled {
                 bind_groups.push(&effect.bind_group);
             }
@@ -995,12 +995,16 @@ impl WgpuRenderer {
     ) {
         let _span = span!("render_meshes");
 
-        let target_view =
-            if self.post_processing_effects.iter().any(|x| x.enabled) {
-                &self.first_pass_texture.view
-            } else {
-                surface_view
-            };
+        let target_view = if self
+            .post_processing_effects
+            .borrow()
+            .iter()
+            .any(|x| x.enabled)
+        {
+            &self.first_pass_texture.view
+        } else {
+            surface_view
+        };
 
         let textures = self.textures.lock();
 
@@ -1143,12 +1147,16 @@ impl WgpuRenderer {
     ) {
         let _span = span!("render_particles");
 
-        let target_view =
-            if self.post_processing_effects.iter().any(|x| x.enabled) {
-                &self.first_pass_texture.view
-            } else {
-                surface_view
-            };
+        let target_view = if self
+            .post_processing_effects
+            .borrow()
+            .iter()
+            .any(|x| x.enabled)
+        {
+            &self.first_pass_texture.view
+        } else {
+            surface_view
+        };
 
         let textures = self.textures.lock();
 

@@ -54,6 +54,8 @@ should not happen at the cost of API clarity and ergonomics for most 2D games.
 - No complex ECS or abstractions to learn. Just build your game and let comfy get out of your way.
 - Simple audio using [kira](https://docs.rs/kira/latest/kira/). If you want to play a sound, you call a function `play_sound`.
 - Simple 2D camera.
+- Particles, both simple API for individual particles & systems with lots of options.
+- Trails with a custom mesh & scrolling texture.
 - Text rendering (currently using egui).
 - Lots of utilities for common tasks.
 
@@ -258,6 +260,13 @@ Only features that require maximum few weeks of work are listed here.
   We've tried a few different approaches (e.g. `glyphon`) but ultimately found none
   to be easy enough to just replace what we have in `egui`, and since no games were
   yet blocked on more flexible rendering this remains a relatively low priority problem.
+- Overall engine/renderer code cleanup. The code in comfy is not beautiful
+  as it developed organically while building multiple games. There are
+  some features that could be better exposed, and some remains of what our
+  games needed. The provided examples should serve as a foundation to make
+  sure comfy is flexible enough, but it is an ongoing effort to improve
+  the codebase. That being said, almost everything you find in comfy
+  should work to a reasonable extent.
 
 # Contributing
 

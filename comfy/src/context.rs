@@ -56,6 +56,8 @@ pub struct EngineContext<'a> {
     pub is_paused: &'a RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
+    pub post_processing_effects: &'a RefCell<Vec<PostProcessingEffect>>,
+
     pub to_despawn: &'a RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
     pub flags: &'a RefCell<HashSet<String>>,

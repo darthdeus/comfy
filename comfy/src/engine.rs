@@ -988,6 +988,8 @@ impl EngineState {
             changes: &self.changes,
             notifications: &mut self.notifications,
 
+            post_processing_effects: &renderer.post_processing_effects,
+
             is_paused: &self.is_paused,
             show_pause_menu: &mut self.show_pause_menu,
             quit_flag: &mut self.quit_flag,
