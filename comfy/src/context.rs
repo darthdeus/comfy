@@ -61,6 +61,7 @@ pub struct EngineContext<'a> {
     pub show_pause_menu: &'a mut bool,
 
     pub post_processing_effects: &'a RefCell<Vec<PostProcessingEffect>>,
+    pub shaders: &'a RefCell<ShaderMap>,
 
     pub to_despawn: &'a RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
@@ -119,6 +120,36 @@ impl<'a> EngineContext<'a> {
 
     pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
         self.draw.borrow_mut()
+    }
+
+    pub fn insert_post_processing_effect(
+        &self,
+        index: i32,
+        name: &str,
+        shader: Shader,
+    ) {
+        let effect = PostProcessingEffect::new(
+            name.to_string(),
+            &self.graphics_context.device,
+            &[&self.graphics_context.texture_bind_group_layout],
+            self.surface_config,
+            self.render_texture_format,
+            shader.clone(),
+        );
+
+        if index == -1 {
+            self.post_processing_effects.borrow_mut().push(effect);
+        } else if index >= 0 {
+            self.post_processing_effects
+                .borrow_mut()
+                .insert(index as usize, effect);
+        } else {
+            panic!("Invalid index = {}, must be -1 or non-negative.", index);
+        }
+
+        self.shaders
+            .borrow_mut()
+            .insert(name.to_string().into(), shader.clone());
     }
 
     pub fn early_update(&mut self) {

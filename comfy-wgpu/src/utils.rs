@@ -22,9 +22,9 @@ macro_rules! reloadable_wgsl_shader {
             }
         }
 
-        wgpu::ShaderModuleDescriptor {
-            label: Some(&format!("{} Shader", $name)),
-            source: wgpu::ShaderSource::Wgsl(format!("{}{}", struct_prefix, shader).into()),
+        Shader {
+            name: format!("{} Shader", $name),
+            source: format!("{}{}", struct_prefix, shader).into(),
         }
     }};
 }
@@ -46,10 +46,7 @@ macro_rules! include_wgsl_fragment_shader {
         let frag_part = include_str!($name);
         let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
 
-        wgpu::ShaderModuleDescriptor {
-            label: Some($name),
-            source: wgpu::ShaderSource::Wgsl(full_shader.into()),
-        }
+        Shader { name: $name.to_string(), source: full_shader.to_string() }
     }};
 }
 
@@ -99,10 +96,7 @@ macro_rules! reloadable_wgsl_fragment_shader {
 
         let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
 
-        wgpu::ShaderModuleDescriptor {
-            label: Some($name),
-            source: wgpu::ShaderSource::Wgsl(full_shader.into()),
-        }
+        Shader { name: $name.to_string(), source: full_shader.to_string() }
     }};
 }
 
@@ -137,19 +131,17 @@ pub fn load_texture_from_engine_bytes(
     textures.insert(handle, (error_bind_group, error_texture));
 }
 
-pub fn simple_fragment_shader<'a>(
+pub fn simple_fragment_shader(
     name: &'static str,
     frag: &'static str,
-) -> wgpu::ShaderModuleDescriptor<'a> {
+) -> Shader {
     let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
     let frag_shader_prefix =
         include_str!("../../assets/shaders/post_processing_vertex.wgsl");
 
-    wgpu::ShaderModuleDescriptor {
-        label: Some(name),
-        source: wgpu::ShaderSource::Wgsl(
-            format!("{}{}{}", struct_prefix, frag_shader_prefix, frag).into(),
-        ),
+    Shader {
+        name: name.to_string(),
+        source: format!("{}{}{}", struct_prefix, frag_shader_prefix, frag),
     }
 }
 

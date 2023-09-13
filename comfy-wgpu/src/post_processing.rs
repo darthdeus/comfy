@@ -1,7 +1,7 @@
 use crate::*;
 
 pub struct PostProcessingEffect {
-    pub name: Cow<'static, str>,
+    pub name: String,
     pub enabled: bool,
     pub render_texture: Texture,
     pub bind_group: wgpu::BindGroup,
@@ -10,12 +10,12 @@ pub struct PostProcessingEffect {
 
 impl PostProcessingEffect {
     pub fn new_with_mip(
-        name: &'static str,
+        name: String,
         device: &wgpu::Device,
         bind_group_layouts: &[&wgpu::BindGroupLayout],
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
-        shader: wgpu::ShaderModuleDescriptor,
+        shader: Shader,
         mip_level_count: u32,
         blend: wgpu::BlendState,
     ) -> Self {
@@ -25,7 +25,7 @@ impl PostProcessingEffect {
             format,
             1.0,
             mip_level_count,
-            name,
+            &name,
         );
 
         let bind_group = device.simple_bind_group(
@@ -35,7 +35,7 @@ impl PostProcessingEffect {
         );
 
         let pipeline = create_post_processing_pipeline(
-            name,
+            &name,
             device,
             format,
             bind_group_layouts,
@@ -43,22 +43,16 @@ impl PostProcessingEffect {
             blend,
         );
 
-        Self {
-            name: name.into(),
-            enabled: true,
-            render_texture,
-            bind_group,
-            pipeline,
-        }
+        Self { name, enabled: true, render_texture, bind_group, pipeline }
     }
 
     pub fn new(
-        name: &'static str,
+        name: String,
         device: &wgpu::Device,
         bind_group_layouts: &[&wgpu::BindGroupLayout],
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
-        shader: wgpu::ShaderModuleDescriptor,
+        shader: Shader,
     ) -> Self {
         Self::new_with_mip(
             name,
@@ -78,10 +72,10 @@ pub fn create_post_processing_pipeline(
     device: &wgpu::Device,
     format: wgpu::TextureFormat,
     bind_group_layouts: &[&wgpu::BindGroupLayout],
-    shader: wgpu::ShaderModuleDescriptor,
+    shader: Shader,
     blend: wgpu::BlendState,
 ) -> wgpu::RenderPipeline {
-    let shader = device.create_shader_module(shader);
+    let shader = device.create_shader_module(shader.to_wgpu());
 
     let pipeline_layout =
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

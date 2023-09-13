@@ -102,7 +102,7 @@ impl Bloom {
                 device,
                 format,
                 &[layout, lighting_params_layout],
-                reloadable_wgsl_fragment_shader!("bloom-threshold"),
+                reloadable_wgsl_fragment_shader!("bloom-threshold").into(),
                 wgpu::BlendState::REPLACE,
             ),
         };

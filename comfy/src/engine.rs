@@ -992,6 +992,7 @@ impl EngineState {
             notifications: &mut self.notifications,
 
             post_processing_effects: &renderer.post_processing_effects,
+            shaders: &renderer.shaders,
 
             is_paused: &self.is_paused,
             show_pause_menu: &mut self.show_pause_menu,

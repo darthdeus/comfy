@@ -1,14 +1,11 @@
-use std::{
-    collections::hash_map::Entry,
-    sync::mpsc::{channel, Receiver, Sender},
-};
+use std::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::*;
 
 use image::Rgba;
 use winit::{dpi::PhysicalSize, window::Window};
 
-pub type PipelineMap = HashMap<Cow<'static, str>, wgpu::RenderPipeline>;
+pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
 
 #[repr(C)]
@@ -18,8 +15,22 @@ pub struct QuadUniform {
     pub size: [f32; 2],
 }
 
-pub type ShaderMap =
-    HashMap<Cow<'static, str>, wgpu::ShaderModuleDescriptor<'static>>;
+#[derive(Clone, Debug)]
+pub struct Shader {
+    pub name: String,
+    pub source: String,
+}
+
+impl Shader {
+    pub fn to_wgpu<'a>(&'a self) -> wgpu::ShaderModuleDescriptor<'a> {
+        wgpu::ShaderModuleDescriptor {
+            label: Some(&self.name),
+            source: wgpu::ShaderSource::Wgsl(self.source.as_str().into()),
+        }
+    }
+}
+
+pub type ShaderMap = HashMap<Cow<'static, str>, Shader>;
 
 #[derive(Clone)]
 pub struct GraphicsContext {
@@ -42,7 +53,7 @@ pub struct WgpuRenderer {
     pub size: PhysicalSize<u32>,
 
     pub pipelines: PipelineMap,
-    pub shaders: ShaderMap,
+    pub shaders: RefCell<ShaderMap>,
 
     pub egui_winit: egui_winit::State,
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
@@ -528,7 +539,7 @@ impl WgpuRenderer {
         macro_rules! make_effect {
             ($name:literal) => {{
                 let effect = PostProcessingEffect::new(
-                    $name,
+                    $name.to_string(),
                     &context.device,
                     &[
                         &context.texture_bind_group_layout,
@@ -659,7 +670,7 @@ impl WgpuRenderer {
             depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
-            shaders: load_shaders(),
+            shaders: RefCell::new(load_shaders()),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 
@@ -754,7 +765,11 @@ impl WgpuRenderer {
                 Some(self.pipelines.get(&effect.name).unwrap())
             } else {
                 info!("Loading EFFECT: {}", effect.name);
-                if let Some(shader) = self.shaders.get(&effect.name) {
+                if let Some(shader) = self
+                    .shaders
+                    .borrow()
+                    .get(&Into::<Cow<_>>::into(effect.name.clone()))
+                {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
@@ -1449,7 +1464,9 @@ impl WgpuRenderer {
 
         #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
         if self.hot_reload.maybe_reload_shaders() {
-            self.shaders = load_shaders();
+            // TODO: this breaks previously loaded user shaders
+            error!("TODO: reload breaks previously loaded user shaders");
+            self.shaders = RefCell::new(load_shaders());
             self.pipelines.clear();
         }
 
