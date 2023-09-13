@@ -1,4 +1,7 @@
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::{
+    collections::hash_map::Entry,
+    sync::mpsc::{channel, Receiver, Sender},
+};
 
 use crate::*;
 
@@ -747,21 +750,12 @@ impl WgpuRenderer {
                 &effect.render_texture.view
             };
 
-            let pipeline = self
-                .pipelines
-                .entry(effect.name.clone())
-                .or_insert_with(|| {
-                    info!("Loading EFFECT: {}", effect.name);
-                    let shader =
-                        self.shaders.get(&effect.name).unwrap_or_else(|| {
-                            panic!(
-                                "No shader for {}, check load_shaders()",
-                                effect.name
-                            )
-                        });
-
-
-                    create_post_processing_pipeline(
+            let maybe_pipeline = if self.pipelines.contains_key(&effect.name) {
+                Some(self.pipelines.get(&effect.name).unwrap())
+            } else {
+                info!("Loading EFFECT: {}", effect.name);
+                if let Some(shader) = self.shaders.get(&effect.name) {
+                    let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
                         self.render_texture_format,
@@ -772,23 +766,45 @@ impl WgpuRenderer {
                         shader.clone(),
                         // &effect.shader,
                         wgpu::BlendState::REPLACE,
-                    )
-                });
+                    );
 
-            draw_post_processing_output(
-                &effect.name,
-                &mut encoder,
-                pipeline,
-                input_bind_group,
-                &self.global_lighting_params_bind_group,
-                // &effect.bind_group,
-                output_texture_view,
-                true,
-                None,
-                None,
-            );
+                    self.pipelines.insert(effect.name.clone(), pipeline);
+                    self.pipelines.get(&effect.name)
+                } else {
+                    None
 
-            input_bind_group = &effect.bind_group;
+                    // let shader =
+                    //     self.shaders.get(&effect.name).unwrap_or_else(|| {
+                    //         panic!(
+                    //             "No shader for {}, check load_shaders()",
+                    //             effect.name
+                    //         )
+                    //     });
+                }
+            };
+
+            if let Some(pipeline) = maybe_pipeline {
+                draw_post_processing_output(
+                    &effect.name,
+                    &mut encoder,
+                    pipeline,
+                    input_bind_group,
+                    &self.global_lighting_params_bind_group,
+                    // &effect.bind_group,
+                    output_texture_view,
+                    true,
+                    None,
+                    None,
+                );
+
+                input_bind_group = &effect.bind_group;
+            }
+
+            // let pipeline = self
+            //     .pipelines
+            //     .entry(effect.name.clone())
+            //     .or_insert_with(|| {
+            //     });
         }
 
         self.bloom.blit_final(

@@ -3,7 +3,7 @@ use comfy::*;
 example_game!("Post Processing", setup, update);
 
 fn setup(c: &mut EngineContext) {
-    c.post_processing_effects.borrow_mut().push(PostProcessingEffect::new(
+    let effect = PostProcessingEffect::new(
         "fun-chromatic-aberration",
         &c.graphics_context.device,
         // The first bind group layout has to be passed by hand for now.
@@ -11,7 +11,9 @@ fn setup(c: &mut EngineContext) {
         c.surface_config,
         c.render_texture_format,
         include_wgsl_fragment_shader!("fun-chromatic-aberration.wgsl"),
-    ));
+    );
+
+    c.post_processing_effects.borrow_mut().insert(0, effect);
 }
 
 fn update(_c: &mut EngineContext) {

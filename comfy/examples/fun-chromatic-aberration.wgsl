@@ -20,9 +20,12 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
 
     var color: vec3<f32>;
 
+    // color.r = textureSample(r_color, r_sampler, vec2<f32>(uv.x - off, uv.y)).r;
+    // color.g = textureSample(r_color, r_sampler, vec2<f32>(uv.x + off, uv.y)).g;
+    // color.b = textureSample(r_color, r_sampler, vec2<f32>(uv.x - off, uv.y)).b;
     color.r = textureSample(r_color, r_sampler, vec2<f32>(uv.x - off, uv.y)).r;
-    color.g = textureSample(r_color, r_sampler, vec2<f32>(uv.x + off, uv.y)).g;
-    color.b = textureSample(r_color, r_sampler, vec2<f32>(uv.x - off, uv.y)).b;
+    color.g = 0.0;
+    color.b = 0.0;
 
     return vec4<f32>(color, 1.0);
 }
