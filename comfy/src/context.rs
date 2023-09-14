@@ -78,6 +78,21 @@ impl<'a> EngineContext<'a> {
         blood_canvas_reset();
     }
 
+    pub fn load_texture_from_bytes(
+        &self,
+        name: &str,
+        bytes: &[u8],
+        address_mode: wgpu::AddressMode,
+    ) {
+        load_texture_from_engine_bytes(
+            self.graphics_context,
+            name,
+            bytes,
+            &mut self.textures.lock(),
+            address_mode,
+        );
+    }
+
     pub fn commands(&self) -> core::cell::RefMut<CommandBuffer> {
         self.commands.borrow_mut()
     }

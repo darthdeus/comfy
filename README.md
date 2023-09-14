@@ -241,6 +241,10 @@ The following goals are not in any particular order, but should come reasonably
 soon. Comfy is not an aetheral project that will only materialize in 2 years.
 Only features that require maximum few weeks of work are listed here.
 
+- Configurable bloom. Currently bloom is hard-coded to simplify a few
+  things and always enabled. We don't want to delay the release to fix
+  this since it does make games look better by default, but it is one of
+  the first few things that will get fixed after v0.1 release.
 - Configurable post processing.
 - Camera render targets
 - Custom shaders/materials.

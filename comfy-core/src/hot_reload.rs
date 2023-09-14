@@ -5,7 +5,6 @@ use notify::{event::AccessKind, Event, EventKind, RecursiveMode, Watcher};
 
 pub struct HotReload {
     rx: Receiver<Result<Event, notify::Error>>,
-    #[allow(dead_code)]
     watcher: notify::RecommendedWatcher,
 }
 
@@ -15,16 +14,24 @@ impl HotReload {
 
         let (tx, rx) = std::sync::mpsc::channel();
 
-        let mut watcher = notify::RecommendedWatcher::new(tx, Default::default()).unwrap();
+        let watcher =
+            notify::RecommendedWatcher::new(tx, Default::default()).unwrap();
 
-        watcher
-            .watch(
-                Path::new(&concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/shaders")),
-                RecursiveMode::Recursive,
-            )
-            .unwrap();
 
-        Self { rx, watcher }
+        let mut x = Self { rx, watcher };
+
+        x.watch_path(&Path::new(&concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/shaders"
+        )))
+        .unwrap();
+
+        x
+    }
+
+    pub fn watch_path(&mut self, path: &Path) -> Result<()> {
+        self.watcher.watch(path, RecursiveMode::Recursive)?;
+        Ok(())
     }
 
     pub fn maybe_reload_shaders(&self) -> bool {
@@ -35,7 +42,9 @@ impl HotReload {
                 Ok(event) => {
                     let is_close_write = matches!(
                         event.kind,
-                        EventKind::Access(AccessKind::Close(notify::event::AccessMode::Write))
+                        EventKind::Access(AccessKind::Close(
+                            notify::event::AccessMode::Write
+                        ))
                     );
 
                     let is_temp = event

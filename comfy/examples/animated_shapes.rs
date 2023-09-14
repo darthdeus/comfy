@@ -1,5 +1,3 @@
-#![allow(clippy::new_without_default)]
-
 use comfy::*;
 
 example_game!("Animated Shapes Example", update);
