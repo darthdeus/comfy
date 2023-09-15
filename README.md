@@ -13,12 +13,12 @@ currently supporting Windows, Linux, MacOS and WASM. Inspired by macroquad,
 Raylib, Love2D and many others, it is designed to just work and fill most of
 the common use cases.
 
-**Warning**: comfy is currently under heavy development. While there are
-games already being made using comfy, the API is not yet stable and
-breaking changes will happen. If you want to use comfy for your game you
-may be forced to dig into the source code and possibly tweak things
-manually. That being said, the source code is designed to be simple and
-modifiable.
+**Warning**: comfy is currently under heavy development. While there are games
+already being made using comfy, the API is not yet stable and breaking changes
+will happen. If you want to use comfy for your game you may be forced to dig
+into the source code and possibly tweak things manually. That being said, the
+source code is designed to be simple and modifiable. If you want to make a game
+jam game comfy is definitely mature enough.
 
 > `comfy` is named comfy, because it is very comfy to use.
 
@@ -41,20 +41,25 @@ It would be nice if [simple](https://store.steampowered.com/app/824600/HROT/)
 possible, but we want to get all of the basic building blocks for 2D first.
 Some internals of comfy (batching and z-sorting) will need to be re-implemented
 to allow for this and ultimately more performant rendering techniques, but this
-should not happen at the cost of API clarity and ergonomics for most 2D games.
+should not happen at the cost of API clarity and ergonomics for most games.
 
 # Features
 
 - Simple and productive API.
-- Immediate mode rendering for sprites, text and shapes with automatic batching. If you want to draw a circle, you call a function `draw_circle`.
+- Immediate mode rendering for sprites, text and shapes with automatic
+  batching. If you want to draw a circle, you call a function `draw_circle`.
 - 2D lighting with HDR, tonemapping and bloom.
-- Built-in support for z-index, meaning you don't have to worry about the order of your draw calls.
+- Built-in support for z-index, meaning you don't have to worry about the order
+  of your draw calls.
 - [egui](https://egui.rs/) support built in.
 - Parallel asset loading with support for most image and audio formats.
-- No complex ECS or abstractions to learn. Just build your game and let comfy get out of your way.
-- Simple audio using [kira](https://docs.rs/kira/latest/kira/). If you want to play a sound, you call a function `play_sound`.
+- No complex ECS or abstractions to learn. Just build your game and let comfy
+  get out of your way.
+- Simple audio using [kira](https://docs.rs/kira/latest/kira/). If you want to
+  play a sound, you call a function `play_sound`.
 - Simple 2D camera.
-- Particles, both simple API for individual particles & systems with lots of options.
+- Particles, both simple API for individual particles & systems with lots of
+  options.
 - Trails with a custom mesh & scrolling texture.
 - Text rendering (currently using egui).
 - Lots of utilities for common tasks.
@@ -62,24 +67,31 @@ should not happen at the cost of API clarity and ergonomics for most 2D games.
 # Design goals & philosophy
 
 - Heavy focus on ergonomics and productivity.
-- No magic.
-- Targeted at 2D games.
+- No magic. The code does what it looks like it does.
+- Targeted at simple games, currently only 2D.
 - Opinionated and useful defaults.
 - **Simple** immediate mode APIs for almost everything.
-- Exposed internals for when you need more. Nothing is private.
+- Exposed internals for when you need more. Almost all struct fields are
+  public, comfy doesn't keep things away from its user.
 - Reasonable compile times. Comfy is slower to compile than macroquad, but we
   want to avoid things getting out of hand. End users are not going to be
-  required to use any proc macros.
+  required to use any proc macros to use comfy.
 - Global variables are nice. Comfy uses a lot of them.
 - Typing less is nice. Comfy has a single context object that gets passed around everywhere.
-- Constraints are nice. Comfy wants to be used for a lot of games, but not all of them.
+- Constraints are nice. Comfy wants to be used for a lot of games, but not all
+  of them.
+- `RefCell`'s are nice. Comfy uses them a lot to work around partial borrows.
+  We tried doing things without them multiple times, it was more painful.
 
 # Non-goals
 
-- 3D support. While it's entirely possible to extend the renderer to
-  handle 3D, it is an intentional feature to not even attempt this. There
-  is a lot of complexity that comes with 3d models, materials, skeletal
-  animations, etc. If you need this complexity, comfy is not for you.
+- AAA 3D support. While it's entirely possible to extend the renderer to handle
+  3D, this was intentionally not done yet. There is a lot of complexity that
+  comes with 3d models, materials, skeletal animations, etc. Comfy may grow to
+  support simple 3d games in the future, but it is extremely unlikely it'll
+  ever attempt to be competitive with big 3D engines. We want to make sure that
+  the stuff we have works well and is usable before adding lots more complex
+  features.
 - ECS based engine. While comfy does embed [hecs](https://docs.rs/hecs) and
   provides some helpers for using it, it is by no means required or even
   optimal for most cases.
@@ -194,7 +206,7 @@ including a full 3D scene editor. Its 3D demos are very impressive in
 particular, and if you're looking for a fully featured 3D engine it's
 definitely something to consider.
 
-That being said, comfy is unapologetically focused on 2D games, and as such
+That being said, comfy is unapologetically focused on simple games, and as such
 fills a very different niche than Fyrox.
 
 ## [bevy](https://bevyengine.org/)
@@ -213,7 +225,7 @@ ecosystem.
 Comfy's goal is opposite in many ways. The goal is to provide a simple, stable
 and pragmatic foundation. comfy is not a platform for experimenting with Rust's
 type system, ECS, or other abstractions. It's a toolkit designed for making
-real 2D games.
+small games.
 
 The only features you'll find in comfy are those which can be immediately used,
 understood, and that work from day 1. If a feature is not being used in a real
@@ -226,8 +238,7 @@ never really got a chance to use it. It does seem to have a bit of a history
 with losing maintainers, which is why I never got to use it, as both times when
 I was switching frameworks/engines in Rust it was unmaintained. Although in the
 current version it did get upgraded to a wgpu-based backend, but I can't speak
-to its quality. I would imagine it's a great alternative to macroquad for 2D
-games.
+to its quality. I would imagine it's a great alternative to macroquad.
 
 ---
 
@@ -241,10 +252,10 @@ The following goals are not in any particular order, but should come reasonably
 soon. Comfy is not an aetheral project that will only materialize in 2 years.
 Only features that require maximum few weeks of work are listed here.
 
-- Configurable bloom. Currently bloom is hard-coded to simplify a few
-  things and always enabled. We don't want to delay the release to fix
-  this since it does make games look better by default, but it is one of
-  the first few things that will get fixed after v0.1 release.
+- Configurable bloom. Currently bloom is hard-coded to simplify a few things
+  and always enabled. We don't want to delay the release to fix this since it
+  does make games look better by default, but it is one of the first few things
+  that will get fixed after v0.1 release.
 - Configurable post processing.
 - Camera render targets
 - Custom shaders/materials.
@@ -261,16 +272,17 @@ Only features that require maximum few weeks of work are listed here.
   friends) is rendered using `egui`'s painter on a separate layer. This gives
   us a lot of features in terms of text rendering, but also comes with some
   limitations. The goal is to implement text rendering on top of just wgpu.
-  We've tried a few different approaches (e.g. `glyphon`) but ultimately found none
-  to be easy enough to just replace what we have in `egui`, and since no games were
-  yet blocked on more flexible rendering this remains a relatively low priority problem.
-- Overall engine/renderer code cleanup. The code in comfy is not beautiful
-  as it developed organically while building multiple games. There are
-  some features that could be better exposed, and some remains of what our
-  games needed. The provided examples should serve as a foundation to make
-  sure comfy is flexible enough, but it is an ongoing effort to improve
-  the codebase. That being said, almost everything you find in comfy
-  should work to a reasonable extent.
+  We've tried a few different approaches (e.g. `glyphon`) but ultimately found
+  none to be easy enough to just replace what we have in `egui`, and since no
+  games were yet blocked on more flexible rendering this remains a relatively
+  low priority problem.
+- Overall engine/renderer code cleanup. The code in comfy is not beautiful as
+  it developed organically while building multiple games. There are some
+  features that could be better exposed, and some remains of what our games
+  needed. The provided examples should serve as a foundation to make sure comfy
+  is flexible enough, but it is an ongoing effort to improve the codebase. That
+  being said, almost everything you find in comfy should work to a reasonable
+  extent.
 
 # Contributing
 
