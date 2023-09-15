@@ -324,7 +324,8 @@ Examples
 - [ ] postprocessing
 - [ ] lighting
 - [ ] top-down minigame
-- [ ] platformer minigame
+- [x] platformer minigame
+- [ ] timed draw
 
 # Games using comfy
 
