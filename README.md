@@ -322,10 +322,14 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 
 Examples
 
-- [ ] simple sprite
+- [ ] get rid of .as_world_size() for sizes
+- [ ] generate wasm examples
+- [ ] generate gifs for website
+- [x] simple sprite
 - [ ] simple text
-- [ ] simple shapes
+- [x] simple shapes
 - [x] simple particles
+- [ ] lighting example
 - [ ] particle systems
 - [x] text
 - [ ] blood canvas
@@ -334,7 +338,6 @@ Examples
 - [ ] SFX
 - [ ] looped music + filter + egui
 - [ ] postprocessing
-- [ ] lighting
 - [ ] top-down minigame
 - [x] platformer minigame
 - [ ] timed draw

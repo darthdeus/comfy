@@ -89,7 +89,7 @@ pub use pid::Pid;
 pub use instant::{Duration, Instant};
 #[cfg(not(target_arch = "wasm32"))]
 pub use std::time::{Duration, Instant};
-
+#[cfg(not(target_arch = "wasm32"))]
 pub use notify;
 
 pub use inline_tweak;

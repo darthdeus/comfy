@@ -5,7 +5,8 @@ EXAMPLE=sprite
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 
-default: example
+default: build-examples
+# default: example
 # default: profile-startup
 
 example:
@@ -16,5 +17,8 @@ tests:
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
+
+build-examples:
+	./build-examples.sh
 
 	# make -C ~/projects/demos
