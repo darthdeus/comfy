@@ -38,6 +38,8 @@ impl FrameBuffer {
 }
 
 pub struct Bloom {
+    pub context: GraphicsContext,
+
     pub format: wgpu::TextureFormat,
     pub threshold: PostProcessingEffect,
     pub mipmap_generator: MipmapGenerator,
@@ -50,8 +52,10 @@ pub struct Bloom {
 
     pub gaussian_pipeline: wgpu::RenderPipeline,
 
-    pub blur_direction_buffer: wgpu::Buffer,
-    pub blur_direction_group: wgpu::BindGroup,
+    pub blur_direction_buffer_0: wgpu::Buffer,
+    pub blur_direction_buffer_1: wgpu::Buffer,
+    pub blur_direction_group_0: wgpu::BindGroup,
+    pub blur_direction_group_1: wgpu::BindGroup,
     pub blur_direction_layout: wgpu::BindGroupLayout,
 
     pub pingpong: [FrameBuffer; 2],
@@ -243,24 +247,44 @@ impl Bloom {
             },
         );
 
-        let blur_direction_buffer = context.device.create_buffer_init(
+        let blur_direction_buffer_0 = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
-                label: Some("Bloom Blur Direction Buffer"),
+                label: Some("Bloom Blur Direction Buffer = 0"),
                 contents: bytemuck::cast_slice(&[0]),
-                usage: wgpu::BufferUsages::UNIFORM |
-                    wgpu::BufferUsages::COPY_DST,
+                usage: wgpu::BufferUsages::UNIFORM
+                    // | wgpu::BufferUsages::COPY_DST,
             },
         );
 
-        let blur_direction_group =
+        let blur_direction_buffer_1 = context.device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Bloom Blur Direction Buffer = 1"),
+                contents: bytemuck::cast_slice(&[1]),
+                usage: wgpu::BufferUsages::UNIFORM
+                    // | wgpu::BufferUsages::COPY_DST,
+            },
+        );
+
+        let blur_direction_group_0 =
             context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Bloom Blur Direction Bind Group"),
+                label: Some("Bloom Blur Direction Bind Group = 0"),
                 layout: &blur_direction_layout,
                 entries: &[wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: blur_direction_buffer.as_entire_binding(),
+                    resource: blur_direction_buffer_0.as_entire_binding(),
                 }],
             });
+
+        let blur_direction_group_1 =
+            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Bloom Blur Direction Bind Group = 1"),
+                layout: &blur_direction_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: blur_direction_buffer_1.as_entire_binding(),
+                }],
+            });
+
 
         let gaussian_pipeline = create_post_processing_pipeline(
             "Bloom Gaussian",
@@ -276,6 +300,8 @@ impl Bloom {
 
 
         Self {
+            context: context.clone(),
+
             format,
             threshold,
             mipmap_generator,
@@ -286,8 +312,11 @@ impl Bloom {
             blur_bind_group,
             mip_blur_pipeline,
 
-            blur_direction_buffer,
-            blur_direction_group,
+            blur_direction_buffer_0,
+            blur_direction_buffer_1,
+            blur_direction_group_0,
+            blur_direction_group_1,
+
             blur_direction_layout,
 
             merge_pipeline,
@@ -347,6 +376,12 @@ impl Bloom {
                 // );
 
                 {
+                    // self.context.queue.write_buffer(
+                    //     &self.blur_direction_buffer,
+                    //     0,
+                    //     bytemuck::cast_slice(&[if horizontal { 0 } else { 1 }]),
+                    // );
+
                     let mut render_pass = encoder.begin_render_pass(
                         &wgpu::RenderPassDescriptor {
                             label: Some(&format!(
@@ -379,7 +414,11 @@ impl Bloom {
                     render_pass.set_bind_group(1, &self.lighting_params, &[]);
                     render_pass.set_bind_group(
                         2,
-                        &self.blur_direction_group,
+                        if horizontal {
+                            &self.blur_direction_group_0
+                        } else {
+                            &self.blur_direction_group_1
+                        },
                         &[],
                     );
 
