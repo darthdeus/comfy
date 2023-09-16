@@ -304,7 +304,8 @@ impl RunGameLoop for EngineState {
     }
 
     fn title(&self) -> String {
-        format!("{} (FLOAT)", self.config.borrow().game_name)
+        // TODO: make this configurable
+        format!("{} (COMFY ENGINE)", self.config.borrow().game_name)
     }
 }
 

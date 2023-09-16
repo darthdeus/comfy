@@ -1413,7 +1413,7 @@ impl WgpuRenderer {
             info!("Recording Mode: {:?}", params.config.dev.recording_mode);
 
             self.window.set_title(&format!(
-                "NANOVOID {} (FLOAT)",
+                "NANOVOID {} (COMFY ENGINE)",
                 if params.config.dev.recording_mode == RecordingMode::Tiktok {
                     "Portrait"
                 } else {
