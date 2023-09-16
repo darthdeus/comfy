@@ -101,6 +101,8 @@ pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
 
     // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
     // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
+
+    #[cfg(not(target_arch = "wasm32"))]
     let target_framerate = 60;
 
     #[cfg(not(target_arch = "wasm32"))]

@@ -161,7 +161,10 @@ impl WgpuRenderer {
         let caps = surface.get_capabilities(&adapter);
         let supported_formats = caps.formats;
 
+        #[cfg(not(target_arch = "wasm32"))]
         let preferred_format = wgpu::TextureFormat::Bgra8UnormSrgb;
+        #[cfg(target_arch = "wasm32")]
+        let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
         // let preferred_format = wgpu::TextureFormat::Bgra8Unorm;
 
         let monitor_surface_format =
@@ -307,8 +310,9 @@ impl WgpuRenderer {
             },
         );
 
-        let lights_bind_group_layout: wgpu::BindGroupLayout = context.device.create_bind_group_layout(
-            &wgpu::BindGroupLayoutDescriptor {
+        let lights_bind_group_layout: wgpu::BindGroupLayout = context
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStages::VERTEX |
@@ -321,8 +325,7 @@ impl WgpuRenderer {
                     count: None,
                 }],
                 label: Some("Lights Bind Group Layout"),
-            },
-        );
+            });
 
         let lights_bind_group =
             context.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -692,9 +695,7 @@ impl WgpuRenderer {
             global_lighting_params_bind_group,
             global_lighting_params_bind_group_layout,
 
-            texture_layout: context
-                .texture_layout
-                .clone(),
+            texture_layout: context.texture_layout.clone(),
 
             tonemapping_texture,
             tonemapping_bind_group,

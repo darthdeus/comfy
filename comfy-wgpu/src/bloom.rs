@@ -363,9 +363,7 @@ impl Bloom {
                     &self.pingpong[if horizontal { 0 } else { 1 }].bind_group
                 };
 
-                let horizontal_u: u32 = i as u32;
-
-
+                // let horizontal_u: u32 = i as u32;
                 // draw_post_processing_output(
                 //     encoder,
                 //     &self.gaussian_pipeline,

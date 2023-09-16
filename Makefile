@@ -22,10 +22,8 @@ profile-startup:
 build-examples:
 	./build-examples.sh
 
-	# make -C ~/projects/demos
-
 wasm-build:
-	./build.bash web-bin release sprite
+	./build-examples.sh
 
 serve:
-	./build.bash serve
+	simple-http-server target/generated -c wasm,html,js -i

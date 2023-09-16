@@ -1,5 +1,4 @@
 use comfy::*;
-use comfy_core::egui::Align;
 
 example_game!("Timed Draw Example", update);
 
@@ -13,7 +12,7 @@ fn update(c: &EngineContext) {
         .resizable(false)
         .show(c.egui, |ui| {
             if ui.button("Click me!").clicked() {
-                c.draw.borrow_mut().timed(3.0, |c| {
+                c.draw.borrow_mut().timed(3.0, |_c| {
                     draw_text(
                         "I will be visible for 3 seconds.",
                         Vec2::ZERO,
