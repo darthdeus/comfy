@@ -5,7 +5,8 @@ EXAMPLE=sprite
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 
-default: build-examples
+default: wasm-build
+# default: build-examples
 # default: example
 # default: profile-startup
 
@@ -22,3 +23,9 @@ build-examples:
 	./build-examples.sh
 
 	# make -C ~/projects/demos
+
+wasm-build:
+	./build.bash web-bin release sprite
+
+serve:
+	./build.bash serve
