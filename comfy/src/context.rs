@@ -146,7 +146,7 @@ impl<'a> EngineContext<'a> {
         let effect = PostProcessingEffect::new(
             name.to_string(),
             &self.graphics_context.device,
-            &[&self.graphics_context.texture_bind_group_layout],
+            &[&self.graphics_context.texture_layout],
             self.surface_config,
             self.render_texture_format,
             shader.clone(),

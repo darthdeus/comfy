@@ -38,17 +38,25 @@ impl FrameBuffer {
 }
 
 pub struct Bloom {
+    pub context: GraphicsContext,
+
     pub format: wgpu::TextureFormat,
     pub threshold: PostProcessingEffect,
     pub mipmap_generator: MipmapGenerator,
     // pub blur_bind_group_layout: wgpu::BindGroupLayout,
     pub blur_texture: Texture,
     pub blur_bind_group: wgpu::BindGroup,
-    pub blur_pipeline: wgpu::RenderPipeline,
+    pub mip_blur_pipeline: wgpu::RenderPipeline,
 
     pub merge_pipeline: wgpu::RenderPipeline,
 
     pub gaussian_pipeline: wgpu::RenderPipeline,
+
+    pub blur_direction_buffer_0: wgpu::Buffer,
+    pub blur_direction_buffer_1: wgpu::Buffer,
+    pub blur_direction_group_0: wgpu::BindGroup,
+    pub blur_direction_group_1: wgpu::BindGroup,
+    pub blur_direction_layout: wgpu::BindGroupLayout,
 
     pub pingpong: [FrameBuffer; 2],
 
@@ -57,9 +65,8 @@ pub struct Bloom {
 
 impl Bloom {
     pub fn new(
-        device: &wgpu::Device,
+        context: &GraphicsContext,
         config: &wgpu::SurfaceConfiguration,
-        layout: &wgpu::BindGroupLayout,
         format: wgpu::TextureFormat,
         lighting_params: Arc<wgpu::BindGroup>,
         lighting_params_layout: &wgpu::BindGroupLayout,
@@ -78,6 +85,9 @@ impl Bloom {
         //     wgpu::BlendState::REPLACE,
         // );
 
+        let device = &context.device;
+        let texture_layout = &context.texture_layout;
+
         let threshold_render_texture =
             Texture::create_scaled_mip_surface_texture(
                 device,
@@ -94,14 +104,14 @@ impl Bloom {
             bind_group: device.simple_bind_group(
                 "Bloom Threshold Bind Group",
                 &threshold_render_texture,
-                layout,
+                texture_layout,
             ),
             render_texture: threshold_render_texture,
             pipeline: create_post_processing_pipeline(
                 "Bloom Threshold",
                 device,
                 format,
-                &[layout, lighting_params_layout],
+                &[texture_layout, lighting_params_layout],
                 reloadable_wgsl_fragment_shader!("bloom-threshold").into(),
                 wgpu::BlendState::REPLACE,
             ),
@@ -148,18 +158,6 @@ impl Bloom {
         //     });
 
 
-        let gaussian_pipeline = create_post_processing_pipeline(
-            "Bloom Gaussian",
-            device,
-            format,
-            &[layout],
-            simple_fragment_shader(
-                "bloom-gauss",
-                include_str!("../../assets/shaders/bloom-gauss.wgsl"),
-            ),
-            wgpu::BlendState::REPLACE,
-        );
-
         let blur_texture = Texture::create_scaled_mip_filter_surface_texture(
             device,
             config,
@@ -173,24 +171,19 @@ impl Bloom {
         let blur_bind_group = device.simple_bind_group(
             "Bloom Blur Bind Group",
             &blur_texture,
-            layout,
+            texture_layout,
         );
 
-        let blur_pipeline = create_post_processing_pipeline(
+        let mip_blur_pipeline = create_post_processing_pipeline(
             "Bloom Blur",
             device,
             format,
-            &[layout],
+            &[texture_layout],
             simple_fragment_shader(
-                "bloom-blur",
-                include_str!("../../assets/shaders/bloom-blur.wgsl"),
+                "bloom-mip-blur",
+                include_str!("../../assets/shaders/bloom-mip-blur.wgsl"),
             ),
             wgpu::BlendState {
-                // color: wgpu::BlendComponent {
-                //     src_factor: wgpu::BlendFactor::One,
-                //     dst_factor: wgpu::BlendFactor::One,
-                //     operation: wgpu::BlendOperation::Add,
-                // },
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
                     dst_factor: wgpu::BlendFactor::One,
@@ -204,17 +197,12 @@ impl Bloom {
             "Bloom Merge",
             device,
             format,
-            &[layout],
+            &[texture_layout],
             simple_fragment_shader(
-                "bloom-blur",
+                "bloom-mip-blur",
                 include_str!("../../assets/shaders/bloom-merge.wgsl"),
             ),
             wgpu::BlendState {
-                // color: wgpu::BlendComponent {
-                //     src_factor: wgpu::BlendFactor::One,
-                //     dst_factor: wgpu::BlendFactor::One,
-                //     operation: wgpu::BlendOperation::Add,
-                // },
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
                     dst_factor: wgpu::BlendFactor::OneMinusConstant,
@@ -224,7 +212,6 @@ impl Bloom {
             },
         );
 
-
         let mipmap_generator = MipmapGenerator::new(device, format);
 
         let pingpong = [
@@ -233,18 +220,88 @@ impl Bloom {
                 device,
                 config,
                 format,
-                layout,
+                texture_layout,
             ),
             FrameBuffer::new(
                 "Bloom Ping Pong 1",
                 device,
                 config,
                 format,
-                layout,
+                texture_layout,
             ),
         ];
 
+        let blur_direction_layout = context.device.create_bind_group_layout(
+            &wgpu::BindGroupLayoutDescriptor {
+                label: Some("Bloom Blur Direction Layout"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+            },
+        );
+
+        let blur_direction_buffer_0 = context.device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Bloom Blur Direction Buffer = 0"),
+                contents: bytemuck::cast_slice(&[0]),
+                usage: wgpu::BufferUsages::UNIFORM
+                    // | wgpu::BufferUsages::COPY_DST,
+            },
+        );
+
+        let blur_direction_buffer_1 = context.device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Bloom Blur Direction Buffer = 1"),
+                contents: bytemuck::cast_slice(&[1]),
+                usage: wgpu::BufferUsages::UNIFORM
+                    // | wgpu::BufferUsages::COPY_DST,
+            },
+        );
+
+        let blur_direction_group_0 =
+            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Bloom Blur Direction Bind Group = 0"),
+                layout: &blur_direction_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: blur_direction_buffer_0.as_entire_binding(),
+                }],
+            });
+
+        let blur_direction_group_1 =
+            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Bloom Blur Direction Bind Group = 1"),
+                layout: &blur_direction_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: blur_direction_buffer_1.as_entire_binding(),
+                }],
+            });
+
+
+        let gaussian_pipeline = create_post_processing_pipeline(
+            "Bloom Gaussian",
+            device,
+            format,
+            &[texture_layout, &lighting_params_layout, &blur_direction_layout],
+            simple_fragment_shader(
+                "bloom-gauss",
+                include_str!("../../assets/shaders/bloom-gauss.wgsl"),
+            ),
+            wgpu::BlendState::REPLACE,
+        );
+
+
         Self {
+            context: context.clone(),
+
             format,
             threshold,
             mipmap_generator,
@@ -253,7 +310,14 @@ impl Bloom {
             // blur_bind_group_layout,
             blur_texture,
             blur_bind_group,
-            blur_pipeline,
+            mip_blur_pipeline,
+
+            blur_direction_buffer_0,
+            blur_direction_buffer_1,
+            blur_direction_group_0,
+            blur_direction_group_1,
+
+            blur_direction_layout,
 
             merge_pipeline,
 
@@ -280,19 +344,7 @@ impl Bloom {
             &self.threshold.render_texture.view,
             true,
             None,
-            None,
         );
-
-        // draw_post_processing_output(
-        //     "Bloom Gaussian",
-        //     encoder,
-        //     &self.gaussian_pipeline,
-        //     &self.gaussian_bind_group,
-        //     &self.gaussian_texture.view,
-        //     true,
-        //     None,
-        // );
-
 
         {
             let mut horizontal = true;
@@ -302,7 +354,6 @@ impl Bloom {
 
             for iter in 0..amount {
                 let i = if horizontal { 1 } else { 0 };
-                // self.blur_shader.set_bool("horizontal", horizontal);
 
                 let tex = if first_iteration {
                     &self.threshold.bind_group
@@ -310,28 +361,69 @@ impl Bloom {
                     &self.pingpong[if horizontal { 0 } else { 1 }].bind_group
                 };
 
-                // self.pingpong[i].bind();
-                // self.gl.bind_texture(glow::TEXTURE_2D, Some(tex));
-                // draw_quad(&self.gl);
-
-                // TODO: without push constants we need to pass this in a uniform
                 let horizontal_u: u32 = i as u32;
 
-                draw_post_processing_output(
-                    &format!("Bloom PingPong {}", iter),
-                    encoder,
-                    &self.gaussian_pipeline,
-                    tex,
-                    &self.lighting_params,
-                    // &self.threshold.bind_group,
-                    &self.pingpong[i].texture.view,
-                    true,
-                    None,
-                    #[cfg(feature = "push-constants")]
-                    Some(bytemuck::cast_slice(&[horizontal_u])),
-                    #[cfg(not(feature = "push-constants"))]
-                    None,
-                );
+
+                // draw_post_processing_output(
+                //     encoder,
+                //     &self.gaussian_pipeline,
+                //     tex,
+                //     &self.lighting_params,
+                //     // &self.threshold.bind_group,
+                //     &self.pingpong[i].texture.view,
+                //     true,
+                //     None,
+                // );
+
+                {
+                    // self.context.queue.write_buffer(
+                    //     &self.blur_direction_buffer,
+                    //     0,
+                    //     bytemuck::cast_slice(&[if horizontal { 0 } else { 1 }]),
+                    // );
+
+                    let mut render_pass = encoder.begin_render_pass(
+                        &wgpu::RenderPassDescriptor {
+                            label: Some(&format!(
+                                "Bloom Pingpong {} Post Processing Render Pass",
+                                iter
+                            )),
+                            color_attachments: &[Some(
+                                wgpu::RenderPassColorAttachment {
+                                    view: &self.pingpong[i].texture.view,
+                                    resolve_target: None,
+                                    ops: wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(
+                                            wgpu::Color {
+                                                r: 0.0,
+                                                g: 0.0,
+                                                b: 0.0,
+                                                a: 1.0,
+                                            },
+                                        ),
+                                        store: true,
+                                    },
+                                },
+                            )],
+                            depth_stencil_attachment: None,
+                        },
+                    );
+
+                    render_pass.set_pipeline(&self.gaussian_pipeline);
+                    render_pass.set_bind_group(0, tex, &[]);
+                    render_pass.set_bind_group(1, &self.lighting_params, &[]);
+                    render_pass.set_bind_group(
+                        2,
+                        if horizontal {
+                            &self.blur_direction_group_0
+                        } else {
+                            &self.blur_direction_group_1
+                        },
+                        &[],
+                    );
+
+                    render_pass.draw(0..3, 0..1);
+                }
 
                 horizontal = !horizontal;
 
@@ -381,8 +473,6 @@ impl Bloom {
                         ],
                     });
 
-                // let blend = 1.0;
-
                 // TODO: get rid of tweaks later
                 let blend_variant = tweak!(1);
                 let constant_blend = tweak!(0.5);
@@ -407,13 +497,12 @@ impl Bloom {
                 draw_post_processing_output(
                     &format!("Bloom Blur {}", i),
                     encoder,
-                    &self.blur_pipeline,
+                    &self.mip_blur_pipeline,
                     &mip_bind_group,
                     &self.lighting_params,
                     &self.blur_texture.view,
                     i == 0,
                     Some(blend),
-                    None,
                 );
             }
         }
@@ -438,7 +527,6 @@ impl Bloom {
             output_view,
             false,
             Some(params.bloom_lerp as f64),
-            None,
         );
     }
 }
