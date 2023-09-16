@@ -4,11 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["push-constants"]
+default = []
 
 ci-release = []
 tracy = []
-push-constants = []
 
 [dependencies]
 comfy-core = { path = "../comfy-core", features = ["use-wgpu"] }

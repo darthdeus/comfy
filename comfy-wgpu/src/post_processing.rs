@@ -81,13 +81,7 @@ pub fn create_post_processing_pipeline(
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some(&format!("{} Post Processing Pipeline Layout", name)),
             bind_group_layouts,
-            #[cfg(not(feature = "push-constants"))]
             push_constant_ranges: &[],
-            #[cfg(feature = "push-constants")]
-            push_constant_ranges: &[wgpu::PushConstantRange {
-                stages: wgpu::ShaderStages::FRAGMENT,
-                range: 0..4,
-            }],
         });
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -135,7 +129,6 @@ pub fn draw_post_processing_output(
     target_view: &wgpu::TextureView,
     should_clear: bool,
     blend_constant: Option<f64>,
-    push_constants: Option<&[u8]>,
 ) {
     let mut render_pass =
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -163,21 +156,6 @@ pub fn draw_post_processing_output(
     render_pass.set_pipeline(post_processing_pipeline);
     render_pass.set_bind_group(0, post_processing_bind_group, &[]);
     render_pass.set_bind_group(1, lighting_params_bind_group, &[]);
-
-    if let Some(push_constants) = push_constants {
-        if cfg!(feature = "push-constants") {
-            render_pass.set_push_constants(
-                wgpu::ShaderStages::FRAGMENT,
-                0,
-                push_constants,
-            );
-        } else {
-            panic!(
-                "push constants are temporarily disabled while wgpu fixes \
-                 them."
-            );
-        }
-    }
 
     if let Some(blend) = blend_constant {
         render_pass.set_blend_constant(wgpu::Color {

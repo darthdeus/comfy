@@ -186,11 +186,6 @@ impl Bloom {
                 include_str!("../../assets/shaders/bloom-blur.wgsl"),
             ),
             wgpu::BlendState {
-                // color: wgpu::BlendComponent {
-                //     src_factor: wgpu::BlendFactor::One,
-                //     dst_factor: wgpu::BlendFactor::One,
-                //     operation: wgpu::BlendOperation::Add,
-                // },
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
                     dst_factor: wgpu::BlendFactor::One,
@@ -210,11 +205,6 @@ impl Bloom {
                 include_str!("../../assets/shaders/bloom-merge.wgsl"),
             ),
             wgpu::BlendState {
-                // color: wgpu::BlendComponent {
-                //     src_factor: wgpu::BlendFactor::One,
-                //     dst_factor: wgpu::BlendFactor::One,
-                //     operation: wgpu::BlendOperation::Add,
-                // },
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
                     dst_factor: wgpu::BlendFactor::OneMinusConstant,
@@ -280,7 +270,6 @@ impl Bloom {
             &self.threshold.render_texture.view,
             true,
             None,
-            None,
         );
 
         // draw_post_processing_output(
@@ -293,7 +282,6 @@ impl Bloom {
         //     None,
         // );
 
-
         {
             let mut horizontal = true;
             let mut first_iteration = true;
@@ -302,7 +290,6 @@ impl Bloom {
 
             for iter in 0..amount {
                 let i = if horizontal { 1 } else { 0 };
-                // self.blur_shader.set_bool("horizontal", horizontal);
 
                 let tex = if first_iteration {
                     &self.threshold.bind_group
@@ -314,7 +301,6 @@ impl Bloom {
                 // self.gl.bind_texture(glow::TEXTURE_2D, Some(tex));
                 // draw_quad(&self.gl);
 
-                // TODO: without push constants we need to pass this in a uniform
                 let horizontal_u: u32 = i as u32;
 
                 draw_post_processing_output(
@@ -326,10 +312,6 @@ impl Bloom {
                     // &self.threshold.bind_group,
                     &self.pingpong[i].texture.view,
                     true,
-                    None,
-                    #[cfg(feature = "push-constants")]
-                    Some(bytemuck::cast_slice(&[horizontal_u])),
-                    #[cfg(not(feature = "push-constants"))]
                     None,
                 );
 
@@ -413,7 +395,6 @@ impl Bloom {
                     &self.blur_texture.view,
                     i == 0,
                     Some(blend),
-                    None,
                 );
             }
         }
@@ -438,7 +419,6 @@ impl Bloom {
             output_view,
             false,
             Some(params.bloom_lerp as f64),
-            None,
         );
     }
 }
