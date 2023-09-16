@@ -179,7 +179,7 @@ pub fn image_button(
     texture: &str,
 ) -> egui::Response {
     // let font = egui::FontId::proportional(16.0);
-    let font = egui::FontId::new(16.0, egui::FontFamily::Name("james".into()));
+    let font = egui::FontId::new(16.0, egui::FontFamily::Proportional);
 
     image_button_ex(text, c, ui, texture, ImageButtonParams {
         font,

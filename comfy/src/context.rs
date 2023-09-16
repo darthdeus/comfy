@@ -396,9 +396,6 @@ pub fn combat_text_system(c: &mut EngineContext) {
 
         // let screen_pos = world_to_screen(pos) / egui_scale_factor();
 
-        let font =
-            egui::FontId::new(16.0, egui::FontFamily::Name("james".into()));
-
         draw_text_ex(
             &combat_text.text,
             pos,
@@ -407,7 +404,11 @@ pub fn combat_text_system(c: &mut EngineContext) {
             // pos.x,
             // pos.y,
             TextAlign::Center,
-            TextParams { font, color: combat_text.color, ..Default::default() },
+            TextParams {
+                font: egui::FontId::new(16.0, egui::FontFamily::Proportional),
+                color: combat_text.color,
+                ..Default::default()
+            },
         );
     }
 }

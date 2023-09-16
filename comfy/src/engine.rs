@@ -765,7 +765,7 @@ impl EngineState {
                         {
                             let font = egui::FontId::new(
                                 16.0,
-                                egui::FontFamily::Name("james".into()),
+                                egui::FontFamily::Proportional,
                             );
 
                             ui.add(egui::Label::new(

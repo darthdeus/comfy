@@ -330,6 +330,8 @@ Examples
 - [x] simple shapes
 - [x] simple particles
 - [ ] lighting example
+- [ ] combat text example
+- [ ] font loading
 - [ ] particle systems
 - [x] text
 - [ ] blood canvas

@@ -88,9 +88,9 @@ pub use pid::Pid;
 #[cfg(target_arch = "wasm32")]
 pub use instant::{Duration, Instant};
 #[cfg(not(target_arch = "wasm32"))]
-pub use std::time::{Duration, Instant};
-#[cfg(not(target_arch = "wasm32"))]
 pub use notify;
+#[cfg(not(target_arch = "wasm32"))]
+pub use std::time::{Duration, Instant};
 
 pub use inline_tweak;
 pub use inline_tweak::tweak;
@@ -859,6 +859,10 @@ impl Mul<f32> for Color {
 //         )
 //     }
 // }
+
+pub fn font_family(name: &str, size: f32) -> egui::FontId {
+    egui::FontId::new(size, egui::FontFamily::Name(name.into()))
+}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Sound {
