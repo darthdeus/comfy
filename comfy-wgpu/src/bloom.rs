@@ -4,6 +4,10 @@ use crate::*;
 
 pub const BLOOM_MIP_LEVEL_COUNT: u32 = 10;
 
+const BLUR_DIR_ZERO: [u32; 4] = [0, 0, 0, 0];
+const BLUR_DIR_ONE: [u32; 4] = [1, 0, 0, 0];
+
+
 pub struct FrameBuffer {
     pub texture: Texture,
     pub bind_group: wgpu::BindGroup,
@@ -250,18 +254,16 @@ impl Bloom {
         let blur_direction_buffer_0 = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Bloom Blur Direction Buffer = 0"),
-                contents: bytemuck::cast_slice(&[0]),
-                usage: wgpu::BufferUsages::UNIFORM
-                    // | wgpu::BufferUsages::COPY_DST,
+                contents: bytemuck::cast_slice(&[BLUR_DIR_ZERO]),
+                usage: wgpu::BufferUsages::UNIFORM,
             },
         );
 
         let blur_direction_buffer_1 = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Bloom Blur Direction Buffer = 1"),
-                contents: bytemuck::cast_slice(&[1]),
-                usage: wgpu::BufferUsages::UNIFORM
-                    // | wgpu::BufferUsages::COPY_DST,
+                contents: bytemuck::cast_slice(&[BLUR_DIR_ONE]),
+                usage: wgpu::BufferUsages::UNIFORM,
             },
         );
 

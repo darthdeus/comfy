@@ -1,5 +1,12 @@
+struct HorizontalParam {
+  direction: u32,
+  _pad0: u32,
+  _pad1: u32,
+  _pad2: u32,
+}
+
 @group(2) @binding(0)
-var<uniform> horizontal: u32;
+var<uniform> horizontal: HorizontalParam;
 
 @fragment
 fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
@@ -15,9 +22,7 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
 
     var result: vec3<f32> = textureSample(r_color, r_sampler, vertex.tex_coords).rgb * weight[0];
 
-    // let horizontal = 1u;
-
-    if (horizontal == 1u) {
+    if (horizontal.direction == 1u) {
         for (var i: u32 = 1u; i < 5u; i = i + 1u) {
             result += textureSample(r_color, r_sampler, vertex.tex_coords + vec2<f32>(tex_offset.x * f32(i), 0.0)).rgb * weight[i];
             result += textureSample(r_color, r_sampler, vertex.tex_coords - vec2<f32>(tex_offset.x * f32(i), 0.0)).rgb * weight[i];

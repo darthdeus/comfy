@@ -5,9 +5,9 @@ EXAMPLE=sprite
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 
-# default: wasm-build
 # default: build-examples
-default: example
+default: wasm-build
+# default: example
 # default: profile-startup
 
 example:
