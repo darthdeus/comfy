@@ -14,7 +14,7 @@ pub fn load_shaders() -> ShaderMap {
     }
 
     load_shader!("blit");
-    load_shader!("bloom-blur");
+    load_shader!("bloom-mip-blur");
     load_shader!("bloom-merge");
     load_shader!("bloom-threshold");
     load_shader!("copy");

@@ -123,7 +123,7 @@ pub fn load_texture_from_engine_bytes(
     let error_bind_group = context.device.simple_bind_group(
         &format!("{}_bind_group", name),
         &error_texture,
-        &context.texture_bind_group_layout,
+        &context.texture_layout,
     );
 
     ASSETS.borrow_mut().insert_handle(name, handle);

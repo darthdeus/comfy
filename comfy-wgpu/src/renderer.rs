@@ -39,7 +39,7 @@ pub struct GraphicsContext {
     pub device: Arc<wgpu::Device>,
     pub queue: Arc<wgpu::Queue>,
     // Shared for all regular textures/sprites
-    pub texture_bind_group_layout: Arc<wgpu::BindGroupLayout>,
+    pub texture_layout: Arc<wgpu::BindGroupLayout>,
 }
 
 pub struct WgpuRenderer {
@@ -64,7 +64,7 @@ pub struct WgpuRenderer {
 
     pub quad_ubg: UniformBindGroup,
 
-    pub texture_bind_group_layout: Arc<wgpu::BindGroupLayout>,
+    pub texture_layout: Arc<wgpu::BindGroupLayout>,
 
     pub window: Window,
 
@@ -235,7 +235,7 @@ impl WgpuRenderer {
             adapter: Arc::new(adapter),
             device: Arc::new(device),
             queue: Arc::new(queue),
-            texture_bind_group_layout: Arc::new(texture_bind_group_layout),
+            texture_layout: Arc::new(texture_bind_group_layout),
         };
 
         macro_rules! load_engine_tex {
@@ -307,7 +307,7 @@ impl WgpuRenderer {
             },
         );
 
-        let lights_bind_group_layout = context.device.create_bind_group_layout(
+        let lights_bind_group_layout: wgpu::BindGroupLayout = context.device.create_bind_group_layout(
             &wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -517,7 +517,7 @@ impl WgpuRenderer {
         let texture_creator =
             Arc::new(AtomicRefCell::new(WgpuTextureCreator {
                 textures: textures.clone(),
-                layout: context.texture_bind_group_layout.clone(),
+                layout: context.texture_layout.clone(),
                 queue: context.queue.clone(),
                 device: context.device.clone(),
             }));
@@ -535,7 +535,7 @@ impl WgpuRenderer {
                     $name.to_string(),
                     &context.device,
                     &[
-                        &context.texture_bind_group_layout,
+                        &context.texture_layout,
                         &global_lighting_params_bind_group_layout,
                     ],
                     &config,
@@ -591,7 +591,7 @@ impl WgpuRenderer {
         let first_pass_bind_group = context.device.simple_bind_group(
             "First Pass Bind Group",
             &first_pass_texture,
-            &context.texture_bind_group_layout,
+            &context.texture_layout,
         );
 
         let tonemapping_texture = Texture::create_scaled_mip_surface_texture(
@@ -606,7 +606,7 @@ impl WgpuRenderer {
         let tonemapping_bind_group = context.device.simple_bind_group(
             "Tonemapping Bind Group",
             &tonemapping_texture,
-            &context.texture_bind_group_layout,
+            &context.texture_layout,
         );
 
         let quad = QuadUniform { clip_position: [0.0, 0.0], size: [0.2, 0.2] };
@@ -618,9 +618,8 @@ impl WgpuRenderer {
         );
 
         let bloom = Bloom::new(
-            &context.device,
+            &context,
             &config,
-            &context.texture_bind_group_layout,
             render_texture_format,
             global_lighting_params_bind_group.clone(),
             &global_lighting_params_bind_group_layout,
@@ -693,8 +692,8 @@ impl WgpuRenderer {
             global_lighting_params_bind_group,
             global_lighting_params_bind_group_layout,
 
-            texture_bind_group_layout: context
-                .texture_bind_group_layout
+            texture_layout: context
+                .texture_layout
                 .clone(),
 
             tonemapping_texture,
@@ -737,7 +736,7 @@ impl WgpuRenderer {
 
         self.bloom.draw(
             &self.context.device,
-            &self.texture_bind_group_layout,
+            &self.texture_layout,
             &self.first_pass_bind_group,
             &mut encoder,
         );
@@ -758,6 +757,7 @@ impl WgpuRenderer {
                 Some(self.pipelines.get(&effect.name).unwrap())
             } else {
                 info!("Loading EFFECT: {}", effect.name);
+
                 if let Some(shader) = self
                     .shaders
                     .borrow()
@@ -768,7 +768,7 @@ impl WgpuRenderer {
                         &self.context.device,
                         self.render_texture_format,
                         &[
-                            &self.texture_bind_group_layout,
+                            &self.texture_layout,
                             &self.global_lighting_params_bind_group_layout,
                         ],
                         shader.clone(),
@@ -780,14 +780,6 @@ impl WgpuRenderer {
                     self.pipelines.get(&effect.name)
                 } else {
                     None
-
-                    // let shader =
-                    //     self.shaders.get(&effect.name).unwrap_or_else(|| {
-                    //         panic!(
-                    //             "No shader for {}, check load_shaders()",
-                    //             effect.name
-                    //         )
-                    //     });
                 }
             };
 
@@ -805,6 +797,8 @@ impl WgpuRenderer {
                 );
 
                 input_bind_group = &effect.bind_group;
+            } else {
+                error!("Missing shader for {}", effect.name);
             }
         }
 
@@ -821,7 +815,7 @@ impl WgpuRenderer {
                     &self.context.device,
                     self.config.format,
                     &[
-                        &self.texture_bind_group_layout,
+                        &self.texture_layout,
                         &self.global_lighting_params_bind_group_layout,
                     ],
                     reloadable_wgsl_fragment_shader!("tonemapping"),
@@ -912,7 +906,7 @@ impl WgpuRenderer {
                     "Debug",
                     &self.context.device,
                     self.config.format,
-                    &[&self.texture_bind_group_layout, &self.quad_ubg.layout],
+                    &[&self.texture_layout, &self.quad_ubg.layout],
                     &[],
                     reloadable_wgsl_shader!("debug"),
                     BlendMode::Alpha,
@@ -1039,7 +1033,7 @@ impl WgpuRenderer {
                     &self.context.device,
                     wgpu::TextureFormat::Rgba16Float,
                     &[
-                        &self.texture_bind_group_layout,
+                        &self.texture_layout,
                         &self.camera_bind_group_layout,
                         &self.lights_bind_group_layout,
                         &self.global_lighting_params_bind_group_layout,
@@ -1190,7 +1184,7 @@ impl WgpuRenderer {
                     // self.config.format,
                     wgpu::TextureFormat::Rgba16Float,
                     &[
-                        &self.texture_bind_group_layout,
+                        &self.texture_layout,
                         &self.camera_bind_group_layout,
                         &self.lights_bind_group_layout,
                         &self.global_lighting_params_bind_group_layout,
@@ -1379,7 +1373,7 @@ impl WgpuRenderer {
             while let Ok(loaded_image) = self.rx_texture.try_recv() {
                 let context = self.context.clone();
                 let textures = self.textures.clone();
-                let tbgl = self.texture_bind_group_layout.clone();
+                let tbgl = self.texture_layout.clone();
 
                 // let context_inner = context.clone();
                 // let tbgl = texture_bind_group_layout.clone();
