@@ -1661,6 +1661,8 @@ impl WgpuRenderer {
                 },
                 output.texture.size(),
             );
+
+            self.context.queue.submit(std::iter::once(encoder.finish()));
         }
 
         pollster::block_on(async {
@@ -1691,7 +1693,6 @@ impl WgpuRenderer {
         });
 
         self.screenshot_buffer.buffer.unmap();
-
 
         output.present();
     }
