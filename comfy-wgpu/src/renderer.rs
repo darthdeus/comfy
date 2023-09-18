@@ -1715,7 +1715,14 @@ impl WgpuRenderer {
                         )
                         .unwrap();
 
-                    buffer.save(name).unwrap();
+                    let resized = image::imageops::resize(
+                        &buffer,
+                        self.config.width / 3,
+                        self.config.height / 3,
+                        image::imageops::FilterType::Nearest,
+                    );
+
+                    resized.save(name).unwrap();
                 }
 
                 if get_frame() > 60 {
