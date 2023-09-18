@@ -1,9 +1,10 @@
-EXAMPLE=animated_shapes
+# EXAMPLE=animated_shapes
 # EXAMPLE=sprite
 # EXAMPLE=text
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
+EXAMPLE=ecs_sprite
 
 # default: build-examples
 # default: wasm-build

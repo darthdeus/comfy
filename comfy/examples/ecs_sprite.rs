@@ -5,6 +5,16 @@ example_game!("ECS Sprite Example", setup, update);
 struct Player;
 
 fn setup(c: &mut EngineContext) {
+    c.load_texture_from_bytes(
+        // Every texture gets a string name later used to reference it.
+        "comfy",
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/comfy.png"
+        )),
+        wgpu::AddressMode::ClampToEdge,
+    );
+
     // Spawn a new entity with a sprite and a transform.
     c.commands().spawn((
         Sprite::new("comfy".to_string(), vec2(1.0, 1.0), 100, WHITE),
@@ -19,6 +29,6 @@ fn update(c: &mut EngineContext) {
     for (entity, (player, sprite, transform)) in
         c.world().query::<(&Player, &Sprite, &mut Transform)>().iter()
     {
-        transform.scale += 10.0 * c.delta;
+        transform.scale = (get_time() as f32).sin() + 2.0;
     }
 }

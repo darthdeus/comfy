@@ -343,9 +343,10 @@ Examples
 - [ ] top-down minigame
 - [x] platformer minigame
 - [x] timed draw
-- [ ] ecs sprite
+- [x] ecs sprite
 - [ ] ecs animatedsprite
-
+- [ ] rename example_game to simple_game
+- [ ] context example
 
 # Games using comfy
 
