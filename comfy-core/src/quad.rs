@@ -39,6 +39,10 @@ pub fn get_frame() -> u32 {
     GLOBAL_STATE.borrow().frame
 }
 
+pub fn inc_frame_num() {
+    GLOBAL_STATE.borrow_mut().frame += 1;
+}
+
 pub fn sin_range(offset: f32, speed: f32, min: f32, max: f32) -> f32 {
     min + (max - min) *
         ((speed * (get_time() as f32 + offset)).sin() / 2.0 + 0.5)

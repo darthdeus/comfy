@@ -62,6 +62,7 @@ pub async fn wgpu_game_loop(
                 }
 
                 set_frame_time(frame_start.elapsed().as_secs_f32());
+                inc_frame_num();
 
                 let _span = span!("loop_sleep");
                 #[cfg(not(target_arch = "wasm32"))]
