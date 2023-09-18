@@ -162,6 +162,7 @@ impl WgpuRenderer {
 
         let caps = surface.get_capabilities(&adapter);
         let supported_formats = caps.formats;
+        info!("Supported formats: {:?}", supported_formats);
 
         let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
 
