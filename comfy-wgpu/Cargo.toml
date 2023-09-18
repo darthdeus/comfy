@@ -9,6 +9,8 @@ default = []
 ci-release = []
 tracy = []
 
+record-pngs = []
+
 [dependencies]
 comfy-core = { path = "../comfy-core", features = ["use-wgpu"] }
 
