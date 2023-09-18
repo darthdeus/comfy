@@ -72,6 +72,7 @@ pub enum BufferType {
     Instance,
     Uniform,
     Storage,
+    Read,
 }
 
 impl BufferType {
@@ -88,6 +89,9 @@ impl BufferType {
             }
             BufferType::Uniform => {
                 wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
+            }
+            BufferType::Read => {
+                wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ
             }
             BufferType::Storage => {
                 todo!()

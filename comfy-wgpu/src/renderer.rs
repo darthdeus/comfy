@@ -59,6 +59,8 @@ pub struct WgpuRenderer {
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
     pub egui_ctx: egui::Context,
 
+    pub screenshot_buffer: SizedBuffer,
+
     pub vertex_buffer: SizedBuffer,
     pub index_buffer: SizedBuffer,
 
@@ -117,14 +119,14 @@ impl WgpuRenderer {
 
         trace!("Requesting adapter");
 
-        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-            // power_preference: wgpu::PowerPreference::HighPerformance,
-            power_preference: wgpu::PowerPreference::HighPerformance,
-            compatible_surface: Some(&surface),
-            force_fallback_adapter: false,
-        });
-
-        let adapter = adapter.await.unwrap();
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
+            })
+            .await
+            .unwrap();
 
         trace!("Requesting device");
 
@@ -185,7 +187,8 @@ impl WgpuRenderer {
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
         let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT |
+                wgpu::TextureUsages::COPY_SRC,
             format: monitor_surface_format,
             width: size.width,
             height: size.height,
@@ -484,6 +487,14 @@ impl WgpuRenderer {
             window.scale_factor() as f32,
         );
 
+        let screenshot_buffer = SizedBuffer::new(
+            "screenshot_buffer",
+            &context.device,
+            (size.width * size.height) as usize *
+                std::mem::size_of::<u32>() as usize,
+            BufferType::Read,
+        );
+
         info!("Initializing with scale factor: {}", window.scale_factor());
 
         let egui_ctx = egui::Context::default();
@@ -668,6 +679,8 @@ impl WgpuRenderer {
             shaders: RefCell::new(load_shaders()),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
+
+            screenshot_buffer,
 
             vertex_buffer,
             index_buffer,
@@ -1409,7 +1422,6 @@ impl WgpuRenderer {
             }
         }
 
-
         if changed_recording_mode {
             info!("Recording Mode: {:?}", params.config.dev.recording_mode);
 
@@ -1617,9 +1629,69 @@ impl WgpuRenderer {
 
         self.render_post_processing(&surface_view, params.lighting);
         self.render_egui(&surface_view);
+
         if params.config.dev.show_buffers {
             self.render_debug(&surface_view);
         }
+
+        {
+            let mut encoder = self.context.device.create_command_encoder(
+                &wgpu::CommandEncoderDescriptor {
+                    label: Some("Copy output texture Encoder"),
+                },
+            );
+
+            encoder.copy_texture_to_buffer(
+                wgpu::ImageCopyTexture {
+                    texture: &output.texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::All,
+                },
+                wgpu::ImageCopyBuffer {
+                    buffer: &self.screenshot_buffer.buffer,
+                    layout: wgpu::ImageDataLayout {
+                        offset: 0,
+                        bytes_per_row: Some(
+                            std::mem::size_of::<u32>() as u32 *
+                                self.config.width,
+                        ),
+                        rows_per_image: Some(self.config.height),
+                    },
+                },
+                output.texture.size(),
+            );
+        }
+
+        pollster::block_on(async {
+            let buffer_slice = self.screenshot_buffer.buffer.slice(..);
+
+
+            let (tx, rx) =
+                futures_intrusive::channel::shared::oneshot_channel();
+
+            buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+                tx.send(result).unwrap();
+            });
+
+            self.context.device.poll(wgpu::Maintain::Wait);
+            rx.receive().await.unwrap().unwrap();
+
+            let data = buffer_slice.get_mapped_range();
+
+            use image::{ImageBuffer, Rgba};
+            let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
+                self.config.width,
+                self.config.height,
+                data,
+            )
+            .unwrap();
+
+            buffer.save("image.png").unwrap();
+        });
+
+        self.screenshot_buffer.buffer.unmap();
+
 
         output.present();
     }

@@ -6,8 +6,8 @@ EXAMPLE=sprite
 # EXAMPLE=shapes
 
 # default: build-examples
-default: wasm-build
-# default: example
+# default: wasm-build
+default: example
 # default: profile-startup
 
 example:

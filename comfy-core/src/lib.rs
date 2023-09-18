@@ -92,6 +92,8 @@ pub use notify;
 #[cfg(not(target_arch = "wasm32"))]
 pub use std::time::{Duration, Instant};
 
+pub use gif;
+
 pub use inline_tweak;
 pub use inline_tweak::tweak;
 
