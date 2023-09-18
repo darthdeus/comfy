@@ -1,5 +1,5 @@
-# EXAMPLE=animated_shapes
-EXAMPLE=sprite
+EXAMPLE=animated_shapes
+# EXAMPLE=sprite
 # EXAMPLE=text
 # EXAMPLE=particles
 # EXAMPLE=post_processing
@@ -10,8 +10,10 @@ EXAMPLE=sprite
 default: example
 # default: profile-startup
 
+FLAGS=--release
+
 example:
-	cargo run --example $(EXAMPLE)
+	RUST_LOG=info,wgpu=warn,symphonia=warn cargo run --example $(EXAMPLE) $(FLAGS)
 
 tests:
 	cargo test

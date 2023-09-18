@@ -163,11 +163,7 @@ impl WgpuRenderer {
         let caps = surface.get_capabilities(&adapter);
         let supported_formats = caps.formats;
 
-        #[cfg(not(target_arch = "wasm32"))]
-        let preferred_format = wgpu::TextureFormat::Bgra8UnormSrgb;
-        #[cfg(target_arch = "wasm32")]
         let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
-        // let preferred_format = wgpu::TextureFormat::Bgra8Unorm;
 
         let monitor_surface_format =
             if supported_formats.contains(&preferred_format) {
@@ -1681,15 +1677,78 @@ impl WgpuRenderer {
 
             let data = buffer_slice.get_mapped_range();
 
-            use image::{ImageBuffer, Rgba};
-            let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
-                self.config.width,
-                self.config.height,
-                data,
-            )
-            .unwrap();
+            let path = std::env::current_exe().unwrap();
+            let example_name = path.file_name().unwrap().to_string_lossy();
 
-            buffer.save("image.png").unwrap();
+            let images_dir = format!("target/images/{}", example_name);
+
+            let videos_dir = "target/videos";
+
+            std::fs::create_dir_all(&images_dir).unwrap();
+            std::fs::create_dir_all(&videos_dir).unwrap();
+
+            let name = format!("{}/image-{:03}.png", &images_dir, get_frame());
+
+            {
+                let mut rgba_data: Vec<u8> = Vec::with_capacity(data.len());
+
+                for chunk in data.chunks_exact(4) {
+                    let b = chunk[0];
+                    let g = chunk[1];
+                    let r = chunk[2];
+                    let a = chunk[3];
+
+                    rgba_data.push(r);
+                    rgba_data.push(g);
+                    rgba_data.push(b);
+                    rgba_data.push(a);
+                }
+
+
+                let mut buffer =
+                    image::ImageBuffer::<image::Rgba<u8>, _>::from_raw(
+                        self.config.width,
+                        self.config.height,
+                        rgba_data,
+                    )
+                    .unwrap();
+
+                buffer.save(name).unwrap();
+            }
+
+            if get_frame() > 60 {
+                let ffmpeg_command = "ffmpeg";
+                let framerate = "30";
+                let input_pattern = "image-%03d.png";
+                let output_file =
+                    format!("{}/{}.webm", videos_dir, example_name);
+
+                let output = std::process::Command::new(ffmpeg_command)
+                    .arg("-framerate")
+                    .arg(framerate)
+                    .arg("-y")
+                    .arg("-i")
+                    .arg(format!("{}/{}", images_dir, input_pattern))
+                    .arg(output_file)
+                    .output()
+                    .expect("Failed to execute ffmpeg command");
+
+                if output.status.success() {
+                    println!("Successfully generated the GIF.");
+                } else {
+                    println!("Error generating the GIF:");
+                    println!(
+                        "stdout: {}",
+                        String::from_utf8_lossy(&output.stdout)
+                    );
+                    println!(
+                        "stderr: {}",
+                        String::from_utf8_lossy(&output.stderr)
+                    );
+                }
+
+                std::process::exit(0);
+            }
         });
 
         self.screenshot_buffer.buffer.unmap();
@@ -1801,4 +1860,53 @@ fn depth_stencil_attachment(
     } else {
         None
     }
+}
+
+use gif::{Encoder, Frame, Repeat};
+
+pub fn save_gif(
+    path: &str,
+    frames: &mut Vec<Vec<u8>>,
+    speed: i32,
+    width: u16,
+    height: u16,
+) -> Result<()> {
+    use image::{ImageBuffer, Rgba};
+
+    let out_w = width as u32 / 8;
+    let out_h = height as u32 / 8;
+
+    let mut image_file = std::fs::File::create(path)?;
+    let mut encoder =
+        Encoder::new(&mut image_file, out_w as u16, out_h as u16, &[
+            0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255,
+        ])?;
+    encoder.set_repeat(Repeat::Infinite)?;
+
+    for mut frame in frames {
+        let image = ImageBuffer::<Rgba<u8>, _>::from_raw(
+            width as u32,
+            height as u32,
+            frame.as_slice(),
+        )
+        .unwrap();
+
+        let resized = image::imageops::resize(
+            &image,
+            out_w,
+            out_h,
+            image::imageops::FilterType::Nearest,
+        );
+
+        let mut resized = resized.into_raw();
+
+        encoder.write_frame(&Frame::from_rgba_speed(
+            out_w as u16,
+            out_h as u16,
+            &mut resized,
+            speed,
+        ))?;
+    }
+
+    Ok(())
 }
