@@ -324,7 +324,7 @@ Examples
 
 - [ ] get rid of .as_world_size() for sizes
 - [ ] generate wasm examples
-- [ ] generate gifs for website
+- [x] generate webms for website
 - [x] simple sprite
 - [ ] simple text
 - [x] simple shapes
@@ -342,7 +342,10 @@ Examples
 - [ ] postprocessing
 - [ ] top-down minigame
 - [x] platformer minigame
-- [ ] timed draw
+- [x] timed draw
+- [ ] ecs sprite
+- [ ] ecs animatedsprite
+
 
 # Games using comfy
 
