@@ -1728,7 +1728,12 @@ impl WgpuRenderer {
                     resized.save(name).unwrap();
 
                     if get_frame() > 60 {
-                        resized.save(format!("{}/{}.png", screenshots_dir, example_name)).unwrap();
+                        resized
+                            .save(format!(
+                                "{}/{}.png",
+                                screenshots_dir, example_name
+                            ))
+                            .unwrap();
 
                         let ffmpeg_command = "ffmpeg";
                         let framerate = "30";
