@@ -183,9 +183,14 @@ impl WgpuRenderer {
 
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
+        #[cfg(not(target_arch = "wasm32"))]
+        let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT |
+            wgpu::TextureUsages::COPY_SRC;
+        #[cfg(target_arch = "wasm32")]
+        let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
+
         let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT |
-                wgpu::TextureUsages::COPY_SRC,
+            usage: surface_usage,
             format: monitor_surface_format,
             width: size.width,
             height: size.height,
