@@ -15,7 +15,7 @@ fn setup(c: &mut EngineContext) {
 }
 
 fn update(c: &mut EngineContext) {
-    draw_texture_z_ex(
+    draw_sprite(
         // Drawing sprites/textures requires a TextureHandle which can be calculated from its
         // string name. This incurs a non-measurable overhead in hashing the string, but saves
         // a lot of boilerplate in user code that would have to store asset handles.
@@ -23,9 +23,6 @@ fn update(c: &mut EngineContext) {
         Vec2::ZERO,
         WHITE,
         0,
-        DrawTextureParams {
-            dest_size: Some(splat(5.0).as_world_size()),
-            ..Default::default()
-        },
+        splat(5.0),
     );
 }

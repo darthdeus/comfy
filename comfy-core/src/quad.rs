@@ -61,7 +61,7 @@ pub fn draw_quad(
     texture: TextureHandle,
     scroll_offset: Vec2,
 ) {
-    draw_texture_z_ex(texture, position, color, z_index, DrawTextureParams {
+    draw_sprite_ex(texture, position, color, z_index, DrawTextureParams {
         dest_size: Some(size.as_world_size()),
         scroll_offset,
         rotation,
@@ -69,14 +69,25 @@ pub fn draw_quad(
     });
 }
 
-pub fn draw_texture_z_ex(
+// TODO: compare to fast sprite
+pub fn draw_sprite(
+    texture: TextureHandle,
+    position: Vec2,
+    tint: Color,
+    z_index: i32,
+    world_size: Vec2,
+) {
+    draw_sprite_rot(texture, position, tint, z_index, 0.0, world_size);
+}
+
+pub fn draw_sprite_ex(
     texture: TextureHandle,
     position: Vec2,
     tint: Color,
     z_index: i32,
     params: DrawTextureParams,
 ) {
-    let _span = span!("draw_texture_z_ex");
+    let _span = span!("draw_sprite_ex");
 
     let raw = RawDrawParams {
         dest_size: params.dest_size.map(|s| s.to_world()),

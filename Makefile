@@ -1,11 +1,11 @@
 # EXAMPLE=animated_shapes
-# EXAMPLE=sprite
+EXAMPLE=sprite
 # EXAMPLE=text
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 # EXAMPLE=ecs_sprite
-EXAMPLE=ecs_topdown_game
+# EXAMPLE=ecs_topdown_game
 
 # default: build-examples
 # default: wasm-build

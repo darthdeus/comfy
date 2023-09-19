@@ -81,7 +81,7 @@ impl Animation {
         let ratio = (image_size.x / self.sheet.columns as i32) as f32 /
             (image_size.y / self.sheet.rows as i32) as f32;
 
-        draw_texture_z_ex(
+        draw_sprite_ex(
             // texture_id("thruster-sheet"),
             texture,
             position,

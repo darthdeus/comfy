@@ -16,7 +16,7 @@ fn setup(c: &mut EngineContext) {
 }
 
 fn update(_c: &mut EngineContext) {
-    draw_texture_z_ex(
+    draw_sprite_ex(
         texture_id("player"),
         Vec2::ZERO,
         WHITE,
@@ -45,9 +45,9 @@ fn update(_c: &mut EngineContext) {
         ..Default::default()
     };
 
-    draw_texture_z_ex(texture_id("player"), vec2(0.0, 3.0), WHITE, 0, params);
+    draw_sprite_ex(texture_id("player"), vec2(0.0, 3.0), WHITE, 0, params);
 
-    draw_texture_z_ex(
+    draw_sprite_ex(
         texture_id("player"),
         vec2(-6.0, 3.0),
         RED,
@@ -55,7 +55,7 @@ fn update(_c: &mut EngineContext) {
         DrawTextureParams { rotation: t.sin() * PI, ..params },
     );
 
-    draw_texture_z_ex(
+    draw_sprite_ex(
         texture_id("player"),
         vec2(6.0, 3.0),
         BLUE.lerp(YELLOW, t.sin().abs()),
@@ -75,7 +75,7 @@ fn update(_c: &mut EngineContext) {
         draw_line(position, pivot, 0.05, RED, z_index + 1);
         draw_circle_outline(position, 0.5, 0.05, RED, z_index + 1);
 
-        draw_texture_z_ex(
+        draw_sprite_ex(
             texture_id("player"),
             position,
             GREEN.lerp(PINK, t.sin().abs()),

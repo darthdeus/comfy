@@ -20,7 +20,7 @@ fn update(c: &EngineContext) {
                         TextAlign::Center,
                     );
 
-                    draw_texture_z_ex(
+                    draw_sprite_ex(
                         texture_id("comfy"),
                         Vec2::ZERO - vec2(0.0, 4.0),
                         WHITE,

@@ -44,7 +44,7 @@ impl DebugDraw {
                     draw_circle(center, radius, color, Z_DEBUG);
                 }
                 DrawItem::Sprite { center, texture, rect } => {
-                    draw_texture_z_ex(
+                    draw_sprite_ex(
                         texture,
                         center,
                         WHITE,

@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn draw_sprite(
+pub fn draw_sprite_rot(
     texture: TextureHandle,
     position: Vec2,
     tint: Color,
@@ -8,7 +8,7 @@ pub fn draw_sprite(
     rotation: f32,
     dest_size: Vec2,
 ) {
-    let _span = span!("draw_sprite");
+    let _span = span!("draw_sprite_rot");
 
     let vertices = simple_rotated_rect(
         position.extend(z_index as f32),

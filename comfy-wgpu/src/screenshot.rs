@@ -1,6 +1,6 @@
 use crate::*;
 
-fn record_pngs(
+pub fn record_pngs(
     screen: UVec2,
     context: &GraphicsContext,
     screenshot_buffer: &SizedBuffer,

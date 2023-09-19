@@ -132,7 +132,7 @@ impl RunGameLoop for EngineState {
 
             // TODO: this really doesn't belong here
             blood_canvas_update_and_draw(|key, block| {
-                draw_texture_z_ex(
+                draw_sprite_ex(
                     block.handle,
                     (key.as_vec2() + splat(0.5)) *
                         blood_block_world_size() as f32,
@@ -690,7 +690,7 @@ impl EngineState {
             {
                 // for draw in group.sorted_by(|a, b| a.texture.cmp(&b.texture)) {
                 for draw in group {
-                    draw_texture_z_ex(
+                    draw_sprite_ex(
                         draw.texture,
                         draw.transform.position,
                         draw.color,
@@ -713,7 +713,7 @@ impl EngineState {
             let _span = span!("temp draws");
 
             for texture in c.draw_mut().textures.drain(..) {
-                draw_texture_z_ex(
+                draw_sprite_ex(
                     texture.texture,
                     texture.position.to_world(),
                     texture.color,

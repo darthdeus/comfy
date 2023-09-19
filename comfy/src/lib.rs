@@ -102,10 +102,17 @@ pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
     let loop_helper = spin_sleep::LoopHelper::builder()
         .build_with_target_rate(target_framerate);
 
+    // TODO: baaaaaaad, but for now ...
+    #[cfg(target_arch = "wasm32")]
+    let resolution = winit::dpi::PhysicalSize::new(960, 560);
+    #[cfg(not(target_arch = "wasm32"))]
+    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
+
     wgpu_game_loop(
         #[cfg(not(target_arch = "wasm32"))]
         loop_helper,
         game_state,
+        resolution,
     )
     .await;
 }

@@ -5,12 +5,8 @@ use crate::*;
 pub async fn wgpu_game_loop(
     #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
     mut game_state: Box<dyn RunGameLoop>,
+    resolution: winit::dpi::PhysicalSize<i32>,
 ) {
-    #[cfg(target_arch = "wasm32")]
-    let resolution = winit::dpi::PhysicalSize::new(960, 560);
-    #[cfg(not(target_arch = "wasm32"))]
-    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
-
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
         .with_title(game_state.title())
