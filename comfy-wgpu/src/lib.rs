@@ -9,6 +9,8 @@ pub use winit::event::{
     WindowEvent,
 };
 
+pub use futures_intrusive;
+
 mod blood_canvas;
 mod bloom;
 mod egui_integration;
