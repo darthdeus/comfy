@@ -318,10 +318,9 @@ server](https://discord.gg/M8hySjuG48).
 
 comfy is free and open source and dual licensed under MIT and Apache 2.0 licenses.
 
-# TODO:
+# TODO pre-release:
 
-Examples
-
+- [ ] configurable resolution
 - [ ] .as_srgb() surface view
 - [ ] get rid of .as_world_size() for sizes
 - [ ] generate wasm examples

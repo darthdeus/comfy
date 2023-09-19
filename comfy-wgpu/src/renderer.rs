@@ -164,6 +164,9 @@ impl WgpuRenderer {
         let supported_formats = caps.formats;
         info!("Supported formats: {:?}", supported_formats);
 
+        #[cfg(not(target_arch = "wasm32"))]
+        let preferred_format = wgpu::TextureFormat::Bgra8UnormSrgb;
+        #[cfg(target_arch = "wasm32")]
         let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
 
         let monitor_surface_format =
@@ -1885,53 +1888,4 @@ fn depth_stencil_attachment(
     } else {
         None
     }
-}
-
-use gif::{Encoder, Frame, Repeat};
-
-pub fn save_gif(
-    path: &str,
-    frames: &mut Vec<Vec<u8>>,
-    speed: i32,
-    width: u16,
-    height: u16,
-) -> Result<()> {
-    use image::{ImageBuffer, Rgba};
-
-    let out_w = width as u32 / 8;
-    let out_h = height as u32 / 8;
-
-    let mut image_file = std::fs::File::create(path)?;
-    let mut encoder =
-        Encoder::new(&mut image_file, out_w as u16, out_h as u16, &[
-            0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255,
-        ])?;
-    encoder.set_repeat(Repeat::Infinite)?;
-
-    for mut frame in frames {
-        let image = ImageBuffer::<Rgba<u8>, _>::from_raw(
-            width as u32,
-            height as u32,
-            frame.as_slice(),
-        )
-        .unwrap();
-
-        let resized = image::imageops::resize(
-            &image,
-            out_w,
-            out_h,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let mut resized = resized.into_raw();
-
-        encoder.write_frame(&Frame::from_rgba_speed(
-            out_w as u16,
-            out_h as u16,
-            &mut resized,
-            speed,
-        ))?;
-    }
-
-    Ok(())
 }

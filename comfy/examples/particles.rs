@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Particles Example", update);
+simple_game!("Particles Example", update);
 
 // fn setup(c: &mut EngineContext) {
 //     c.world_mut()

@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Animated Shapes Example", update);
+simple_game!("Animated Shapes Example", update);
 
 fn update(_c: &mut EngineContext) {
     let time = get_time() as f32;

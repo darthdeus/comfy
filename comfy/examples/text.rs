@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Text Example", update);
+simple_game!("Text Example", update);
 
 fn lerped_color(colors: &[Color], t: f32) -> Color {
     let n = colors.len() - 1;

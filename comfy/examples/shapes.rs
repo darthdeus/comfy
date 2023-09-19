@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Shapes Example", update);
+simple_game!("Shapes Example", update);
 
 fn update(_c: &mut EngineContext) {
     clear_background(Color::rgb8(13, 2, 8));

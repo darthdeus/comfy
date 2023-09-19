@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Sprite Example", setup, update);
+simple_game!("Sprite Example", setup, update);
 
 fn setup(c: &mut EngineContext) {
     load_texture_from_engine_bytes(

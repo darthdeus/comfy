@@ -262,7 +262,7 @@ pub fn draw_labeled_rect_corners(
                 egui::FontFamily::Proportional,
             ),
             rotation: 0.0,
-            color: color.lighten(tweak!(0.3)),
+            color: color.lighten(0.3),
         },
     );
 
@@ -1108,8 +1108,8 @@ pub fn draw_arrow(
 
     let angle = dir.angle();
 
-    let len = tweak!(0.8);
-    let spread = tweak!(0.15) * PI;
+    let len = 0.8;
+    let spread = 0.15 * PI;
 
     // draw the arrow head
     draw_ray(
@@ -1134,7 +1134,7 @@ pub fn draw_revs(position: Vec2, r: f32, rev: f32, color: Color, z_index: i32) {
     let rev_end_angle = PI / 4.0;
 
     let px = px();
-    let offset = tweak!(3.0) * px;
+    let offset = 3.0 * px;
 
     draw_arc_outline(
         position,

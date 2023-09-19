@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Post Processing", setup, update);
+simple_game!("Post Processing", setup, update);
 
 fn setup(c: &mut EngineContext) {
     let name = "fun-chromatic-aberration";

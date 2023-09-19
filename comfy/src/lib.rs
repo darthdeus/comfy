@@ -9,10 +9,10 @@ mod debug;
 mod draw;
 mod egui_utils;
 mod engine;
-mod screenshot;
 mod macros;
 mod particles;
 mod render;
+mod screenshot;
 mod shaders;
 mod timer;
 mod trail;
@@ -25,10 +25,10 @@ pub use crate::debug::*;
 pub use crate::draw::*;
 pub use crate::egui_utils::*;
 pub use crate::engine::*;
-pub use crate::screenshot::*;
 pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
+pub use crate::screenshot::*;
 pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
@@ -58,11 +58,6 @@ pub use comfy_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
-#[cfg(not(target_arch = "wasm32"))]
-pub fn run_comfy_main(run_game_loop: Box<dyn RunGameLoop>) {
-    pollster::block_on(run_comfy_main_async(run_game_loop));
-}
-
 pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
     if cfg!(feature = "tracy") {
         info!("CONNECTING TO TRACY");
@@ -72,8 +67,6 @@ pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
 
     #[cfg(feature = "tracy")]
     let _client = tracy_client::Client::start();
-
-    // info,symphonia=warn,wgpu=error,winit=error
 
     // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
     // This should be user configurable let (non_blocking, _worker_guard) =
@@ -133,8 +126,10 @@ pub fn timed_two_frames(
 
 pub struct DespawnAfter(pub f32);
 
+// TODO: remove
 type DamagedCallback = fn(health_dmg: f32, shield_dmg: f32, c: &EngineContext);
 
+// TODO: remove
 pub struct Health {
     pub health_cur: f32,
     pub health_max: f32,
@@ -191,6 +186,7 @@ pub fn image_button(
     })
 }
 
+// TODO: remove
 pub fn image_button_ex(
     text: &str,
     c: &EngineContext,

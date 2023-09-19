@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("ECS Sprite Example", setup, update);
+simple_game!("ECS Sprite Example", setup, update);
 
 struct Player;
 

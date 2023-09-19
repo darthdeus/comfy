@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("ECS Topdown Game", setup, update);
+simple_game!("ECS Topdown Game", setup, update);
 
 struct Player;
 struct Grass;

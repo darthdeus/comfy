@@ -21,7 +21,7 @@ macro_rules! define_main {
 }
 
 #[macro_export]
-macro_rules! example_game {
+macro_rules! simple_game {
     ($name:literal, $setup:ident, $update:ident) => {
         define_main!(run);
 
@@ -90,6 +90,6 @@ macro_rules! example_game {
     ($name:literal, $update:ident) => {
         fn setup(_c: &mut EngineContext) {}
 
-        example_game!($name, setup, $update);
+        simple_game!($name, setup, $update);
     };
 }

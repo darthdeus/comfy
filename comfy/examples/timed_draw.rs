@@ -1,6 +1,6 @@
 use comfy::*;
 
-example_game!("Timed Draw Example", update);
+simple_game!("Timed Draw Example", update);
 
 fn update(c: &EngineContext) {
     clear_background(BLACK);
