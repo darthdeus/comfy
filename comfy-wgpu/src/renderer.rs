@@ -1685,9 +1685,11 @@ impl WgpuRenderer {
                 let images_dir = format!("target/images/{}", example_name);
 
                 let videos_dir = "target/videos";
+                let screenshots_dir = "target/screenshots";
 
                 std::fs::create_dir_all(&images_dir).unwrap();
                 std::fs::create_dir_all(&videos_dir).unwrap();
+                std::fs::create_dir_all(&screenshots_dir).unwrap();
 
                 let name =
                     format!("{}/image-{:03}.png", &images_dir, get_frame());
@@ -1724,40 +1726,42 @@ impl WgpuRenderer {
                     );
 
                     resized.save(name).unwrap();
-                }
 
-                if get_frame() > 60 {
-                    let ffmpeg_command = "ffmpeg";
-                    let framerate = "30";
-                    let input_pattern = "image-%03d.png";
-                    let output_file =
-                        format!("{}/{}.webm", videos_dir, example_name);
+                    if get_frame() > 60 {
+                        resized.save(format!("{}/{}.png", screenshots_dir, example_name)).unwrap();
 
-                    let output = std::process::Command::new(ffmpeg_command)
-                        .arg("-framerate")
-                        .arg(framerate)
-                        .arg("-y")
-                        .arg("-i")
-                        .arg(format!("{}/{}", images_dir, input_pattern))
-                        .arg(output_file)
-                        .output()
-                        .expect("Failed to execute ffmpeg command");
+                        let ffmpeg_command = "ffmpeg";
+                        let framerate = "30";
+                        let input_pattern = "image-%03d.png";
+                        let output_file =
+                            format!("{}/{}.webm", videos_dir, example_name);
 
-                    if output.status.success() {
-                        println!("Successfully generated the GIF.");
-                    } else {
-                        println!("Error generating the GIF:");
-                        println!(
-                            "stdout: {}",
-                            String::from_utf8_lossy(&output.stdout)
-                        );
-                        println!(
-                            "stderr: {}",
-                            String::from_utf8_lossy(&output.stderr)
-                        );
+                        let output = std::process::Command::new(ffmpeg_command)
+                            .arg("-framerate")
+                            .arg(framerate)
+                            .arg("-y")
+                            .arg("-i")
+                            .arg(format!("{}/{}", images_dir, input_pattern))
+                            .arg(output_file)
+                            .output()
+                            .expect("Failed to execute ffmpeg command");
+
+                        if output.status.success() {
+                            println!("Successfully generated the GIF.");
+                        } else {
+                            println!("Error generating the GIF:");
+                            println!(
+                                "stdout: {}",
+                                String::from_utf8_lossy(&output.stdout)
+                            );
+                            println!(
+                                "stderr: {}",
+                                String::from_utf8_lossy(&output.stderr)
+                            );
+                        }
+
+                        std::process::exit(0);
                     }
-
-                    std::process::exit(0);
                 }
             });
 
