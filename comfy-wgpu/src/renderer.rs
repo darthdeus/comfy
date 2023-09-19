@@ -1621,7 +1621,6 @@ impl WgpuRenderer {
                     is_first = false;
                 }
 
-
                 // match pass_data.data {
                 //     DrawData::Mesh(_) => {}
                 //     DrawData::Particle(_) => {

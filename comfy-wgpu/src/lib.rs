@@ -9,8 +9,6 @@ pub use winit::event::{
     WindowEvent,
 };
 
-pub use futures_intrusive;
-
 mod blood_canvas;
 mod bloom;
 mod egui_integration;
@@ -22,6 +20,7 @@ mod render_pass;
 mod renderer;
 mod texture;
 mod utils;
+mod screenshot;
 
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
