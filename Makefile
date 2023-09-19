@@ -4,7 +4,8 @@
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
-EXAMPLE=ecs_sprite
+# EXAMPLE=ecs_sprite
+EXAMPLE=ecs_topdown_game
 
 # default: build-examples
 # default: wasm-build
