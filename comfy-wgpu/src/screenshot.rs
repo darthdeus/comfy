@@ -1,3 +1,4 @@
+#[cfg(feature = "record-pngs")]
 use crate::*;
 
 #[cfg(feature = "record-pngs")]
@@ -81,11 +82,10 @@ pub fn record_pngs(
             }
 
 
-            let mut buffer =
-                image::ImageBuffer::<image::Rgba<u8>, _>::from_raw(
-                    screen.x, screen.y, rgba_data,
-                )
-                .unwrap();
+            let buffer = image::ImageBuffer::<image::Rgba<u8>, _>::from_raw(
+                screen.x, screen.y, rgba_data,
+            )
+            .unwrap();
 
             let resized = image::imageops::resize(
                 &buffer,
