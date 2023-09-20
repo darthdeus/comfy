@@ -1,5 +1,6 @@
 use crate::*;
 
+#[cfg(feature = "record-pngs")]
 pub fn record_pngs(
     screen: UVec2,
     context: &GraphicsContext,
