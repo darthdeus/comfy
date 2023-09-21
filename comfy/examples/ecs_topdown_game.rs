@@ -26,8 +26,8 @@ fn setup(c: &mut EngineContext) {
         wgpu::AddressMode::ClampToEdge,
     );
 
-    for x in 0..30 {
-        for y in 0..30 {
+    for x in 0..50 {
+        for y in 0..50 {
             let variant = random_i32(0, 2);
             // Tile the world with random variant of grass sprite
             c.commands().spawn((
@@ -41,7 +41,7 @@ fn setup(c: &mut EngineContext) {
 
     // Spawn the player entity and make sure z-index is above the grass
     c.commands().spawn((
-        Transform::position(vec2(10.0, 10.0)),
+        Transform::position(vec2(25.0, 25.0)),
         Player,
         AnimatedSpriteBuilder::new()
             .z_index(10)
@@ -54,7 +54,7 @@ fn setup(c: &mut EngineContext) {
             })
             .add_animation("walk", 0.05, true, AnimationSource::Atlas {
                 name: "player".into(),
-                offset: ivec2(16 * 1, 0),
+                offset: ivec2(16, 0),
                 step: ivec2(16, 0),
                 size: isplat(16),
                 frames: 6,
@@ -68,35 +68,36 @@ fn update(c: &mut EngineContext) {
 
     let dt = c.delta;
 
-    for (entity, (player, animated_sprite, mut transform)) in c
+    for (_, (_, animated_sprite, transform)) in c
         .world()
         .query::<(&Player, &mut AnimatedSprite, &mut Transform)>()
         .iter()
     {
         // Handle movement and animation
         let mut moved = false;
-        let speed = 1.0;
+        let speed = 3.0;
+        let mut move_dir = Vec2::ZERO;
 
         if is_key_down(KeyCode::W) {
-            transform.position.y += speed * dt;
+            move_dir.y += 1.0;
             moved = true;
         }
         if is_key_down(KeyCode::S) {
-            transform.position.y -= speed * dt;
+            move_dir.y -= 1.0;
             moved = true;
         }
         if is_key_down(KeyCode::A) {
-            transform.position.x -= speed * dt;
-            animated_sprite.flip_x = true;
+            move_dir.x -= 1.0;
             moved = true;
         }
         if is_key_down(KeyCode::D) {
-            transform.position.x += speed * dt;
-            animated_sprite.flip_x = false;
+            move_dir.x += 1.0;
             moved = true;
         }
 
         if moved {
+            animated_sprite.flip_x = move_dir.x < 0.0;
+            transform.position += move_dir.normalize() * speed * dt;
             animated_sprite.play("walk");
         } else {
             animated_sprite.play("idle");
