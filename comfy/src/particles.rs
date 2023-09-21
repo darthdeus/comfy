@@ -234,9 +234,26 @@ pub struct Particle {
     pub trail: TrailRef,
 }
 
+// fn map_circle_point_to_rectangle(
+//     point_in_circle: Vec2,
+//     circle_radius: f32,
+//     rectangle_size: Vec2,
+// ) -> Vec2 {
+//     let normalized = point_in_circle / circle_radius;
+//
+//     let half_rect = rectangle_size * 0.5;
+//     (normalized * half_rect) + half_rect
+// }
+
 impl Particle {
     pub fn initialize(&mut self, position: Vec2, size: Option<Vec2>) {
-        self.position += random_box(position, size.unwrap_or(Vec2::ZERO));
+        // self.position = random_box(position, size.unwrap_or(Vec2::ZERO));
+        if let Some(size) = size {
+            self.position = random_box(position, size);
+        } else {
+            self.position += position;
+        }
+
         self.lifetime_current = self.lifetime_max * gen_range(0.9, 1.1);
         self.frame = 0;
         self.animation_timer = 0.0;

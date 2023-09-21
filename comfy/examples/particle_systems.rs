@@ -21,7 +21,7 @@ fn setup(c: &mut EngineContext) {
             Particle {
                 texture: texture_id("comfy"),
                 position: random_circle(5.0),
-                size: splat(1.0),
+                size: splat(0.5),
                 // Other than the builtin easing curves, any f32 -> f32 curve
                 // will work.
                 size_curve: quad_in_out,
@@ -33,26 +33,7 @@ fn setup(c: &mut EngineContext) {
             }
         })
         .with_size(vec2(3.0, 8.0)),
-        Transform::position(vec2(-10.0, 0.0)),
-    ));
-
-    c.commands().spawn((
-        ParticleSystem::with_spawn_on_death(300, || {
-            Particle {
-                texture: texture_id("comfy"),
-                position: random_circle(5.0),
-                size: splat(0.5),
-                size_curve: expo_out,
-
-                angular_velocity: random() * 5.0,
-                // Both size and color can be faded.
-                fade_type: FadeType::Both,
-                color_start: RED,
-                color_end: RED,
-                ..Default::default()
-            }
-        }),
-        Transform::position(vec2(10.0, 0.0)),
+        Transform::position(vec2(-8.0, 0.0)),
     ));
 
     c.commands().spawn((
@@ -74,6 +55,8 @@ fn setup(c: &mut EngineContext) {
                 color_start: GREEN,
                 color_end: LIME,
 
+                // Particles can have trails. These aren't currently
+                // very nice to configure, but they do work!
                 trail: TrailRef::Local(Trail::new(
                     0.1,
                     1.0,
@@ -88,6 +71,9 @@ fn setup(c: &mut EngineContext) {
                     BlendMode::Additive,
                 )),
 
+                // If the builtin particle system logic isn't enough, the particles can also use a
+                // custom `update` function with arbitrary logic inside that gets called on each
+                // frame.
                 update: Some(|p| {
                     // Calculate distance from origin.
                     let current_distance = p.position.length();
@@ -109,9 +95,9 @@ fn setup(c: &mut EngineContext) {
 
                     let abs_diff = difference.abs();
 
-                    // Rescale the radius from 0..radius to 0..1 for interpolation
+                    // Rescale the radius from 0..radius for interpolation
                     let abs_diff_scaled =
-                        abs_diff.clamp_scale(0.0..DESIRED_RADIUS, 0.0..1.0);
+                        abs_diff.clamp_scale(0.0..DESIRED_RADIUS, 0.2..0.8);
 
                     let t = if abs_diff < 1.0 {
                         1.0 - abs_diff_scaled
@@ -128,6 +114,25 @@ fn setup(c: &mut EngineContext) {
             }
         }),
         Transform::position(Vec2::ZERO),
+    ));
+
+    c.commands().spawn((
+        ParticleSystem::with_spawn_on_death(300, || {
+            Particle {
+                texture: texture_id("comfy"),
+                position: random_circle(5.0),
+                size: splat(0.7),
+                size_curve: expo_out,
+
+                angular_velocity: random() * 10.0,
+                // Both size and color can be faded.
+                fade_type: FadeType::Both,
+                color_start: RED,
+                color_end: RED,
+                ..Default::default()
+            }
+        }), // .with_size(vec2(0.2, 5.0))
+        Transform::position(vec2(10.0, 0.0)),
     ));
 }
 
