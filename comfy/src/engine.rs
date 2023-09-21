@@ -190,6 +190,29 @@ impl RunGameLoop for EngineState {
             }
         }
 
+        #[cfg(not(feature = "ci-release"))]
+        for (entity, (_, transform)) in self
+            .world
+            .borrow_mut()
+            .query_mut::<(&AnimatedSpriteBuilder, Option<&Transform>)>()
+        {
+            error!(
+                "AnimatedSpriteBuilder found in ECS (entity = {:?}), make \
+                 sure to call .build()",
+                entity
+            );
+
+            if let Some(transform) = transform {
+                draw_circle(transform.position, 0.5, RED, 499);
+                draw_text(
+                    "AnimatedSpriteBuilder in ECS",
+                    transform.position,
+                    WHITE,
+                    TextAlign::Center,
+                );
+            }
+        }
+
         for (_, (transform, particle_system)) in self
             .world
             .borrow_mut()
