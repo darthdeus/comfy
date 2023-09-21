@@ -946,6 +946,14 @@ pub const TOMATO: Color = Color::rgb(1.0, 0.39, 0.28);
 pub const TURQUOISE: Color = Color::rgb(0.25, 0.88, 0.82);
 pub const YELLOW_GREEN: Color = Color::rgb(0.6, 0.8, 0.2);
 
+// Comfy colors
+// pub const COMFY_BLUE: Color = Color::rgb(0.16, 0.04, 0.02);
+// pub const COMFY_BLUE: Color = Color::rgb(0.84, 0.96, 0.98);
+pub const COMFY_BLUE: Color = Color::rgb(0.74, 0.86, 0.88);
+pub const COMFY_PINK: Color = Color::rgb(1.0, 0.76, 0.86);
+pub const COMFY_GREEN: Color = Color::rgb(0.67, 0.92, 0.72);
+pub const COMFY_DARK_BLUE: Color = Color::rgb(0.73, 0.93, 0.97);
+
 // pub const PINK: Color = Color::rgb(1.0, 0.08, 0.58);
 // pub const PURPLE: Color = Color::rgb(0.5, 0.0, 0.5);
 // pub const RED: Color = Color::rgb(1.0, 0.0, 0.0);

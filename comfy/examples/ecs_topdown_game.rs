@@ -50,20 +50,22 @@ fn setup(c: &mut EngineContext) {
                 offset: ivec2(0, 0),
                 step: ivec2(16, 0),
                 size: isplat(16),
-                frames: 4,
+                frames: 1,
             })
-            .add_animation("walk", 0.1, true, AnimationSource::Atlas {
+            .add_animation("walk", 0.05, true, AnimationSource::Atlas {
                 name: "player".into(),
-                offset: ivec2(16 * 4, 0),
+                offset: ivec2(16 * 1, 0),
                 step: ivec2(16, 0),
                 size: isplat(16),
-                frames: 4,
+                frames: 6,
             })
             .build(),
     ));
 }
 
 fn update(c: &mut EngineContext) {
+    clear_background(TEAL);
+
     let dt = c.delta;
 
     for (entity, (player, animated_sprite, mut transform)) in c
@@ -85,10 +87,12 @@ fn update(c: &mut EngineContext) {
         }
         if is_key_down(KeyCode::A) {
             transform.position.x -= speed * dt;
+            animated_sprite.flip_x = true;
             moved = true;
         }
         if is_key_down(KeyCode::D) {
             transform.position.x += speed * dt;
+            animated_sprite.flip_x = false;
             moved = true;
         }
 
