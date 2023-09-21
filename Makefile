@@ -5,8 +5,8 @@
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 # EXAMPLE=ecs_sprite
-EXAMPLE=ecs_topdown_game
-# EXAMPLE=particle_systems
+# EXAMPLE=ecs_topdown_game
+EXAMPLE=particle_systems
 
 # default: build-examples
 # default: wasm-build

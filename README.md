@@ -344,7 +344,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [ ] lighting example
 - [ ] combat text example
 - [ ] font loading
-- [ ] particle systems
+- [x] particle systems
 - [x] text
 - [ ] blood canvas
 - [ ] raytracing

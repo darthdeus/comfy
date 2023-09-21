@@ -49,6 +49,9 @@ impl ParticleSystem {
         }
     }
 
+    /// Creates a particle system that always maintains a `max_particles` number of live particles.
+    /// Every time a particle's lifetime ends, a new particle is immediately spawned to maintain a
+    /// constant number.
     pub fn with_spawn_on_death(
         max_particles: usize,
         particle_builder: impl Fn() -> Particle + Send + Sync + 'static,
