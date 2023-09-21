@@ -1,5 +1,306 @@
 use crate::*;
 
+pub struct AnimatedSprite {
+    pub animations: HashMap<String, Animation>,
+    pub state: AnimationState,
+
+    pub z_index: i32,
+    pub size: Vec2,
+    pub color: Color,
+
+    pub flip_x: bool,
+    pub flip_y: bool,
+
+    pub blend_mode: BlendMode,
+    pub offset: Vec2,
+
+    pub on_finished: ContextFn,
+}
+
+impl AnimatedSprite {
+    pub fn play(&mut self, animation_name: &str) {
+        if let Some(animation) = self.animations.get(animation_name) {
+            if animation.name != self.state.animation_name {
+                self.state = animation.to_state();
+            }
+        }
+    }
+
+    // pub fn from_files(
+    //     prefix: impl Into<Cow<'static, str>>,
+    //     frames: i32,
+    //     interval: f32,
+    //     looping: bool,
+    //     z_index: i32,
+    //     size: Vec2,
+    //     color: Color,
+    //     offset: Vec2,
+    //     on_finished: ContextFn,
+    // ) -> Self {
+    //     Self {
+    //         animations: HashMap::default(),
+    //         state: AnimationState {
+    //             source: AnimationSource::Files {
+    //                 prefix: prefix.into(),
+    //                 frames,
+    //             },
+    //             interval,
+    //             looping,
+    //             timer: 0.0,
+    //             current_frame: 0,
+    //         },
+    //
+    //         z_index,
+    //         size,
+    //         color,
+    //
+    //         flip_x: false,
+    //         flip_y: false,
+    //
+    //         blend_mode: BlendMode::None,
+    //
+    //         offset,
+    //
+    //         on_finished,
+    //     }
+    // }
+
+    // pub fn spritesheet(
+    //     name: impl Into<Cow<'static, str>>,
+    //     spritesheet: Spritesheet,
+    //     interval: f32,
+    //     looping: bool,
+    //     z_index: i32,
+    //     world_size: Vec2,
+    //     color: Color,
+    //     px_offset: Vec2,
+    //     on_finished: ContextFn,
+    // ) -> Self {
+    //     Self {
+    //         animations: HashMap::default(),
+    //         state: AnimationState {
+    //             source: AnimationSource::Spritesheet {
+    //                 name: name.into(),
+    //                 spritesheet,
+    //             },
+    //             interval,
+    //             looping,
+    //             timer: 0.0,
+    //             current_frame: 0,
+    //         },
+    //
+    //         z_index,
+    //         size: world_size,
+    //         color,
+    //
+    //         flip_x: false,
+    //         flip_y: false,
+    //
+    //         blend_mode: BlendMode::None,
+    //
+    //         offset: px_offset,
+    //
+    //         on_finished,
+    //         // on_finished,
+    //         // on_finished_meta: Arc::new(Mutex::new(None as Option<()>)),
+    //     }
+    // }
+    //
+    // pub fn atlas(
+    //     name: impl Into<Cow<'static, str>>,
+    //     offset: IVec2,
+    //     step: IVec2,
+    //     sprite_size: IVec2,
+    //     frames: i32,
+    //     interval: f32,
+    //     looping: bool,
+    //     z_index: i32,
+    //     world_size: Vec2,
+    //     color: Color,
+    //     px_offset: Vec2,
+    //     on_finished: ContextFn,
+    // ) -> Self {
+    //     Self {
+    //         animations: HashMap::default(),
+    //         state: AnimationState {
+    //             source: AnimationSource::Atlas {
+    //                 name: name.into(),
+    //                 offset,
+    //                 step,
+    //                 size: sprite_size,
+    //                 frames,
+    //             },
+    //             interval,
+    //             looping,
+    //             timer: 0.0,
+    //             current_frame: 0,
+    //         },
+    //
+    //         z_index,
+    //         size: world_size,
+    //         color,
+    //
+    //         flip_x: false,
+    //         flip_y: false,
+    //
+    //         blend_mode: BlendMode::None,
+    //
+    //         offset: px_offset,
+    //
+    //         on_finished,
+    //     }
+    // }
+
+    pub fn with_blend_mode(self, blend_mode: BlendMode) -> Self {
+        Self { blend_mode, ..self }
+    }
+
+    pub fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
+        let (texture, source_rect) = self.state.current_rect();
+
+        QuadDraw {
+            transform: *transform,
+            texture: texture_id(&texture),
+            z_index: self.z_index,
+            color: self.color,
+            blend_mode: self.blend_mode,
+            dest_size: self.size * transform.scale,
+            source_rect,
+            flip_x: self.flip_x,
+            flip_y: self.flip_y,
+        }
+    }
+}
+
+// impl Default for AnimatedSprite {
+//     fn default() -> Self {
+//         Self {
+//             animations: Default::default(),
+//             state: AnimationState {
+//                 source: AnimationSource::Atlas {
+//                     name: "1px".into(),
+//                     offset: IVec2::ZERO,
+//                     step: IVec2::ZERO,
+//                     size: ivec2(16, 16),
+//                     frames: 1,
+//                 },
+//                 interval: 0.2,
+//                 looping: true,
+//                 timer: 0.0,
+//                 current_frame: 0,
+//             },
+//
+//             z_index: 10,
+//             size: splat(1.0),
+//             color: WHITE,
+//             flip_x: false,
+//             flip_y: false,
+//             blend_mode: BlendMode::None,
+//             offset: Vec2::ZERO,
+//             on_finished: Box::new(|_| {}),
+//         }
+//     }
+// }
+
+pub struct AnimatedSpriteBuilder {
+    pub animations: HashMap<String, Animation>,
+    pub state: Option<AnimationState>,
+    pub z_index: i32,
+    pub size: Vec2,
+    pub color: Color,
+    pub flip_x: bool,
+    pub flip_y: bool,
+    pub blend_mode: BlendMode,
+    pub offset: Vec2,
+    pub on_finished: Option<ContextFn>,
+}
+
+impl AnimatedSpriteBuilder {
+    pub fn new() -> Self {
+        Self {
+            animations: HashMap::new(),
+            state: None,
+            z_index: 0,
+            size: splat(1.0),
+            color: WHITE,
+            flip_x: false,
+            flip_y: false,
+            blend_mode: BlendMode::None,
+            offset: Vec2::ZERO,
+            on_finished: None,
+        }
+    }
+
+    pub fn z_index(mut self, z_index: i32) -> Self {
+        self.z_index = z_index;
+        self
+    }
+
+    pub fn add_animation(
+        mut self,
+        name: &str,
+        frame_time: f32,
+        looping: bool,
+        source: AnimationSource,
+    ) -> AnimatedSpriteBuilder {
+        let animation = Animation {
+            name: name.to_string(),
+            frame_time,
+            looping,
+            source: source.clone(),
+        };
+
+        if self.state.is_none() {
+            self.state = Some(animation.to_state());
+        }
+
+
+        self.animations.insert(name.to_string(), animation);
+
+        self
+    }
+
+    pub fn build(self) -> AnimatedSprite {
+        AnimatedSprite {
+            animations: self.animations,
+            state: self
+                .state
+                .expect("AnimatedSpriteBuilder's `state` must be set."),
+            z_index: self.z_index,
+            size: self.size,
+            color: self.color,
+            flip_x: self.flip_x,
+            flip_y: self.flip_y,
+            blend_mode: self.blend_mode,
+            offset: self.offset,
+            on_finished: self.on_finished.unwrap_or_else(|| Box::new(|_| {})),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Animation {
+    // TODO: we need a better way of identifying animations when doing .play()
+    // to avoid excessive string allocations
+    pub name: String,
+    pub source: AnimationSource,
+    pub looping: bool,
+    pub frame_time: f32,
+}
+
+impl Animation {
+    pub fn to_state(&self) -> AnimationState {
+        AnimationState {
+            animation_name: self.name.clone(),
+            source: self.source.clone(),
+            interval: self.frame_time,
+            looping: self.looping,
+            timer: 0.0,
+            current_frame: 0,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum AnimationSource {
     Files {
@@ -33,6 +334,7 @@ impl AnimationSource {
 
 #[derive(Clone, Debug)]
 pub struct AnimationState {
+    pub animation_name: String,
     pub source: AnimationSource,
     pub interval: f32,
     pub looping: bool,
@@ -41,8 +343,14 @@ pub struct AnimationState {
 }
 
 impl AnimationState {
-    pub fn new(source: AnimationSource, time: f32, looping: bool) -> Self {
+    pub fn new(
+        animation_name: String,
+        source: AnimationSource,
+        time: f32,
+        looping: bool,
+    ) -> Self {
         Self {
+            animation_name,
             looping,
             interval: time / source.frames() as f32,
             timer: 0.0,
@@ -118,202 +426,3 @@ impl AnimationState {
         }
     }
 }
-
-pub struct AnimatedSprite {
-    pub animations: HashMap<String, AnimationSource>,
-
-    pub state: AnimationState,
-    pub z_index: i32,
-    pub size: Vec2,
-    pub color: Color,
-
-    pub flip_x: bool,
-    pub flip_y: bool,
-
-    pub blend_mode: BlendMode,
-
-    pub offset: Vec2,
-
-    pub on_finished: ContextFn,
-}
-
-impl Default for AnimatedSprite {
-    fn default() -> Self {
-        Self {
-            animations: Default::default(),
-            state: AnimationState {
-                source: AnimationSource::Atlas {
-                    name: "1px".into(),
-                    offset: IVec2::ZERO,
-                    step: IVec2::ZERO,
-                    size: ivec2(16, 16),
-                    frames: 1,
-                },
-                interval: 0.2,
-                looping: true,
-                timer: 0.0,
-                current_frame: 0,
-            },
-
-            z_index: 10,
-            size: splat(1.0),
-            color: WHITE,
-            flip_x: false,
-            flip_y: false,
-            blend_mode: BlendMode::None,
-            offset: Vec2::ZERO,
-            on_finished: Box::new(|_| {}),
-        }
-    }
-}
-
-impl AnimatedSprite {
-    pub fn from_files(
-        prefix: impl Into<Cow<'static, str>>,
-        frames: i32,
-        interval: f32,
-        looping: bool,
-        z_index: i32,
-        size: Vec2,
-        color: Color,
-        offset: Vec2,
-        on_finished: ContextFn,
-    ) -> Self {
-        Self {
-            animations: HashMap::default(),
-            state: AnimationState {
-                source: AnimationSource::Files {
-                    prefix: prefix.into(),
-                    frames,
-                },
-                interval,
-                looping,
-                timer: 0.0,
-                current_frame: 0,
-            },
-
-            z_index,
-            size,
-            color,
-
-            flip_x: false,
-            flip_y: false,
-
-            blend_mode: BlendMode::None,
-
-            offset,
-
-            on_finished,
-        }
-    }
-
-    pub fn spritesheet(
-        name: impl Into<Cow<'static, str>>,
-        spritesheet: Spritesheet,
-        interval: f32,
-        looping: bool,
-        z_index: i32,
-        world_size: Vec2,
-        color: Color,
-        px_offset: Vec2,
-        on_finished: ContextFn,
-    ) -> Self {
-        Self {
-            animations: HashMap::default(),
-            state: AnimationState {
-                source: AnimationSource::Spritesheet {
-                    name: name.into(),
-                    spritesheet,
-                },
-                interval,
-                looping,
-                timer: 0.0,
-                current_frame: 0,
-            },
-
-            z_index,
-            size: world_size,
-            color,
-
-            flip_x: false,
-            flip_y: false,
-
-            blend_mode: BlendMode::None,
-
-            offset: px_offset,
-
-            on_finished,
-            // on_finished,
-            // on_finished_meta: Arc::new(Mutex::new(None as Option<()>)),
-        }
-    }
-
-    pub fn atlas(
-        name: impl Into<Cow<'static, str>>,
-        offset: IVec2,
-        step: IVec2,
-        sprite_size: IVec2,
-        frames: i32,
-        interval: f32,
-        looping: bool,
-        z_index: i32,
-        world_size: Vec2,
-        color: Color,
-        px_offset: Vec2,
-        on_finished: ContextFn,
-    ) -> Self {
-        Self {
-            animations: HashMap::default(),
-            state: AnimationState {
-                source: AnimationSource::Atlas {
-                    name: name.into(),
-                    offset,
-                    step,
-                    size: sprite_size,
-                    frames,
-                },
-                interval,
-                looping,
-                timer: 0.0,
-                current_frame: 0,
-            },
-
-            z_index,
-            size: world_size,
-            color,
-
-            flip_x: false,
-            flip_y: false,
-
-            blend_mode: BlendMode::None,
-
-            offset: px_offset,
-
-            on_finished,
-            // on_finished,
-            // on_finished_meta: Arc::new(Mutex::new(None as Option<()>)),
-        }
-    }
-
-    pub fn with_blend_mode(self, blend_mode: BlendMode) -> Self {
-        Self { blend_mode, ..self }
-    }
-
-    pub fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
-        let (texture, source_rect) = self.state.current_rect();
-
-        QuadDraw {
-            transform: *transform,
-            texture: texture_id(&texture),
-            z_index: self.z_index,
-            color: self.color,
-            blend_mode: self.blend_mode,
-            dest_size: self.size * transform.scale,
-            source_rect,
-            flip_x: self.flip_x,
-            flip_y: self.flip_y,
-        }
-    }
-}
-
-pub struct AnimatedSpriteBuilder {}

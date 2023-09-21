@@ -39,21 +39,40 @@ fn setup(c: &mut EngineContext) {
         }
     }
 
+    let sprite = AnimatedSpriteBuilder::new()
+        .z_index(10)
+        .add_animation("idle", 0.1, true, AnimationSource::Atlas {
+            name: "player".into(),
+            offset: ivec2(0, 0),
+            step: ivec2(16, 0),
+            size: isplat(16),
+            frames: 4,
+        })
+        .add_animation("walk", 0.1, true, AnimationSource::Atlas {
+            name: "player".into(),
+            offset: ivec2(16 * 4, 0),
+            step: ivec2(16, 0),
+            size: isplat(16),
+            frames: 4,
+        })
+        .build();
+
     // Spawn the player entity and make sure z-index is above the grass
     c.commands().spawn((
         Transform::position(vec2(10.0, 10.0)),
         Player,
-        AnimatedSprite::spritesheet(
-            "player",
-            Spritesheet { rows: 1, columns: 28 },
-            0.1,
-            true,
-            10,
-            splat(1.0),
-            WHITE,
-            splat(0.0),
-            Box::new(|_| {}),
-        ),
+        sprite,
+        // AnimatedSprite::spritesheet(
+        //     "player",
+        //     Spritesheet { rows: 1, columns: 28 },
+        //     0.1,
+        //     true,
+        //     10,
+        //     splat(1.0),
+        //     WHITE,
+        //     splat(0.0),
+        //     Box::new(|_| {}),
+        // ),
     ));
 }
 
@@ -84,6 +103,12 @@ fn update(c: &mut EngineContext) {
         if is_key_down(KeyCode::D) {
             transform.position.x += speed * dt;
             moved = true;
+        }
+
+        if moved {
+            animated_sprite.play("walk");
+        } else {
+            animated_sprite.play("idle");
         }
 
         main_camera_mut().center = transform.position;

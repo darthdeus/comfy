@@ -14,7 +14,7 @@ fn setup(c: &mut EngineContext) {
     );
 }
 
-fn update(c: &mut EngineContext) {
+fn update(_c: &mut EngineContext) {
     draw_sprite(
         // Drawing sprites/textures requires a TextureHandle which can be calculated from its
         // string name. This incurs a non-measurable overhead in hashing the string, but saves

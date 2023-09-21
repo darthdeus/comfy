@@ -257,8 +257,8 @@ Only features that require maximum few weeks of work are listed here.
   does make games look better by default, but it is one of the first few things
   that will get fixed after v0.1 release.
 - Configurable post processing.
-- Camera render targets
 - Custom shaders/materials.
+- Render targets.
 - Gamepad & touchpad support.
 - Antialiasing.
 - 2D shadowcasters with soft shadows.
@@ -283,6 +283,18 @@ Only features that require maximum few weeks of work are listed here.
   is flexible enough, but it is an ongoing effort to improve the codebase. That
   being said, almost everything you find in comfy should work to a reasonable
   extent.
+
+While comfy is ready to use, the codebase is far from clean. The engine
+evolves rapidly as we work on our games, and there are many parts that can
+and will be improved. Comfy is being released before it is 100% perfect,
+because even in its current state it can be very well used to make 2D games.
+
+There may be a few oddities you may run into, and some internals are
+planned to be re-done, but anything covered by the examples should 100%
+work. We have been using comfy internally for over 6 months, and a large
+part of its codebase has been ported from our previous OpenGL based
+engine. This doesn't mean the engine is mature, but we have had real
+players play our games made with comfy.
 
 # Contributing
 

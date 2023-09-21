@@ -1,7 +1,7 @@
 use crate::*;
 
 #[derive(Clone, Debug)]
-pub struct Animation {
+pub struct SimpleAnimation {
     pub name: Cow<'static, str>,
     pub sheet: Spritesheet,
     pub current_frame: usize,
@@ -10,7 +10,7 @@ pub struct Animation {
     pub frame_range: Option<(usize, usize)>,
 }
 
-impl Animation {
+impl SimpleAnimation {
     // pub fn new(name: impl Into<Cow<'static, str>>, sheet: Spritesheet) -> Self {
     //     let frames = sheet.rows * sheet.columns;
     //     let animation_time = 10.0;

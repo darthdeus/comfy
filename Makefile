@@ -1,21 +1,26 @@
 # EXAMPLE=animated_shapes
-EXAMPLE=sprite
+# EXAMPLE=sprite
 # EXAMPLE=text
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
 # EXAMPLE=ecs_sprite
-# EXAMPLE=ecs_topdown_game
+EXAMPLE=ecs_topdown_game
 
 # default: build-examples
 # default: wasm-build
-default: example
 # default: profile-startup
+# default: bitmob
+default: example
 
 FLAGS=--release
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn
+
+bitmob:
+	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
 
 example:
-	RUST_LOG=info,wgpu=warn,symphonia=warn cargo run --example $(EXAMPLE) $(FLAGS)
+	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS)
 
 tests:
 	cargo test
