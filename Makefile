@@ -6,6 +6,7 @@
 # EXAMPLE=shapes
 # EXAMPLE=ecs_sprite
 EXAMPLE=ecs_topdown_game
+# EXAMPLE=particle_systems
 
 # default: build-examples
 # default: wasm-build
@@ -14,7 +15,7 @@ EXAMPLE=ecs_topdown_game
 default: example
 
 FLAGS=--release
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)

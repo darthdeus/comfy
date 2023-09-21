@@ -28,20 +28,6 @@ pub struct ParticleSystem {
 }
 
 impl ParticleSystem {
-    fn make_particles(
-        max_particles: usize,
-        builder: &(dyn Fn() -> Particle + Send + Sync),
-    ) -> Vec<Particle> {
-        (0..max_particles)
-            .map(|_| {
-                let mut particle = builder();
-                particle.initialize(Vec2::ZERO, None);
-                particle.lifetime_current *= random();
-                particle
-            })
-            .collect()
-    }
-
     pub fn with_spawn_rate(
         max_particles: usize,
         spawn_rate: f32,
@@ -93,6 +79,21 @@ impl ParticleSystem {
 
         system
     }
+
+    fn make_particles(
+        max_particles: usize,
+        builder: &(dyn Fn() -> Particle + Send + Sync),
+    ) -> Vec<Particle> {
+        (0..max_particles)
+            .map(|_| {
+                let mut particle = builder();
+                particle.initialize(Vec2::ZERO, None);
+                particle.lifetime_current *= random();
+                particle
+            })
+            .collect()
+    }
+
 
     fn is_particle_inside_box(
         position: Vec2,
