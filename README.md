@@ -338,7 +338,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [x] generate wasm examples
 - [x] generate webms for website
 - [x] simple sprite
-- [ ] simple text
+- [x] simple text
 - [x] simple shapes
 - [x] simple particles
 - [ ] lighting example
@@ -349,7 +349,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [ ] blood canvas
 - [ ] raytracing
 - [ ] physics
-- [ ] SFX
+- [x] SFX
 - [ ] looped music + filter + egui
 - [ ] postprocessing
 - [x] top-down minigame

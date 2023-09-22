@@ -172,6 +172,19 @@ impl Assets {
         }
     }
 
+    pub fn load_sound_from_bytes(&mut self, name: &str, bytes: &[u8]) {
+        let handle = Sound::from_path(name);
+
+        let data = StaticSoundData::from_cursor(
+            std::io::Cursor::new(bytes.to_vec()),
+            Default::default(),
+        )
+        .unwrap();
+
+        self.sound_ids.insert(name.to_string(), handle);
+        self.sounds.lock().insert(handle, data);
+    }
+
     pub fn process_load_queue(&mut self) {
         let _span = span!("process_load_queue");
         {

@@ -1,10 +1,11 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=sprite
-EXAMPLE=text
+# EXAMPLE=text
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
+EXAMPLE=sound
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=particle_systems

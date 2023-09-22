@@ -247,7 +247,6 @@ pub struct Particle {
 
 impl Particle {
     pub fn initialize(&mut self, position: Vec2, size: Option<Vec2>) {
-        // self.position = random_box(position, size.unwrap_or(Vec2::ZERO));
         if let Some(size) = size {
             self.position = random_box(position, size);
         } else {

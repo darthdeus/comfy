@@ -393,21 +393,10 @@ impl EngineState {
         srand(thread_rng().next_u64());
         set_main_camera_zoom(30.0);
 
-        {
-            let mut assets = ASSETS.borrow_mut();
-
-            let handle = Sound::from_path("handle");
-            let bytes = include_bytes!("../../assets/error.ogg");
-
-            let data = StaticSoundData::from_cursor(
-                std::io::Cursor::new(bytes),
-                Default::default(),
-            )
-            .unwrap();
-
-            assets.sound_ids.insert("error".to_string(), handle);
-            assets.sounds.lock().insert(handle, data);
-        }
+        ASSETS.borrow_mut().load_sound_from_bytes(
+            "error",
+            include_bytes!("../../assets/error.ogg"),
+        );
 
         Self {
             cached_loader: RefCell::new(CachedImageLoader::new()),
