@@ -72,11 +72,49 @@ thread_local! {
         Lazy::new(|| RefCell::new(AudioSystem::new()));
 }
 
-// pub static AUDIO_SYSTEM: Lazy<Mutex<AudioSystem>> =
-//     Lazy::new(|| Mutex::new(AudioSystem::new()));
+pub fn change_master_volume(change: f64) {
+    AUDIO_SYSTEM.with(|audio| {
+        if let Some(system) = audio.borrow_mut().system.as_mut() {
+            system.master_volume =
+                (system.master_volume + change).clamp(0.0, 1.0);
 
-// unsafe impl Sync for AudioSystem {}
-// unsafe impl Send for AudioSystem {}
+            system
+                .master_track
+                .set_volume(
+                    Volume::Amplitude(system.master_volume),
+                    kira::tween::Tween::default(),
+                )
+                .unwrap();
+        }
+    });
+}
+
+pub fn set_master_volume(value: f64) {
+    AUDIO_SYSTEM.with(|audio| {
+        if let Some(system) = audio.borrow_mut().system.as_mut() {
+            system.master_volume = value.clamp(0.0, 1.0);
+
+            system
+                .master_track
+                .set_volume(
+                    Volume::Amplitude(system.master_volume),
+                    kira::tween::Tween::default(),
+                )
+                .unwrap();
+        }
+    });
+}
+
+pub fn master_volume() -> f64 {
+    AUDIO_SYSTEM.with(|audio| {
+        if let Some(system) = audio.borrow_mut().system.as_ref() {
+            system.master_volume
+        } else {
+            0.0
+        }
+    })
+}
+
 
 pub enum AudioTrack {
     None,
@@ -85,6 +123,7 @@ pub enum AudioTrack {
 
 pub struct AudioSystemImpl {
     pub manager: AudioManager,
+    pub master_track: TrackHandle,
     pub filter_track: TrackHandle,
     pub filter_handle: FilterHandle,
 
@@ -102,7 +141,17 @@ impl AudioSystemImpl {
         let filter_track =
             manager.add_sub_track(builder).expect("Failed to add filter track");
 
-        Self { manager, filter_track, filter_handle, master_volume: 1.0 }
+        let master_track = manager
+            .add_sub_track(TrackBuilder::new())
+            .expect("Failed to add master track");
+
+        Self {
+            manager,
+            master_track,
+            filter_track,
+            filter_handle,
+            master_volume: 1.0,
+        }
     }
 
     pub fn play_sound(
@@ -187,7 +236,8 @@ impl AudioSystemImpl {
             let sound_data = assets.sounds.lock().get(&sound).cloned();
 
             if let Some(mut sound_data) = sound_data {
-                sound_data.settings = StaticSoundSettings::new()
+                sound_data.settings = sound_data
+                    .settings
                     .volume(Volume::Amplitude(self.master_volume));
 
                 match self.manager.play(sound_data) {

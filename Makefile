@@ -5,7 +5,8 @@
 # EXAMPLE=particles
 # EXAMPLE=post_processing
 # EXAMPLE=shapes
-EXAMPLE=sound
+# EXAMPLE=sound
+EXAMPLE=music
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=particle_systems

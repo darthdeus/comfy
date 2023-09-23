@@ -10,6 +10,7 @@ fn setup(c: &mut EngineContext) {
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/bell-sfx.ogg"
         )),
+        StaticSoundSettings::default(),
     );
 }
 

@@ -93,8 +93,13 @@ impl<'a> EngineContext<'a> {
         );
     }
 
-    pub fn load_sound_from_bytes(&self, name: &str, bytes: &[u8]) {
-        ASSETS.borrow_mut().load_sound_from_bytes(name, bytes);
+    pub fn load_sound_from_bytes(
+        &self,
+        name: &str,
+        bytes: &[u8],
+        settings: StaticSoundSettings,
+    ) {
+        ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
     }
 
     pub fn commands(&self) -> core::cell::RefMut<CommandBuffer> {

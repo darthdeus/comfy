@@ -396,6 +396,7 @@ impl EngineState {
         ASSETS.borrow_mut().load_sound_from_bytes(
             "error",
             include_bytes!("../../assets/error.ogg"),
+            StaticSoundSettings::default(),
         );
 
         Self {

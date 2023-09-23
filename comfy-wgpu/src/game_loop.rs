@@ -4,12 +4,12 @@ use crate::*;
 
 pub async fn wgpu_game_loop(
     #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
-    mut game_state: Box<dyn RunGameLoop>,
+    mut engine_state: Box<dyn RunGameLoop>,
     resolution: winit::dpi::PhysicalSize<i32>,
 ) {
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_title(game_state.title())
+        .with_title(engine_state.title())
         .with_inner_size(resolution)
         .build(&event_loop)
         .unwrap();
@@ -41,7 +41,7 @@ pub async fn wgpu_game_loop(
     let egui_winit = egui_winit::State::new(&event_loop);
 
     let mut delta = 1.0 / 60.0;
-    game_state.set_renderer(WgpuRenderer::new(window, egui_winit).await);
+    engine_state.set_renderer(WgpuRenderer::new(window, egui_winit).await);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -53,10 +53,10 @@ pub async fn wgpu_game_loop(
 
                 {
                     span_with_timing!("frame");
-                    game_state.one_frame(delta);
+                    engine_state.one_frame(delta);
                 }
 
-                if game_state.quit_flag() {
+                if engine_state.quit_flag() {
                     *control_flow = ControlFlow::Exit;
                 }
 
@@ -74,7 +74,7 @@ pub async fn wgpu_game_loop(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if game_state
+                if engine_state
                     .renderer()
                     .as_mut_any()
                     .downcast_mut::<WgpuRenderer>()
@@ -172,7 +172,7 @@ pub async fn wgpu_game_loop(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        game_state.resize(uvec2(
+                        engine_state.resize(uvec2(
                             physical_size.width,
                             physical_size.height,
                         ));
@@ -181,7 +181,7 @@ pub async fn wgpu_game_loop(
                     WindowEvent::ScaleFactorChanged {
                         new_inner_size, ..
                     } => {
-                        game_state.resize(uvec2(
+                        engine_state.resize(uvec2(
                             new_inner_size.width,
                             new_inner_size.height,
                         ));

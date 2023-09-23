@@ -56,7 +56,7 @@ pub use comfy_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
-pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
+pub async fn run_comfy_main_async(engine_state: Box<dyn RunGameLoop>) {
     if cfg!(feature = "tracy") {
         info!("CONNECTING TO TRACY");
     } else {
@@ -111,7 +111,7 @@ pub async fn run_comfy_main_async(game_state: Box<dyn RunGameLoop>) {
     wgpu_game_loop(
         #[cfg(not(target_arch = "wasm32"))]
         loop_helper,
-        game_state,
+        engine_state,
         resolution,
     )
     .await;
