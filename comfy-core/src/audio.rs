@@ -31,8 +31,15 @@ pub fn play_random_sound_ex(
     amount: i32,
     settings: StaticSoundSettings,
 ) {
+    let mut assets = ASSETS.borrow_mut();
     let id = format!("{}-{}", base_id, gen_range(1, amount + 1));
-    AudioSystem::play_sound(sound_id(&id), Some(settings), AudioTrack::None);
+
+    AudioSystem::play_sound(
+        &mut assets,
+        sound_id(&id),
+        Some(settings),
+        AudioTrack::None,
+    );
 }
 
 pub fn play_random_sound(base_id: &str, amount: i32) {
@@ -79,16 +86,14 @@ pub fn change_master_volume(change: f64) {
                 (system.master_volume + change).clamp(0.0, 1.0);
 
             system
-                // .master_track
-                .manager
-                .main_track()
+                .master_track
+                // .manager
+                // .main_track()
                 .set_volume(
                     Volume::Amplitude(system.master_volume),
                     kira::tween::Tween::default(),
                 )
                 .unwrap();
-
-            info!("volume: {}", system.master_volume);
         }
     });
 }
@@ -99,15 +104,14 @@ pub fn set_master_volume(value: f64) {
             system.master_volume = value.clamp(0.0, 1.0);
 
             system
-                .manager
-                .main_track()
+                .master_track
+                // .manager
+                // .main_track()
                 .set_volume(
                     Volume::Amplitude(system.master_volume),
                     kira::tween::Tween::default(),
                 )
                 .unwrap();
-
-            info!("volume: {}", system.master_volume);
         }
     });
 }
@@ -163,25 +167,21 @@ impl AudioSystemImpl {
 
     pub fn play_sound(
         &mut self,
+        assets: &mut Assets,
         sound: Sound,
         settings: Option<StaticSoundSettings>,
         track: AudioTrack,
         // ) -> Option<impl DerefMut<Target = StaticSoundHandle>> {
     ) {
-        let mut assets = ASSETS.borrow_mut();
-        let assets = &mut *assets;
-
+        // TODO: get rid of excessive locking while processing a queue
         let sounds = assets.sounds.lock();
 
         if let Some(mut sound_data) = sounds.get(&sound).cloned() {
-            if let Some(settings) = settings {
-                sound_data.settings =
-                    settings.output_destination(&self.master_track);
-
+            // TODO: don't ignore settings
+            if let Some(_settings) = settings {
                 match track {
                     AudioTrack::None => {}
                     AudioTrack::Filter => {
-                        info!("filter track");
                         sound_data.settings = sound_data
                             .settings
                             .output_destination(&self.filter_track);
@@ -191,6 +191,9 @@ impl AudioSystemImpl {
                 sound_data.settings =
                     sound_data.settings.output_destination(&self.master_track);
             }
+
+            sound_data.settings =
+                sound_data.settings.output_destination(&self.master_track);
 
             match self.manager.play(sound_data) {
                 Ok(handle) => {
@@ -217,62 +220,7 @@ impl AudioSystemImpl {
         }
     }
 
-    pub fn process_sounds(&mut self) {
-        let _span = span!("process_sounds");
-
-        let mut assets = ASSETS.borrow_mut();
-
-        let stop_sound_queue =
-            GLOBAL_STATE.borrow_mut().stop_sound_queue.drain(..).collect_vec();
-
-        for sound in stop_sound_queue {
-            match assets.sound_handles.entry(sound) {
-                Entry::Occupied(mut entry) => {
-                    entry
-                        .get_mut()
-                        .stop(kira::tween::Tween::default())
-                        .log_err();
-                    entry.remove();
-                }
-                Entry::Vacant(_) => {}
-            }
-        }
-
-        let play_sound_queue =
-            GLOBAL_STATE.borrow_mut().play_sound_queue.drain(..).collect_vec();
-
-        for sound in play_sound_queue {
-            let sound_data = assets.sounds.lock().get(&sound).cloned();
-
-            if let Some(mut sound_data) = sound_data {
-                sound_data.settings = sound_data
-                    .settings
-                    .volume(Volume::Amplitude(self.master_volume));
-
-                match self.manager.play(sound_data) {
-                    Ok(handle) => {
-                        match assets.sound_handles.entry(sound) {
-                            Entry::Occupied(mut entry) => {
-                                entry
-                                    .get_mut()
-                                    .stop(kira::tween::Tween::default())
-                                    .log_err();
-                                entry.insert(handle);
-                            }
-                            Entry::Vacant(entry) => {
-                                entry.insert(handle);
-                            }
-                        }
-                    }
-                    Err(err) => {
-                        error!("Error when playing sound: {:?}", err);
-                    }
-                }
-            } else {
-                error!("No sound data for {:?}", sound);
-            }
-        }
-    }
+    pub fn process_sounds(&mut self) {}
 }
 
 pub struct AudioSystem {
@@ -297,41 +245,45 @@ impl AudioSystem {
         Self { system }
     }
 
-    // pub fn get() -> impl Deref<Target = Self> {
-    //     AUDIO_SYSTEM.lock()
-    // }
-    //
-    // pub fn get_mut() -> impl DerefMut<Target = Self> {
-    //     AUDIO_SYSTEM.lock()
-    // }
-
     pub fn process_sounds() {
-        AUDIO_SYSTEM.with(|audio| {
-            if let Some(system) = audio.borrow_mut().system.as_mut() {
-                system.process_sounds();
-            }
-        });
+        let _span = span!("process_sounds");
 
-        // let mut audio = AudioSystem::get_mut();
-        // if let Some(system) = audio.system.as_mut() {
-        //     system.process_sounds();
-        // }
+        let mut assets = ASSETS.borrow_mut();
+
+        let stop_sound_queue =
+            GLOBAL_STATE.borrow_mut().stop_sound_queue.drain(..).collect_vec();
+
+        for sound in stop_sound_queue {
+            match assets.sound_handles.entry(sound) {
+                Entry::Occupied(mut entry) => {
+                    entry
+                        .get_mut()
+                        .stop(kira::tween::Tween::default())
+                        .log_err();
+                    entry.remove();
+                }
+                Entry::Vacant(_) => {}
+            }
+        }
+
+        let play_sound_queue =
+            GLOBAL_STATE.borrow_mut().play_sound_queue.drain(..).collect_vec();
+
+        for sound in play_sound_queue {
+            AudioSystem::play_sound(&mut assets, sound, None, AudioTrack::None);
+        }
     }
 
     pub fn play_sound(
+        assets: &mut Assets,
         sound: Sound,
         settings: Option<StaticSoundSettings>,
         track: AudioTrack,
     ) {
         AUDIO_SYSTEM.with(|audio| {
             if let Some(system) = audio.borrow_mut().system.as_mut() {
-                system.play_sound(sound, settings, track);
+                system.play_sound(assets, sound, settings, track);
             }
         });
-
-        // let mut audio = AudioSystem::get_mut();
-        // if let Some(system) = audio.system.as_mut() {
-        //     system.play_sound(sound, settings, track);
-        // }
     }
 }
