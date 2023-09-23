@@ -495,8 +495,7 @@ impl WgpuRenderer {
         let screenshot_buffer = SizedBuffer::new(
             "screenshot_buffer",
             &context.device,
-            (size.width * size.height) as usize *
-                std::mem::size_of::<u32>() as usize,
+            (size.width * size.height) as usize * std::mem::size_of::<u32>(),
             BufferType::Read,
         );
 
@@ -1046,7 +1045,7 @@ impl WgpuRenderer {
                 pass_data.blend_mode, self.enable_z_buffer
             );
 
-            self.pipelines.entry(name.clone().into()).or_insert_with(|| {
+            self.pipelines.entry(name.clone()).or_insert_with(|| {
                 create_render_pipeline_with_layout(
                     &name,
                     &self.context.device,

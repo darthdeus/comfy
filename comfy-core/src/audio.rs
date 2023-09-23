@@ -85,6 +85,8 @@ pub fn change_master_volume(change: f64) {
                     kira::tween::Tween::default(),
                 )
                 .unwrap();
+
+            info!("volume: {}", system.master_volume);
         }
     });
 }
@@ -101,6 +103,8 @@ pub fn set_master_volume(value: f64) {
                     kira::tween::Tween::default(),
                 )
                 .unwrap();
+
+            info!("volume: {}", system.master_volume);
         }
     });
 }
@@ -168,8 +172,8 @@ impl AudioSystemImpl {
 
         if let Some(mut sound_data) = sounds.get(&sound).cloned() {
             if let Some(settings) = settings {
-                sound_data.settings = settings
-                    .volume(kira::Volume::Amplitude(self.master_volume));
+                sound_data.settings =
+                    settings.output_destination(&self.master_track);
 
                 match track {
                     AudioTrack::None => {}
@@ -180,8 +184,10 @@ impl AudioSystemImpl {
                             .output_destination(&self.filter_track);
                     }
                 }
+            } else {
+                sound_data.settings =
+                    sound_data.settings.output_destination(&self.master_track);
             }
-
 
             match self.manager.play(sound_data) {
                 Ok(handle) => {

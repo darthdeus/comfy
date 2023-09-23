@@ -102,6 +102,26 @@ impl<'a> EngineContext<'a> {
         ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
     }
 
+    pub fn load_fonts_from_bytes(&self, fonts: &[(&str, &[u8])]) {
+        let mut font_defs = egui::FontDefinitions::default();
+
+        for (name, bytes) in fonts {
+            let family_name = name.to_string();
+
+            font_defs.font_data.insert(
+                family_name.clone(),
+                egui::FontData::from_owned(bytes.to_vec()),
+            );
+
+            font_defs.families.insert(
+                egui::FontFamily::Name(family_name.clone().into()),
+                vec![family_name],
+            );
+        }
+
+        self.egui.set_fonts(font_defs);
+    }
+
     pub fn commands(&self) -> core::cell::RefMut<CommandBuffer> {
         self.commands.borrow_mut()
     }
