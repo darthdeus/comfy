@@ -2,14 +2,14 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn wgpu_game_loop(
+pub async fn wgpu_game_loop<S, C>(
     #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
-    mut engine_state: EngineState,
+    mut game: ComfyGame<S, C>,
     resolution: winit::dpi::PhysicalSize<i32>,
 ) {
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_title(engine_state.title())
+        .with_title(game.engine.title())
         .with_inner_size(resolution)
         .build(&event_loop)
         .unwrap();
@@ -41,7 +41,7 @@ pub async fn wgpu_game_loop(
     let egui_winit = egui_winit::State::new(&event_loop);
 
     let mut delta = 1.0 / 60.0;
-    engine_state.set_renderer(WgpuRenderer::new(window, egui_winit).await);
+    game.engine.set_renderer(WgpuRenderer::new(window, egui_winit).await);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -53,10 +53,10 @@ pub async fn wgpu_game_loop(
 
                 {
                     span_with_timing!("frame");
-                    engine_state.one_frame(delta);
+                    game.engine.one_frame(delta);
                 }
 
-                if engine_state.quit_flag() {
+                if game.engine.quit_flag() {
                     *control_flow = ControlFlow::Exit;
                 }
 
@@ -74,7 +74,8 @@ pub async fn wgpu_game_loop(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if engine_state
+                if game
+                    .engine
                     .renderer()
                     .as_mut_any()
                     .downcast_mut::<WgpuRenderer>()
@@ -172,7 +173,7 @@ pub async fn wgpu_game_loop(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        engine_state.resize(uvec2(
+                        game.engine.resize(uvec2(
                             physical_size.width,
                             physical_size.height,
                         ));
@@ -181,7 +182,7 @@ pub async fn wgpu_game_loop(
                     WindowEvent::ScaleFactorChanged {
                         new_inner_size, ..
                     } => {
-                        engine_state.resize(uvec2(
+                        game.engine.resize(uvec2(
                             new_inner_size.width,
                             new_inner_size.height,
                         ));

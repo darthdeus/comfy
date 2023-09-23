@@ -6,8 +6,8 @@ pub trait GameLoop {
     fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
 
     fn early_update(&mut self, _c: &mut EngineContext) {}
-    // fn update<'a>(&'a mut self, _c: &'a mut EngineContext<'a>) {}
-    fn update(&mut self, _c: &mut EngineContext) {}
+    fn update<'a>(&'a mut self, _c: &'a mut EngineContext<'a>) {}
+    // fn update(&mut self, _c: &mut EngineContext) {}
     fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
@@ -40,7 +40,6 @@ pub struct EngineState {
     pub changes: RefCell<ChangeTracker>,
     pub notifications: RefCell<Notifications>,
 
-    pub builder: Option<GameLoopBuilder>,
     pub game_loop: Option<Arc<Mutex<dyn GameLoop>>>,
 
     pub is_paused: RefCell<bool>,
@@ -51,8 +50,7 @@ pub struct EngineState {
 }
 
 impl EngineState {
-    // TODO: get rid of GameLoopBuilder and replace it with a library-like API
-    pub fn new(config: GameConfig, builder: GameLoopBuilder) -> Self {
+    pub fn new(config: GameConfig) -> Self {
         cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -104,7 +102,6 @@ impl EngineState {
             changes: RefCell::new(ChangeTracker::new()),
             notifications: RefCell::new(Notifications::new()),
 
-            builder: Some(builder),
             game_loop: None,
 
             is_paused: RefCell::new(false),

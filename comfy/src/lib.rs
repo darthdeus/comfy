@@ -11,6 +11,7 @@ mod debug;
 mod draw;
 mod egui_utils;
 mod engine;
+mod game;
 mod game_loop;
 mod macros;
 mod particles;
@@ -30,6 +31,7 @@ pub use crate::debug::*;
 pub use crate::draw::*;
 pub use crate::egui_utils::*;
 pub use crate::engine::*;
+pub use crate::game::*;
 pub use crate::game_loop::*;
 pub use crate::macros::*;
 pub use crate::particles::*;
@@ -64,44 +66,9 @@ pub use comfy_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
-pub async fn run_comfy_main_async(engine_state: EngineState) {
-    if cfg!(feature = "tracy") {
-        info!("CONNECTING TO TRACY");
-    } else {
-        info!("TRACING DISABLED");
-    };
+pub async fn run_comfy_main_async<S, C>(game: ComfyGame<S, C>) {
+    let _tracy = maybe_setup_tracy();
 
-    #[cfg(feature = "tracy")]
-    let _client = tracy_client::Client::start();
-
-    // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
-    // This should be user configurable let (non_blocking, _worker_guard) =
-    //     tracing_appender::non_blocking(file_appender);
-    //
-    // if cfg!(feature = "dev") {
-    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
-    //         .with_max_level(tracing::Level::INFO)
-    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,bod=info")
-    //         .finish()
-    //         .with(tracing_tracy::TracyLayer::default());
-    //
-    //     tracing::subscriber::set_global_default(subscriber).unwrap();
-    // } else {
-    //     // a builder for `FmtSubscriber`.
-    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
-    //         // all spans/events with a level higher than TRACE (e.g, debug,
-    // info, warn, etc.)         // will be written to stdout.
-    //         .with_max_level(tracing::Level::WARN)
-    //         .with_ansi(false)
-    //         .with_writer(non_blocking)
-    //         .finish();
-    //
-    //     tracing::subscriber::set_global_default(subscriber)
-    //         .expect("setting default subscriber failed");
-    // }
-
-    // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
-    // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
 
     #[cfg(not(target_arch = "wasm32"))]
     let target_framerate = 60;
@@ -119,7 +86,7 @@ pub async fn run_comfy_main_async(engine_state: EngineState) {
     wgpu_game_loop(
         #[cfg(not(target_arch = "wasm32"))]
         loop_helper,
-        engine_state,
+        game,
         resolution,
     )
     .await;
@@ -267,4 +234,47 @@ pub fn image_button_without_c(
         .galley(image_rect.center() - galley.mesh_bounds.size() / 2.0, galley);
 
     response
+}
+
+#[cfg(not(feature = "tracy"))]
+fn maybe_setup_tracy() {
+    info!("TRACING DISABLED");
+}
+
+#[cfg(feature = "tracy")]
+fn maybe_setup_tracy() {
+    info!("CONNECTING TO TRACY");
+
+    let client = tracy_client::Client::start();
+
+    // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
+    // This should be user configurable let (non_blocking, _worker_guard) =
+    //     tracing_appender::non_blocking(file_appender);
+    //
+    // if cfg!(feature = "dev") {
+    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
+    //         .with_max_level(tracing::Level::INFO)
+    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,bod=info")
+    //         .finish()
+    //         .with(tracing_tracy::TracyLayer::default());
+    //
+    //     tracing::subscriber::set_global_default(subscriber).unwrap();
+    // } else {
+    //     // a builder for `FmtSubscriber`.
+    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
+    //         // all spans/events with a level higher than TRACE (e.g, debug,
+    // info, warn, etc.)         // will be written to stdout.
+    //         .with_max_level(tracing::Level::WARN)
+    //         .with_ansi(false)
+    //         .with_writer(non_blocking)
+    //         .finish();
+    //
+    //     tracing::subscriber::set_global_default(subscriber)
+    //         .expect("setting default subscriber failed");
+    // }
+
+    // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
+    // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
+
+    client
 }

@@ -2,17 +2,17 @@
 # EXAMPLE=animated_text
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
-EXAMPLE=ecs_topdown_game
+# EXAMPLE=ecs_topdown_game
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=particles
 # EXAMPLE=particle_systems
+EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-# EXAMPLE=physics
 
 # default: build-examples
 # default: wasm-build
