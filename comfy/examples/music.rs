@@ -10,7 +10,6 @@ struct GameState {
     pub music_playing: bool,
 }
 
-
 impl GameState {
     // We could use `EngineContext` to do additional engine setup,
     // or to initialize our state based on the engine context.

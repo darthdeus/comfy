@@ -2,14 +2,25 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn wgpu_game_loop(
-    #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
-    mut engine_state: Box<dyn RunGameLoop>,
-    resolution: winit::dpi::PhysicalSize<i32>,
-) {
+pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
+    let _tracy = maybe_setup_tracy();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let target_framerate = 60;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut loop_helper = spin_sleep::LoopHelper::builder()
+        .build_with_target_rate(target_framerate);
+
+    // TODO: baaaaaaad, but for now ...
+    #[cfg(target_arch = "wasm32")]
+    let resolution = winit::dpi::PhysicalSize::new(960, 560);
+    #[cfg(not(target_arch = "wasm32"))]
+    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
+
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_title(engine_state.title())
+        .with_title(game.engine().title())
         .with_inner_size(resolution)
         .build(&event_loop)
         .unwrap();
@@ -41,7 +52,10 @@ pub async fn wgpu_game_loop(
     let egui_winit = egui_winit::State::new(&event_loop);
 
     let mut delta = 1.0 / 60.0;
-    engine_state.set_renderer(WgpuRenderer::new(window, egui_winit).await);
+
+    let renderer = WgpuRenderer::new(window, egui_winit).await;
+    game.engine().texture_creator = Some(renderer.texture_creator.clone());
+    game.engine().renderer = Some(renderer);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -51,13 +65,29 @@ pub async fn wgpu_game_loop(
                 let _ = loop_helper.loop_start();
                 let frame_start = Instant::now();
 
-                {
-                    span_with_timing!("frame");
-                    engine_state.one_frame(delta);
+                set_delta(delta);
+                set_time(get_time() + delta as f64);
+
+                if game.engine().quit_flag() {
+                    *control_flow = ControlFlow::Exit;
                 }
 
-                if engine_state.quit_flag() {
-                    *control_flow = ControlFlow::Exit;
+                {
+                    span_with_timing!("frame");
+                    let engine = game.engine();
+                    engine.renderer.as_mut().unwrap().begin_frame(&engine.egui);
+
+                    game.engine().frame += 1;
+                    game.update();
+                }
+
+                {
+                    let mut global_state = GLOBAL_STATE.borrow_mut();
+                    global_state.just_pressed.clear();
+                    global_state.just_released.clear();
+                    global_state.mouse_just_pressed.clear();
+                    global_state.mouse_just_released.clear();
+                    global_state.mouse_wheel = (0.0, 0.0);
                 }
 
                 set_frame_time(frame_start.elapsed().as_secs_f32());
@@ -74,13 +104,7 @@ pub async fn wgpu_game_loop(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if engine_state
-                    .renderer()
-                    .as_mut_any()
-                    .downcast_mut::<WgpuRenderer>()
-                    .unwrap()
-                    .on_event(event)
-                {
+                if game.engine().on_event(event) {
                     return;
                 }
 
@@ -172,7 +196,7 @@ pub async fn wgpu_game_loop(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        engine_state.resize(uvec2(
+                        game.engine().resize(uvec2(
                             physical_size.width,
                             physical_size.height,
                         ));
@@ -181,7 +205,7 @@ pub async fn wgpu_game_loop(
                     WindowEvent::ScaleFactorChanged {
                         new_inner_size, ..
                     } => {
-                        engine_state.resize(uvec2(
+                        game.engine().resize(uvec2(
                             new_inner_size.width,
                             new_inner_size.height,
                         ));

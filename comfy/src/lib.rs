@@ -3,33 +3,43 @@
 
 mod animated_sprite;
 mod animation;
+mod cached_image_loader;
+mod combat_text;
 mod context;
 mod cooldowns;
 mod debug;
 mod draw;
 mod egui_utils;
 mod engine;
+mod game;
+mod game_loop;
 mod macros;
 mod particles;
 mod render;
 mod shaders;
 mod timer;
 mod trail;
+mod update_stages;
 
 pub use crate::animated_sprite::*;
 pub use crate::animation::*;
+pub use crate::cached_image_loader::*;
+pub use crate::combat_text::*;
 pub use crate::context::*;
 pub use crate::cooldowns::*;
 pub use crate::debug::*;
 pub use crate::draw::*;
 pub use crate::egui_utils::*;
 pub use crate::engine::*;
+pub use crate::game::*;
+pub use crate::game_loop::*;
 pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
 pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
+pub use crate::update_stages::*;
 
 pub use std::{
     any::Any,
@@ -55,67 +65,6 @@ pub use comfy_wgpu::*;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
-
-pub async fn run_comfy_main_async(engine_state: Box<dyn RunGameLoop>) {
-    if cfg!(feature = "tracy") {
-        info!("CONNECTING TO TRACY");
-    } else {
-        info!("TRACING DISABLED");
-    };
-
-    #[cfg(feature = "tracy")]
-    let _client = tracy_client::Client::start();
-
-    // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
-    // This should be user configurable let (non_blocking, _worker_guard) =
-    //     tracing_appender::non_blocking(file_appender);
-    //
-    // if cfg!(feature = "dev") {
-    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
-    //         .with_max_level(tracing::Level::INFO)
-    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,bod=info")
-    //         .finish()
-    //         .with(tracing_tracy::TracyLayer::default());
-    //
-    //     tracing::subscriber::set_global_default(subscriber).unwrap();
-    // } else {
-    //     // a builder for `FmtSubscriber`.
-    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
-    //         // all spans/events with a level higher than TRACE (e.g, debug,
-    // info, warn, etc.)         // will be written to stdout.
-    //         .with_max_level(tracing::Level::WARN)
-    //         .with_ansi(false)
-    //         .with_writer(non_blocking)
-    //         .finish();
-    //
-    //     tracing::subscriber::set_global_default(subscriber)
-    //         .expect("setting default subscriber failed");
-    // }
-
-    // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
-    // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let target_framerate = 60;
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let loop_helper = spin_sleep::LoopHelper::builder()
-        .build_with_target_rate(target_framerate);
-
-    // TODO: baaaaaaad, but for now ...
-    #[cfg(target_arch = "wasm32")]
-    let resolution = winit::dpi::PhysicalSize::new(960, 560);
-    #[cfg(not(target_arch = "wasm32"))]
-    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
-
-    wgpu_game_loop(
-        #[cfg(not(target_arch = "wasm32"))]
-        loop_helper,
-        engine_state,
-        resolution,
-    )
-    .await;
-}
 
 pub fn timed_two_frames(
     interval: f32,
@@ -259,4 +208,49 @@ pub fn image_button_without_c(
         .galley(image_rect.center() - galley.mesh_bounds.size() / 2.0, galley);
 
     response
+}
+
+#[cfg(not(feature = "tracy"))]
+fn maybe_setup_tracy() -> i32 {
+    info!("TRACING DISABLED");
+    // We don't really care about the value, but if () is returned rustc complains about binding ()
+    0
+}
+
+#[cfg(feature = "tracy")]
+fn maybe_setup_tracy() -> tracy_client::Client {
+    info!("CONNECTING TO TRACY");
+
+    let client = tracy_client::Client::start();
+
+    // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
+    // This should be user configurable let (non_blocking, _worker_guard) =
+    //     tracing_appender::non_blocking(file_appender);
+    //
+    // if cfg!(feature = "dev") {
+    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
+    //         .with_max_level(tracing::Level::INFO)
+    //         .with_env_filter("wgpu=warn,symphonia=warn,game-lib=info,bod=info")
+    //         .finish()
+    //         .with(tracing_tracy::TracyLayer::default());
+    //
+    //     tracing::subscriber::set_global_default(subscriber).unwrap();
+    // } else {
+    //     // a builder for `FmtSubscriber`.
+    //     let subscriber = tracing_subscriber::FmtSubscriber::builder()
+    //         // all spans/events with a level higher than TRACE (e.g, debug,
+    // info, warn, etc.)         // will be written to stdout.
+    //         .with_max_level(tracing::Level::WARN)
+    //         .with_ansi(false)
+    //         .with_writer(non_blocking)
+    //         .finish();
+    //
+    //     tracing::subscriber::set_global_default(subscriber)
+    //         .expect("setting default subscriber failed");
+    // }
+
+    // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
+    // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
+
+    client
 }
