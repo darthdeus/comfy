@@ -20,7 +20,7 @@ impl HotReload {
 
         let mut x = Self { rx, watcher };
 
-        x.watch_path(&Path::new(&concat!(
+        x.watch_path(Path::new(&concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/shaders"
         )))

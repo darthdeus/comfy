@@ -22,7 +22,7 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn to_wgpu<'a>(&'a self) -> wgpu::ShaderModuleDescriptor<'a> {
+    pub fn to_wgpu(& self) -> wgpu::ShaderModuleDescriptor<'_> {
         wgpu::ShaderModuleDescriptor {
             label: Some(&self.name),
             source: wgpu::ShaderSource::Wgsl(self.source.as_str().into()),
@@ -1195,7 +1195,7 @@ impl WgpuRenderer {
                 pass_data.blend_mode, self.enable_z_buffer
             );
 
-            self.pipelines.entry(name.clone().into()).or_insert_with(|| {
+            self.pipelines.entry(name.clone()).or_insert_with(|| {
                 create_render_pipeline_with_layout(
                     &name,
                     &self.context.device,
