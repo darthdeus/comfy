@@ -18,7 +18,7 @@ impl LightingState {
     }
 }
 
-pub fn add_light(light: Light) {
+pub fn draw_light(light: Light) {
     LIGHTS.borrow_mut().lights.push(light);
 }
 

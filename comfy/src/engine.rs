@@ -590,7 +590,7 @@ impl EngineState {
         for (_, (transform, light)) in
             c.world_mut().query_mut::<(&Transform, &PointLight)>()
         {
-            add_light(Light::simple(
+            draw_light(Light::simple(
                 transform.position,
                 light.radius * light.radius_mod,
                 light.strength * light.strength_mod,
@@ -992,6 +992,7 @@ impl EngineState {
             mouse_world: mouse_world(),
 
             flags: &self.flags,
+            lighting: &mut self.lighting,
 
             meta: &mut self.meta,
 

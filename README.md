@@ -252,6 +252,8 @@ The following goals are not in any particular order, but should come reasonably
 soon. Comfy is not an aetheral project that will only materialize in 2 years.
 Only features that require maximum few weeks of work are listed here.
 
+- Improved lighting. Right now we do have 2d lights, but they're basic,
+  ugly in some scenarios, and not very flexible.
 - Configurable bloom. Currently bloom is hard-coded to simplify a few things
   and always enabled. We don't want to delay the release to fix this since it
   does make games look better by default, but it is one of the first few things
@@ -343,7 +345,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [x] simple particles
 - [ ] lighting example
 - [ ] combat text example
-- [ ] font loading
+- [x] font loading
 - [x] particle systems
 - [x] text
 - [ ] blood canvas
