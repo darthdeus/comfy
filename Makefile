@@ -4,15 +4,15 @@
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
-EXAMPLE=music
+# EXAMPLE=music
 # EXAMPLE=lighting
-# EXAMPLE=particles
+# EXAMPLE=single_particle
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes
-# EXAMPLE=sound
+EXAMPLE=sound
 # EXAMPLE=text
 
 # default: build-examples

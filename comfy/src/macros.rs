@@ -36,29 +36,38 @@ macro_rules! define_main {
 #[macro_export]
 macro_rules! simple_game {
     ($name:literal, $state:ident, $setup:ident, $update:ident) => {
-        define_main!($name);
+        define_main!($name, ComfyGame);
 
-        pub struct Game {
+        pub struct ComfyGame {
+            pub engine: EngineState,
             pub state: Option<$state>,
         }
 
-        impl Game {
-            pub fn new() -> Self {
-                Self { state: None }
+        impl ComfyGame {
+            pub fn new(engine: EngineState) -> Self {
+                Self { state: None, engine }
             }
         }
 
-        impl GameLoop for Game {
-            fn update(&mut self, c: &mut EngineContext) {
+        impl GameLoop for ComfyGame {
+            fn engine(&mut self) -> &mut EngineState {
+                &mut self.engine
+            }
+
+            fn update(&mut self) {
+                let mut c = self.engine.make_context();
+
                 if self.state.is_none() {
-                    let mut state = $state::new(c);
-                    $setup(&mut state, c);
+                    let mut state = $state::new(&mut c);
+                    $setup(&mut state, &mut c);
 
                     self.state = Some(state);
                 }
 
                 if let Some(state) = self.state.as_mut() {
-                    $update(state, c);
+                    run_early_update_stages(&mut c);
+                    $update(state, &mut c);
+                    run_late_update_stages(&mut c);
                 }
             }
         }

@@ -1,6 +1,6 @@
 use comfy::*;
 
-simple_game!("Single Particles Example", update);
+simple_game!("Single Particle Example", update);
 
 fn update(c: &mut EngineContext) {
     // We only want to spawn a particle once every 100ms.
