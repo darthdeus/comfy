@@ -4,11 +4,10 @@ use crate::*;
 
 pub trait GameLoop {
     fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
-
-    fn early_update(&mut self, _c: &mut EngineContext) {}
-    fn update<'a>(&'a mut self, _c: &'a mut EngineContext<'a>) {}
-    // fn update(&mut self, _c: &mut EngineContext) {}
-    fn late_update(&mut self, _c: &mut EngineContext) {}
+    fn engine(&mut self) -> &mut EngineState;
+    fn update(&mut self);
+    // fn early_update(&mut self, _c: &mut EngineContext) {}
+    // fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;

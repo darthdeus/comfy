@@ -3,11 +3,12 @@
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
-# EXAMPLE=music
+# EXAMPLE=full_game_loop
+EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=particles
 # EXAMPLE=particle_systems
-EXAMPLE=physics
+# EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes

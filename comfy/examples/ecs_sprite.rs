@@ -26,7 +26,7 @@ fn setup(c: &mut EngineContext) {
 
 fn update(c: &mut EngineContext) {
     // Query all entities with Player component, Sprite component and Transform component.
-    for (entity, (player, sprite, transform)) in
+    for (_, (_, _, transform)) in
         c.world().query::<(&Player, &Sprite, &mut Transform)>().iter()
     {
         transform.scale = (get_time() as f32).sin() + 2.0;

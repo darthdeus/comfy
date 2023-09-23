@@ -2,10 +2,7 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
-    game: &'static mut ComfyGame<S, C>,
-    context_builder: impl ContextBuilder<S, Context<'a> = C> + 'static + Copy,
-) {
+pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     let _tracy = maybe_setup_tracy();
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -23,7 +20,7 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
 
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_title(game.engine.title())
+        .with_title(game.engine().title())
         .with_inner_size(resolution)
         .build(&event_loop)
         .unwrap();
@@ -57,10 +54,8 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
     let mut delta = 1.0 / 60.0;
 
     let renderer = WgpuRenderer::new(window, egui_winit).await;
-    game.engine.texture_creator = Some(renderer.texture_creator.clone());
-    game.engine.renderer = Some(renderer);
-
-    // game.update(context_builder);
+    game.engine().texture_creator = Some(renderer.texture_creator.clone());
+    game.engine().renderer = Some(renderer);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -73,21 +68,17 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
                 set_delta(delta);
                 set_time(get_time() + delta as f64);
 
-                if game.engine.quit_flag() {
+                if game.engine().quit_flag() {
                     *control_flow = ControlFlow::Exit;
                 }
 
                 {
                     span_with_timing!("frame");
-                    game.engine
-                        .renderer
-                        .as_mut()
-                        .unwrap()
-                        .begin_frame(&game.engine.egui);
+                    let engine = game.engine();
+                    engine.renderer.as_mut().unwrap().begin_frame(&engine.egui);
 
-                    game.engine.frame += 1;
-
-                    game.update(context_builder);
+                    game.engine().frame += 1;
+                    game.update();
                 }
 
                 {
@@ -113,7 +104,7 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if game.engine.on_event(event) {
+                if game.engine().on_event(event) {
                     return;
                 }
 
@@ -205,7 +196,7 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        game.engine.resize(uvec2(
+                        game.engine().resize(uvec2(
                             physical_size.width,
                             physical_size.height,
                         ));
@@ -214,7 +205,7 @@ pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
                     WindowEvent::ScaleFactorChanged {
                         new_inner_size, ..
                     } => {
-                        game.engine.resize(uvec2(
+                        game.engine().resize(uvec2(
                             new_inner_size.width,
                             new_inner_size.height,
                         ));

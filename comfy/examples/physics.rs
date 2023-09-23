@@ -12,11 +12,9 @@ pub async fn run() {
 
     let engine = EngineState::new(config);
 
-    let game = Box::new(ComfyGame::new(engine, GameState::new, setup, update));
+    let game = ComfyGame::new(engine);
 
-    let game = Box::leak(game);
-
-    run_comfy_main_async(game, GameContextBuilder).await;
+    run_comfy_main_async(game).await;
 }
 
 fn main() {
@@ -34,57 +32,63 @@ fn main() {
     }
 }
 
-struct GameState {
-    pub physics: Rc<RefCell<Physics>>,
+pub struct GameState {
+    pub physics: Physics,
 }
 
 impl GameState {
     pub fn new(_c: &mut EngineContext) -> Self {
-        Self { physics: Rc::new(RefCell::new(Physics::new(Vec2::ZERO, false))) }
+        Self { physics: Physics::new(Vec2::ZERO, false) }
     }
 }
 
-pub struct GameContext<'a> {
-    pub physics: &'a Rc<RefCell<Physics>>,
-    pub engine: &'a mut EngineState,
+pub struct GameContext<'a, 'b: 'a> {
+    pub physics: &'a mut Physics,
+    pub engine: &'a mut EngineContext<'b>,
 }
 
-#[derive(Copy, Clone, Debug)]
-struct GameContextBuilder;
+pub struct ComfyGame {
+    pub engine: EngineState,
+    pub state: Option<GameState>,
+}
 
-impl ContextBuilder<GameState> for GameContextBuilder {
-    type Context<'context> = GameContext<'context>;
-
-    fn make_context<'a, 'b: 'a>(
-        &self,
-        state: &'b mut GameState,
-        engine: &'b mut EngineState,
-    ) -> Self::Context<'a> {
-        GameContext { physics: &mut state.physics, engine }
+impl ComfyGame {
+    pub fn new(engine: EngineState) -> Self {
+        Self { state: None, engine }
     }
 }
 
+impl GameLoop for ComfyGame {
+    fn update(&mut self) {
+        let mut c = self.engine.make_context();
 
-// pub fn game_context_builder<'a, 'b: 'a>(
-//     state: &'b mut GameState,
-//     c: &'a mut EngineState,
-// ) -> GameContext<'a, 'b> {
-//     GameContext { physics: &mut state.physics, engine: c }
-// }
+        if self.state.is_none() {
+            let mut state = GameState::new(&mut c);
+            setup(&mut state, &mut c);
 
-// pub fn make_context<'a>(
-//     state: &mut GameState,
-//     c: &mut EngineContext,
-// ) -> GameContext<'a> {
+            self.state = Some(state);
+        }
+
+        if let Some(state) = self.state.as_mut() {
+            run_early_update_stages(&mut c);
+            run_mid_update_stages(&mut c);
+
+            update(&mut GameContext {
+                physics: &mut state.physics,
+                engine: &mut c,
+            });
+
+            run_late_update_stages(&mut c);
+        }
+    }
+
+    fn engine(&mut self) -> &mut EngineState {
+        &mut self.engine
+    }
+}
 
 fn setup(_state: &mut GameState, _c: &mut EngineContext) {}
 
 fn update(_c: &mut GameContext) {
     draw_circle(Vec2::ZERO, 0.5, RED, 0);
 }
-
-// fn foo<'a>(state: &'a mut GameState, c: &'a mut EngineContext<'a>) {
-//     let _c = make_game_context(state, c);
-// }
-
-// fn main() {}

@@ -36,6 +36,8 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
 
     lighting_parameters_window(c);
     update_child_transforms(c);
+
+    run_mid_update_stages(c);
 }
 
 pub fn run_mid_update_stages(c: &mut EngineContext) {
@@ -893,3 +895,4 @@ fn show_lighting_ui(c: &mut EngineContext) {
         // });
     }
 }
+
