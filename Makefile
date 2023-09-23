@@ -3,8 +3,8 @@
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
-# EXAMPLE=music
-EXAMPLE=lighting
+EXAMPLE=music
+# EXAMPLE=lighting
 # EXAMPLE=particles
 # EXAMPLE=particle_systems
 # EXAMPLE=post_processing

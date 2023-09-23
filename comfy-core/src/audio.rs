@@ -79,7 +79,9 @@ pub fn change_master_volume(change: f64) {
                 (system.master_volume + change).clamp(0.0, 1.0);
 
             system
-                .master_track
+                // .master_track
+                .manager
+                .main_track()
                 .set_volume(
                     Volume::Amplitude(system.master_volume),
                     kira::tween::Tween::default(),
@@ -97,7 +99,8 @@ pub fn set_master_volume(value: f64) {
             system.master_volume = value.clamp(0.0, 1.0);
 
             system
-                .master_track
+                .manager
+                .main_track()
                 .set_volume(
                     Volume::Amplitude(system.master_volume),
                     kira::tween::Tween::default(),

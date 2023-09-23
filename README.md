@@ -343,7 +343,7 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [x] simple text
 - [x] simple shapes
 - [x] simple particles
-- [ ] lighting example
+- [x] lighting example
 - [ ] combat text example
 - [x] font loading
 - [x] particle systems
