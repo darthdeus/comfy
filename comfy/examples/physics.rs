@@ -34,7 +34,7 @@ fn main() {
 
 
 struct GameContext<'a> {
-    pub engine: &'a mut EngineContext<'a>,
+    pub engine: EngineContext<'a>,
     pub physics: &'a Rc<RefCell<Physics>>,
 }
 
@@ -48,9 +48,9 @@ impl GameState {
     }
 }
 
-pub fn make_game_context<'a, 'b: 'a>(
-    state: &'b mut GameState,
-    c: &'b mut EngineContext<'b>,
+pub fn make_game_context<'a>(
+    state: &'a mut GameState,
+    c: EngineContext,
 ) -> GameContext<'a> {
     GameContext { physics: &mut state.physics, engine: c }
 }
@@ -66,8 +66,8 @@ fn update(_c: &mut GameContext) {
     draw_circle(Vec2::ZERO, 0.5, RED, 0);
 }
 
-fn foo<'a>(state: &'a mut GameState, c: &'a mut EngineContext<'a>) {
-    let _c = make_game_context(state, c);
-}
+// fn foo<'a>(state: &'a mut GameState, c: &'a mut EngineContext<'a>) {
+//     let _c = make_game_context(state, c);
+// }
 
 // fn main() {}

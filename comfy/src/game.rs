@@ -39,7 +39,7 @@ pub type StateBuilder<T> = fn(&mut EngineContext) -> T;
 // pub type ContextBuilder<'a, 'b: 'a, S, C> =
 //     fn(&'a mut S, &'b mut EngineContext<'b>) -> C;
 
-pub type ContextBuilder<S, C> = fn(&mut S, &mut EngineContext) -> C;
+pub type ContextBuilder<S, C> = fn(&mut S, EngineContext) -> C;
 
 pub struct ComfyGame<S, C> {
     pub engine: EngineState,
@@ -59,10 +59,7 @@ impl<S, C> ComfyGame<S, C> {
         Self { state_builder, state: None, engine, setup, update }
     }
 
-    pub fn update(
-        &mut self,
-        make_game_context: fn(&mut S, &mut EngineContext) -> C,
-    ) {
+    pub fn update(&mut self, make_game_context: ContextBuilder<S, C>) {
         let mut c = self.engine.make_context();
 
         if self.state.is_none() {
@@ -77,10 +74,10 @@ impl<S, C> ComfyGame<S, C> {
             // TODO: early update
             run_mid_update_stages(&mut c);
 
-            let mut game_c = (make_game_context)(state, &mut c);
+            let mut game_c = (make_game_context)(state, c);
             (self.update)(&mut game_c);
 
-            run_late_update_stages(&mut c);
+            // run_late_update_stages(&mut c);
         }
     }
 }
