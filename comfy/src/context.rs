@@ -55,6 +55,8 @@ pub struct EngineContext<'a> {
     pub config: &'a RefCell<GameConfig>,
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 
+    pub renderer: &'a WgpuRenderer,
+
     pub mouse_world: Vec2,
     pub is_paused: &'a RefCell<bool>,
     pub show_pause_menu: &'a mut bool,

@@ -2,6 +2,13 @@ use crate::*;
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
 pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
+    {
+        let mut state = GLOBAL_STATE.borrow_mut();
+
+        state.fps = (1.0 / c.delta) as i32;
+        state.egui_scale_factor = c.renderer.egui_ctx.pixels_per_point();
+    }
+
     dev_hotkeys(c);
 
     // Clear all the lights from previous frame
@@ -12,6 +19,10 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
     if !*c.is_paused.borrow() {
         set_unpaused_time(get_unpaused_time() + c.delta as f64);
     }
+
+    render_text(c);
+    update_blood_canvas(c);
+    update_camera(c);
 
     // TODO: not ideal
     clear_background(BLACK);
@@ -57,6 +68,7 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
     process_notifications(c);
     show_errors(c);
     update_perf_counters(c);
+    show_lighting_ui(c);
 
     {
         // TODO: late update maybe should be a bit later?
@@ -81,6 +93,10 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
             },
         );
     }
+
+    player_follow_system(c);
+    animated_sprite_builder_check(c);
+    renderer_update(c);
 
     let is_paused =
         *c.is_paused.borrow() || c.flags.borrow_mut().contains(PAUSE_DESPAWN);
@@ -143,6 +159,93 @@ fn process_asset_queues(c: &mut EngineContext) {
 
     ASSETS.borrow_mut().process_load_queue();
     ASSETS.borrow_mut().process_sound_queue();
+
+    if let Some(texture_queue) = ASSETS.borrow_mut().current_queue.lock().take()
+    {
+        c.renderer.load_textures(texture_queue);
+    }
+}
+
+fn render_text(c: &mut EngineContext) {
+    let _span = span!("text");
+
+    let painter = c.renderer.egui_ctx().layer_painter(egui::LayerId::new(
+        egui::Order::Background,
+        egui::Id::new("text-painter"),
+    ));
+
+    let text_queue =
+        GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
+
+    for text in text_queue {
+        let align = match text.align {
+            TextAlign::TopLeft => egui::Align2::LEFT_TOP,
+            TextAlign::Center => egui::Align2::CENTER_CENTER,
+            TextAlign::TopRight => egui::Align2::RIGHT_TOP,
+            TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
+            TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
+        };
+
+        // TODO: maybe better way of doing this?
+        let screen_pos =
+            text.position.as_world().to_screen() / egui_scale_factor();
+
+        painter.text(
+            egui::pos2(screen_pos.x, screen_pos.y),
+            align,
+            text.text,
+            text.font,
+            text.color.egui(),
+        );
+    }
+}
+
+fn update_blood_canvas(c: &mut EngineContext) {
+    let _span = span!("blood_canvas");
+
+    // TODO: this really doesn't belong here
+    blood_canvas_update_and_draw(|key, block| {
+        draw_sprite_ex(
+            block.handle,
+            (key.as_vec2() + splat(0.5)) * blood_block_world_size() as f32,
+            WHITE,
+            Z_BLOOD_CANVAS,
+            DrawTextureParams {
+                dest_size: Some(
+                    splat(blood_block_world_size() as f32).as_world_size(),
+                ),
+                blend_mode: BlendMode::Alpha,
+                ..Default::default()
+            },
+        );
+    });
+}
+
+fn update_camera(c: &mut EngineContext) {
+    let _span = span!("update_camera");
+
+    let mut global_state = GLOBAL_STATE.borrow_mut();
+    let mut camera = main_camera_mut();
+
+    let width = c.renderer.width();
+    let height = c.renderer.height();
+
+    camera.aspect_ratio = width / height;
+    global_state.screen_size = vec2(width, height);
+
+    let viewport = camera.world_viewport();
+
+    let flipped_mouse_pos = vec2(
+        global_state.mouse_position.x,
+        global_state.screen_size.y - global_state.mouse_position.y,
+    );
+
+    let normalized = flipped_mouse_pos / global_state.screen_size * viewport -
+        viewport / 2.0;
+
+    if !global_state.mouse_locked {
+        global_state.mouse_world = normalized + camera.center;
+    }
 }
 
 fn update_child_transforms(c: &mut EngineContext) {
@@ -634,5 +737,153 @@ pub fn count_to_color(count: i32) -> Color {
         3 => RED,
         4 => PURPLE,
         _ => YELLOW,
+    }
+}
+
+fn player_follow_system(c: &mut EngineContext) {
+    for (_, (player_t, _)) in
+        c.world.borrow().query::<(&Transform, &PlayerTag)>().iter()
+    {
+        // TODO; check that there is only one?
+
+        for (_, (transform, _)) in
+            c.world.borrow().query::<(&mut Transform, &FollowPlayer)>().iter()
+        {
+            transform.position = player_t.position;
+        }
+    }
+}
+
+fn animated_sprite_builder_check(c: &mut EngineContext) {
+    #[cfg(not(feature = "ci-release"))]
+    for (entity, (_, transform)) in c
+        .world
+        .borrow_mut()
+        .query_mut::<(&AnimatedSpriteBuilder, Option<&Transform>)>()
+    {
+        error!(
+            "AnimatedSpriteBuilder found in ECS (entity = {:?}), make sure to \
+             call .build()",
+            entity
+        );
+
+        if let Some(transform) = transform {
+            draw_circle(transform.position, 0.5, RED, 499);
+            draw_text(
+                "AnimatedSpriteBuilder in ECS",
+                transform.position,
+                WHITE,
+                TextAlign::Center,
+            );
+        }
+    }
+}
+
+fn renderer_update(c: &mut EngineContext) {
+    let delta = delta();
+
+    SINGLE_PARTICLES.borrow_mut().retain_mut(|particle| {
+        particle.update(delta);
+        particle.lifetime_current > 0.0
+    });
+
+    // TODO: keep the same vec between frames
+    let mut all_particles = Vec::new();
+
+    for (_, (transform, particle_system)) in
+        c.world.borrow_mut().query_mut::<(&Transform, &mut ParticleSystem)>()
+    {
+        particle_system.update(transform.position, delta);
+
+        all_particles.extend(
+            particle_system
+                .particles
+                .iter()
+                .filter(|p| p.lifetime_current > 0.0)
+                .cloned(),
+        );
+    }
+
+    let particle_queue = SINGLE_PARTICLES
+        .borrow_mut()
+        .iter()
+        .chain(all_particles.iter())
+        .map(|p| {
+            ParticleDraw {
+                position: (p.position + p.offset).extend(p.z_index as f32),
+                rotation: p.rotation,
+                texture: p.texture,
+                // color: p.color,
+                color: p.current_color(),
+                size: p.size * p.current_size(),
+                source_rect: p.source_rect,
+                blend_mode: p.blend_mode,
+            }
+        })
+        .collect_vec();
+
+    let clear_color = GLOBAL_STATE.borrow_mut().clear_color;
+    let frame_params =
+        FrameParams { frame: get_frame(), delta, time: get_time() as f32 };
+
+    let mut mesh_queue =
+        GLOBAL_STATE.borrow_mut().mesh_queue.drain(..).collect_vec();
+
+    mesh_queue.sort_by_key(|x| x.mesh.z_index);
+
+    let mut draw_params = DrawParams {
+        aspect_ratio: aspect_ratio(),
+        config: &mut c.config.borrow_mut(),
+        projection: main_camera().build_view_projection_matrix(),
+        white_px: texture_path("1px"),
+        clear_color,
+        frame: frame_params,
+        lights: LightingState::take_lights(),
+        lighting: &mut c.lighting,
+        // sprite_queue,
+        mesh_queue,
+        particle_queue,
+    };
+
+    // TODO: cleanup unwraps and stuff :)
+    c.renderer.update(&mut draw_params);
+    c.renderer.draw(draw_params);
+    c.renderer.end_frame();
+}
+
+fn show_lighting_ui(c: &mut EngineContext) {
+    if c.config.borrow().dev.show_lighting_config {
+        egui::Window::new("Lighting")
+            .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
+            .show(c.egui, |ui| {
+                lighting_ui(&mut c.lighting, ui);
+            });
+
+        // egui::Window::new("Post Processing").show(&self.egui(), |ui| {
+        //     for i in 0..self.post_processing_effects.len() {
+        //         ui.horizontal(|ui| {
+        //             ui.add_enabled_ui(
+        //                 i < self.post_processing_effects.len() - 1,
+        //                 |ui| {
+        //                     if ui.button("down").clicked() {
+        //                         self.post_processing_effects.swap(i, i + 1);
+        //                     }
+        //                 },
+        //             );
+        //
+        //             ui.add_enabled_ui(i > 0, |ui| {
+        //                 if ui.button("up").clicked() {
+        //                     self.post_processing_effects.swap(i - 1, i);
+        //                 }
+        //             });
+        //
+        //             let effect = &mut self.post_processing_effects[i];
+        //             ui.checkbox(
+        //                 &mut effect.enabled,
+        //                 format!("{}: {}", i, effect.name),
+        //             );
+        //         });
+        //     }
+        // });
     }
 }

@@ -41,7 +41,10 @@ pub async fn wgpu_game_loop<S, C>(
     let egui_winit = egui_winit::State::new(&event_loop);
 
     let mut delta = 1.0 / 60.0;
-    game.engine.set_renderer(WgpuRenderer::new(window, egui_winit).await);
+
+    let renderer = WgpuRenderer::new(window, egui_winit).await;
+    game.engine.texture_creator = Some(renderer.texture_creator.clone());
+    game.engine.renderer = Some(renderer);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -51,13 +54,27 @@ pub async fn wgpu_game_loop<S, C>(
                 let _ = loop_helper.loop_start();
                 let frame_start = Instant::now();
 
+                set_delta(delta);
+                set_time(get_time() + delta as f64);
+
+
                 {
                     span_with_timing!("frame");
-                    game.engine.one_frame(delta);
+                    game.engine.renderer.as_mut().unwrap().begin_frame();
+                    game.engine.update();
                 }
 
                 if game.engine.quit_flag() {
                     *control_flow = ControlFlow::Exit;
+                }
+
+                {
+                    let mut global_state = GLOBAL_STATE.borrow_mut();
+                    global_state.just_pressed.clear();
+                    global_state.just_released.clear();
+                    global_state.mouse_just_pressed.clear();
+                    global_state.mouse_just_released.clear();
+                    global_state.mouse_wheel = (0.0, 0.0);
                 }
 
                 set_frame_time(frame_start.elapsed().as_secs_f32());

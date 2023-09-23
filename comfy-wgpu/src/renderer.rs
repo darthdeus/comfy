@@ -22,7 +22,7 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn to_wgpu(& self) -> wgpu::ShaderModuleDescriptor<'_> {
+    pub fn to_wgpu(&self) -> wgpu::ShaderModuleDescriptor<'_> {
         wgpu::ShaderModuleDescriptor {
             label: Some(&self.name),
             source: wgpu::ShaderSource::Wgsl(self.source.as_str().into()),
@@ -1349,6 +1349,8 @@ impl WgpuRenderer {
     }
 
     pub fn begin_frame(&mut self) {
+        let _span = span!("begin_frame");
+
         self.egui_ctx
             .begin_frame(self.egui_winit.take_egui_input(&self.window));
     }
