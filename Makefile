@@ -8,11 +8,11 @@
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-# EXAMPLE=physics
+EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes
-EXAMPLE=sound
+# EXAMPLE=sound
 # EXAMPLE=text
 
 # default: build-examples

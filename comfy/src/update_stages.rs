@@ -162,10 +162,10 @@ fn dev_hotkeys(c: &EngineContext) {
 }
 
 fn process_asset_queues(c: &mut EngineContext) {
-    AudioSystem::process_sounds();
-
     ASSETS.borrow_mut().process_load_queue();
     ASSETS.borrow_mut().process_sound_queue();
+
+    AudioSystem::process_sounds();
 
     if let Some(texture_queue) = ASSETS.borrow_mut().current_queue.lock().take()
     {
@@ -895,4 +895,3 @@ fn show_lighting_ui(c: &mut EngineContext) {
         // });
     }
 }
-
