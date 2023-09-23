@@ -12,7 +12,7 @@ macro_rules! define_main {
 
             let engine_state = EngineState::new(
                 config,
-                Box::new(move |_c| Arc::new(Mutex::new(Game::new()))),
+                Box::new(move || Arc::new(Mutex::new(Game::new()))),
             );
 
             run_comfy_main_async(engine_state).await;

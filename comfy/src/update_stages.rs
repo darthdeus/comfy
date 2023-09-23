@@ -1,6 +1,7 @@
 use crate::*;
 
-pub fn run_update_stages(c: &mut EngineContext) {
+// TODO: Some of the ordering in the update stages is definitely incorrect.
+pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
     #[cfg(feature = "exit-after-startup")]
     std::process::exit(0);
 
@@ -30,9 +31,157 @@ pub fn run_update_stages(c: &mut EngineContext) {
     }
 
     lighting_parameters_window(c);
+    update_child_transforms(c);
 
-    c.early_update();
+    {
+        let _span = span!("game_loop.early_update");
+        game_loop.early_update(c);
+    }
 
+    timings_add_value("delta", delta());
+
+    pause_system(c);
+    point_lights_system(c);
+
+    if is_key_pressed(KeyCode::F6) {
+        // TODO: bake in some basic sfx into the engine
+        play_sound("alarm-next-stage");
+        GlobalParams::toggle_flag("debug");
+    }
+
+    {
+        let _span = span!("game_loop.update");
+        game_loop.update(c);
+    }
+
+    update_animated_sprites(c);
+    update_trails(c);
+    update_drawables(c);
+    process_sprite_queue(c);
+    process_temp_draws(c);
+    combat_text_system(c);
+    process_notifications(c);
+    show_errors(c);
+    update_perf_counters(c);
+
+    {
+        // TODO: late update maybe should be a bit later?
+        let _span = span!("game_loop.late_update");
+        game_loop.late_update(c);
+    }
+
+    c.draw.borrow_mut().marks.retain_mut(|mark| {
+        mark.lifetime -= c.delta;
+        mark.lifetime > 0.0
+    });
+
+    for mark in c.draw.borrow().marks.iter() {
+        draw_circle_z(
+            mark.pos.to_world(),
+            0.1,
+            mark.color,
+            90,
+            TextureParams {
+                blend_mode: BlendMode::Alpha,
+                ..Default::default()
+            },
+        );
+    }
+
+    let is_paused =
+        *c.is_paused.borrow() || c.flags.borrow_mut().contains(PAUSE_DESPAWN);
+
+    if !is_paused {
+        for (entity, despawn) in
+            c.world.borrow_mut().query_mut::<&mut DespawnAfter>()
+        {
+            despawn.0 -= c.delta;
+
+            if despawn.0 <= 0.0 {
+                c.to_despawn.borrow_mut().push(entity);
+            }
+        }
+    }
+
+    main_camera_mut().update(c.delta);
+    c.commands().run_on(&mut c.world.borrow_mut());
+    c.world.borrow_mut().flush();
+}
+
+fn update_child_transforms(c: &mut EngineContext) {
+    let mut transforms = HashMap::new();
+
+    for (entity, transform) in c.world_mut().query_mut::<&Transform>() {
+        transforms.insert(entity, *transform);
+    }
+
+    for (_, transform) in c.world().query::<&mut Transform>().iter() {
+        let parent = if let Some(parent) = transform.parent {
+            transforms
+                .get(&parent)
+                .cloned()
+                .unwrap_or(Transform::position(Vec2::ZERO))
+        } else {
+            Transform::position(Vec2::ZERO)
+        };
+
+        let combined = transform.compose_with_parent(&parent);
+
+        transform.abs_position = combined.position;
+        transform.abs_rotation = combined.rotation;
+        transform.abs_scale = combined.scale;
+    }
+}
+
+fn update_trails(c: &mut EngineContext) {
+    let _span = span!("trails");
+
+    for (_, (trail, transform)) in
+        c.world_mut().query_mut::<(&mut Trail, &Transform)>()
+    {
+        if !*c.is_paused.borrow() {
+            trail.update(transform.position, c.delta);
+        }
+        trail.draw_mesh();
+    }
+}
+
+fn point_lights_system(c: &mut EngineContext) {
+    for (_, (transform, light)) in
+        c.world_mut().query_mut::<(&Transform, &PointLight)>()
+    {
+        draw_light(Light::simple(
+            transform.position,
+            light.radius * light.radius_mod,
+            light.strength * light.strength_mod,
+        ))
+    }
+}
+
+fn update_animated_sprites(c: &mut EngineContext) {
+    let mut call_queue = vec![];
+
+    if !*c.is_paused.borrow() {
+        for (entity, sprite) in c.world().query::<&mut AnimatedSprite>().iter()
+        {
+            if sprite.state.update_and_finished(c.delta) {
+                c.commands().despawn(entity);
+
+                // TODO: maybe not needed? replace with option
+                let mut temp: ContextFn = Box::new(|_| {});
+                std::mem::swap(&mut sprite.on_finished, &mut temp);
+
+                call_queue.push(temp);
+            }
+        }
+    }
+
+    for call in call_queue.drain(..) {
+        call(c);
+    }
+}
+
+fn pause_system(c: &mut EngineContext) {
     // TODO: configurable pause
     if is_key_pressed(KeyCode::Escape) {
         if *c.is_paused.borrow() && *c.show_pause_menu {
@@ -48,36 +197,9 @@ pub fn run_update_stages(c: &mut EngineContext) {
         }
     }
 
-    if is_key_pressed(KeyCode::F6) {
-        // TODO: bake in some basic sfx into the engine
-        play_sound("alarm-next-stage");
-        GlobalParams::toggle_flag("debug");
-    }
-
-    c.update();
-
-    update_trails(c);
-    update_drawables(c);
-    process_sprite_queue(c);
-    process_temp_draws(c);
-    combat_text_system(c);
-    process_notifications(c);
-    show_errors(c);
-    update_perf_counters(c);
-
-    c.late_update();
-}
-
-fn update_trails(c: &mut EngineContext) {
-    let _span = span!("trails");
-
-    for (_, (trail, transform)) in
-        c.world_mut().query_mut::<(&mut Trail, &Transform)>()
-    {
-        if !*c.is_paused.borrow() {
-            trail.update(transform.position, c.delta);
-        }
-        trail.draw_mesh();
+    if !*c.is_paused.borrow() && !c.flags.borrow().contains(PAUSE_PHYSICS) {
+        c.cooldowns.borrow_mut().tick(c.delta);
+        c.notifications.borrow_mut().tick(c.delta);
     }
 }
 
@@ -464,5 +586,16 @@ pub fn lighting_parameters_window(c: &EngineContext) {
                     }
                 }
             });
+    }
+}
+
+pub fn count_to_color(count: i32) -> Color {
+    match count {
+        0 => WHITE,
+        1 => BLUE,
+        2 => GREEN,
+        3 => RED,
+        4 => PURPLE,
+        _ => YELLOW,
     }
 }

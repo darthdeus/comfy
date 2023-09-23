@@ -11,8 +11,7 @@ pub trait GameLoop {
     fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
-pub type GameLoopBuilder =
-    Box<dyn Fn(&mut EngineContext) -> Arc<Mutex<dyn GameLoop>>>;
+pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
 
 pub struct EngineState {
     pub cached_loader: RefCell<CachedImageLoader>,
@@ -123,16 +122,15 @@ impl EngineState {
 
     #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
     pub fn update(&mut self) {
-        let builder =
-            if self.game_loop.is_none() { self.builder.take() } else { None };
+        if self.game_loop.is_none() {
+            self.game_loop = Some((self.builder.take().unwrap())());
+        }
+
+        let game_loop = self.game_loop.clone().unwrap();
 
         let mut c = self.make_context();
 
-        if let Some(builder) = builder {
-            *c.game_loop = Some((builder)(&mut c));
-        }
-
-        run_update_stages(&mut c);
+        run_update_stages(&mut *game_loop.lock(), &mut c);
 
         self.frame += 1;
     }
