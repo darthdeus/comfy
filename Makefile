@@ -1,5 +1,6 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
+EXAMPLE=animated_sprites
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
@@ -8,7 +9,7 @@
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-EXAMPLE=physics
+# EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes

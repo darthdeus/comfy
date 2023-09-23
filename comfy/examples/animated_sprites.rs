@@ -4,13 +4,13 @@ simple_game!("Sprite Example", setup, update);
 
 fn setup(c: &mut EngineContext) {
     load_texture_from_engine_bytes(
-        c.graphics_context,
+        &c.renderer.context,
         "player",
         include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/player.png"
         )),
-        &mut c.textures.lock(),
+        &mut c.renderer.textures.lock(),
         wgpu::AddressMode::ClampToEdge,
     );
 }

@@ -67,7 +67,7 @@ impl GameLoop for ComfyGame {
             // Right now engine stages have to be invoked manually.
             run_early_update_stages(&mut c);
 
-            // User can construct their own context object wrapping the `EngineContext`. Ideally
+            // Users can construct their own context object by wrapping the `EngineContext`. Ideally
             // `ComfyGame` would be generic over this, but ... lifetimes are tough, and this is a
             // WIP. For now the solution is macros and/or copy pasting this trait impl.
             update(&mut GameContext {
