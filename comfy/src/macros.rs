@@ -10,10 +10,10 @@ macro_rules! define_main {
                 ..Default::default()
             };
 
-            let engine_state = Box::new(EngineState::new(
+            let engine_state = EngineState::new(
                 config,
                 Box::new(move |_c| Arc::new(Mutex::new(Game::new()))),
-            ));
+            );
 
             run_comfy_main_async(engine_state).await;
         }
@@ -124,7 +124,7 @@ macro_rules! comfy_game {
         }
 
         impl GameLoop for Game {
-            fn update<'a>(&'a mut self, c: &'a mut EngineContext<'a>) {
+            fn update(&mut self, c: &mut EngineContext) {
                 if self.state.is_none() {
                     let mut state = $state::new(c);
                     $setup(&mut state, c);

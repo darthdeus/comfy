@@ -3,6 +3,8 @@
 
 mod animated_sprite;
 mod animation;
+mod cached_image_loader;
+mod combat_text;
 mod context;
 mod cooldowns;
 mod debug;
@@ -16,9 +18,12 @@ mod render;
 mod shaders;
 mod timer;
 mod trail;
+mod update_stages;
 
 pub use crate::animated_sprite::*;
 pub use crate::animation::*;
+pub use crate::cached_image_loader::*;
+pub use crate::combat_text::*;
 pub use crate::context::*;
 pub use crate::cooldowns::*;
 pub use crate::debug::*;
@@ -32,6 +37,7 @@ pub use crate::render::*;
 pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
+pub use crate::update_stages::*;
 
 pub use std::{
     any::Any,

@@ -198,24 +198,81 @@ impl<'a> EngineContext<'a> {
     }
 
     pub fn early_update(&mut self) {
-        let _span = span!("early_update");
+        let _span = span!("context.early_update");
 
-        if is_key_pressed(KeyCode::Backquote) &&
-            is_key_down(KeyCode::LCtrl) &&
-            is_key_down(KeyCode::LAlt)
-        {
-            let mut config = self.config.borrow_mut();
-            config.dev.show_debug = !config.dev.show_debug;
-        }
 
         if let Some(game_loop) = &mut self.game_loop {
             let game_loop = game_loop.clone();
             game_loop.lock().early_update(self);
         }
+
+        let mut transforms = HashMap::new();
+
+        for (entity, transform) in self.world_mut().query_mut::<&Transform>() {
+            transforms.insert(entity, *transform);
+        }
+
+        for (_, transform) in self.world().query::<&mut Transform>().iter() {
+            let parent = if let Some(parent) = transform.parent {
+                transforms
+                    .get(&parent)
+                    .cloned()
+                    .unwrap_or(Transform::position(Vec2::ZERO))
+            } else {
+                Transform::position(Vec2::ZERO)
+            };
+
+            let combined = transform.compose_with_parent(&parent);
+
+            transform.abs_position = combined.position;
+            transform.abs_rotation = combined.rotation;
+            transform.abs_scale = combined.scale;
+        }
+
+        for (_, (transform, light)) in
+            self.world_mut().query_mut::<(&Transform, &PointLight)>()
+        {
+            draw_light(Light::simple(
+                transform.position,
+                light.radius * light.radius_mod,
+                light.strength * light.strength_mod,
+            ))
+        }
+
+        if !*self.is_paused.borrow() &&
+            !self.flags.borrow().contains(PAUSE_PHYSICS)
+        {
+            self.cooldowns.borrow_mut().tick(self.delta);
+            self.notifications.borrow_mut().tick(self.delta);
+        }
+
+        timings_add_value("delta", delta());
+
+        let mut call_queue = vec![];
+
+        if !*self.is_paused.borrow() {
+            for (entity, sprite) in
+                self.world().query::<&mut AnimatedSprite>().iter()
+            {
+                if sprite.state.update_and_finished(self.delta) {
+                    self.commands().despawn(entity);
+
+                    // TODO: maybe not needed? replace with option
+                    let mut temp: ContextFn = Box::new(|_| {});
+                    std::mem::swap(&mut sprite.on_finished, &mut temp);
+
+                    call_queue.push(temp);
+                }
+            }
+        }
+
+        for call in call_queue.drain(..) {
+            call(self);
+        }
     }
 
     pub fn update(&mut self) {
-        let _span = span!("update");
+        let _span = span!("context.update");
 
         if let Some(game_loop) = &mut self.game_loop {
             let game_loop = game_loop.clone();
@@ -224,7 +281,7 @@ impl<'a> EngineContext<'a> {
     }
 
     pub fn late_update(&mut self) {
-        let _span = span!("late_update");
+        let _span = span!("context.late_update");
 
         let delta = delta();
 
@@ -272,110 +329,6 @@ impl<'a> EngineContext<'a> {
     }
 }
 
-#[derive(Default)]
-pub struct CachedImageLoader {
-    images: HashMap<String, (egui::TextureHandle, UVec2)>,
-}
-
-impl CachedImageLoader {
-    pub fn new() -> Self {
-        Self { images: HashMap::new() }
-    }
-
-    pub fn load_or_err(
-        &mut self,
-        ctx: &egui::Context,
-        path: &str,
-    ) -> (egui::TextureId, UVec2) {
-        self.load(ctx, path).unwrap_or_else(|| self.load(ctx, "error").unwrap())
-    }
-
-    pub fn image_or_err(
-        &mut self,
-        ctx: &egui::Context,
-        path: &str,
-    ) -> egui::TextureId {
-        self.cached_load(ctx, path)
-            .unwrap_or_else(|| self.cached_load(ctx, "error").unwrap())
-    }
-
-    pub fn load(
-        &mut self,
-        ctx: &egui::Context,
-        path: &str,
-    ) -> Option<(egui::TextureId, UVec2)> {
-        // TODO: make cached loader return error id instead of failing
-        let mut failed = false;
-
-        if !self.images.contains_key(path) {
-            println!("Loading uncached {}", path);
-
-            let texture = texture_id_safe(path).or_else(|| {
-                Assets::error_loading_image(path);
-
-                failed = true;
-
-                None
-            })?;
-
-            let image = Assets::load_image_data(path, texture)?;
-            let (width, height) =
-                (image.width() as usize, image.height() as usize);
-
-            let rgba = image.into_rgba8();
-            let image_data = rgba.as_raw();
-
-            let egui_image = egui::ColorImage::from_rgba_unmultiplied(
-                [width, height],
-                image_data,
-            );
-
-            let handle = ctx.load_texture(
-                path,
-                egui_image,
-                egui::TextureOptions::LINEAR,
-            );
-
-            // let texture_id = ctx.add_image(handle);
-            // let tex = ctx.load_texture(path, image.clone(),
-            // egui::TextureFilter::Linear);
-
-            self.images.insert(
-                path.to_string(),
-                (handle, uvec2(width as u32, height as u32)),
-            );
-            // println!(
-            //     "does it now contain path? {}",
-            //     self.images.contains_key(path)
-            // );
-        }
-
-        let (image, size) = self.images.get(path).unwrap();
-
-        Some((image.id(), *size))
-    }
-
-    pub fn cached_load(
-        &mut self,
-        ctx: &egui::Context,
-        path: &str,
-    ) -> Option<egui::TextureId> {
-        self.load(ctx, path).map(|x| x.0)
-    }
-}
-
-pub struct CombatText {
-    pub position: Vec2,
-    pub text: String,
-    pub color: Color,
-    pub size: f32,
-}
-
-impl CombatText {
-    pub fn new(position: Vec2, text: String, color: Color, size: f32) -> Self {
-        Self { position, text, color, size }
-    }
-}
 
 pub fn count_to_color(count: i32) -> Color {
     match count {
@@ -388,53 +341,3 @@ pub fn count_to_color(count: i32) -> Color {
     }
 }
 
-pub fn spawn_combat_text(
-    commands: &mut CommandBuffer,
-    text: String,
-    color: Color,
-    size: f32,
-    position: Vec2,
-) {
-    commands.spawn((
-        CombatText::new(position, text, color, size),
-        DespawnAfter(COMBAT_TEXT_LIFETIME),
-    ));
-}
-
-pub fn combat_text_system(c: &mut EngineContext) {
-    for (_, (combat_text, lifetime)) in
-        c.world.borrow_mut().query_mut::<(&mut CombatText, &DespawnAfter)>()
-    {
-        let progress =
-            (COMBAT_TEXT_LIFETIME - lifetime.0) / COMBAT_TEXT_LIFETIME;
-
-        // let dims = measure_text(
-        //     &combat_text.text,
-        //     Some(c.font),
-        //     font_size,
-        //     font_scale,
-        // );
-
-        let off = 0.5;
-        // TODO: re-center
-        let pos = combat_text.position + vec2(0.0, 1.0) * progress + off;
-        // let pos = pos - vec2(dims.width / 2.0, dims.height / 2.0 + off);
-
-        // let screen_pos = world_to_screen(pos) / egui_scale_factor();
-
-        draw_text_ex(
-            &combat_text.text,
-            pos,
-            // screen_pos.x,
-            // screen_pos.y,
-            // pos.x,
-            // pos.y,
-            TextAlign::Center,
-            TextParams {
-                font: egui::FontId::new(16.0, egui::FontFamily::Proportional),
-                color: combat_text.color,
-                ..Default::default()
-            },
-        );
-    }
-}

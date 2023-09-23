@@ -231,8 +231,55 @@ impl AnimatedSpriteBuilder {
         }
     }
 
+    pub fn color(mut self, color: Color) -> Self {
+        self.color = color;
+        self
+    }
+
+    pub fn size(mut self, size: Vec2) -> Self {
+        self.size = size;
+        self
+    }
+
     pub fn z_index(mut self, z_index: i32) -> Self {
         self.z_index = z_index;
+        self
+    }
+
+    pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
+        self.blend_mode = blend_mode;
+        self
+    }
+
+    pub fn on_finished(mut self, on_finished: ContextFn) -> Self {
+        self.on_finished = Some(on_finished);
+        self
+    }
+
+    pub fn with_animations(mut self, animations: Vec<Animation>) -> Self {
+        assert!(
+            self.state.is_none(),
+            "with_animations can only be used on a new AnimatedSpriteBuilder"
+        );
+
+        self.state = Some(
+            animations.get(0).expect("animations can't be empty").to_state(),
+        );
+
+        for animation in animations.into_iter() {
+            self.animations.insert(animation.name.clone(), animation);
+        }
+
+        self
+    }
+
+    pub fn add_anim(mut self, animation: Animation) -> Self {
+        if self.state.is_none() {
+            self.state = Some(animation.to_state());
+        }
+
+        self.animations.insert(animation.name.to_string(), animation);
+
         self
     }
 
@@ -256,6 +303,17 @@ impl AnimatedSpriteBuilder {
 
 
         self.animations.insert(name.to_string(), animation);
+
+        self
+    }
+
+    pub fn with_timer(mut self, timer: f32) -> Self {
+        let state = self
+            .state
+            .as_mut()
+            .expect("with_timer() can be only used after adding an animation");
+
+        state.timer = timer;
 
         self
     }
