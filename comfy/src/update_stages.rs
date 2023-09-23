@@ -40,7 +40,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
     run_mid_update_stages(c);
 }
 
-pub fn run_mid_update_stages(c: &mut EngineContext) {
+fn run_mid_update_stages(c: &mut EngineContext) {
     timings_add_value("delta", delta());
 
     pause_system(c);

@@ -116,32 +116,50 @@ macro_rules! simple_game {
 
 #[macro_export]
 macro_rules! comfy_game {
-    ($name:literal, $make_context:ident, $context:ident, $state:ident, $setup:ident, $update:ident) => {
-        define_main!($name);
+    ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident) => {
+        define_main!($name, ComfyGame);
 
-        pub struct Game {
+        pub struct ComfyGame {
+            pub engine: EngineState,
             pub state: Option<$state>,
+            pub setup_called: bool,
         }
 
-        impl Game {
-            pub fn new() -> Self {
-                Self { state: None }
+        impl ComfyGame {
+            pub fn new(engine: EngineState) -> Self {
+                Self { state: None, engine, setup_called: false }
             }
         }
 
-        impl GameLoop for Game {
-            fn update(&mut self, c: &mut EngineContext) {
-                if self.state.is_none() {
-                    let mut state = $state::new(c);
-                    $setup(&mut state, c);
+        impl GameLoop for ComfyGame {
+            fn update(&mut self) {
+                let mut c = self.engine.make_context();
 
-                    self.state = Some(state);
+                if self.state.is_none() {
+                    self.state = Some(GameState::new(&mut c));
                 }
 
                 if let Some(state) = self.state.as_mut() {
-                    let mut game_c = make_context(state, c);
-                    $update(&mut game_c);
+                    run_early_update_stages(&mut c);
+
+                    {
+                        let mut game_c = $make_context(state, &mut c);
+
+                        if !self.setup_called {
+                            self.setup_called = true;
+
+                            $setup(&mut game_c);
+                        }
+
+                        $update(&mut game_c);
+                    }
+
+                    run_late_update_stages(&mut c);
                 }
+            }
+
+            fn engine(&mut self) -> &mut EngineState {
+                &mut self.engine
             }
         }
     };

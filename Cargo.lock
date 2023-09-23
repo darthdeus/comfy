@@ -280,7 +280,7 @@ dependencies = [
 [[package]]
 name = "blobs"
 version = "0.2.0"
-source = "git+https://github.com/darthdeus/blobs.git#5ada419e205e0a062de558e3462dd99c3298b0d7"
+source = "git+https://github.com/darthdeus/blobs.git#6f5e0d42c531d039c18c23e51f202a00eefb4045"
 dependencies = [
  "approx",
  "assert_approx_eq",

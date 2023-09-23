@@ -1,94 +1,194 @@
 use blobs::*;
 use comfy::*;
 
-define_versions!();
+// This example shows an integration between comfy and blobs, a simple 2d physics engine. It's not
+// the most beautiful example, and maybe a bit verbose for what it does, but it tries to showcase
+// some more extensible ways of using comfy.
+comfy_game!(
+    "Physics Example",
+    GameContext,
+    GameState,
+    make_context,
+    setup,
+    update
+);
 
-pub async fn run() {
-    let config = GameConfig {
-        game_name: "Physics Example",
-        version: version_str(),
-        ..Default::default()
-    };
-
-    let engine = EngineState::new(config);
-
-    let game = ComfyGame::new(engine);
-
-    run_comfy_main_async(game).await;
-}
-
-fn main() {
-    #[cfg(feature = "color-backtrace")]
-    color_backtrace::install();
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        pollster::block_on(run());
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        wasm_bindgen_futures::spawn_local(run());
-    }
+pub enum BallSpawningSpeed {
+    Comfy,
+    Uncomfy,
 }
 
 pub struct GameState {
+    pub spawn_timer: f32,
     pub physics: Physics,
+    pub ball_spawning_speed: BallSpawningSpeed,
 }
 
 impl GameState {
     pub fn new(_c: &mut EngineContext) -> Self {
-        Self { physics: Physics::new(Vec2::ZERO, false) }
+        Self {
+            spawn_timer: 0.0,
+            physics: Physics::new(vec2(0.0, -20.0), false),
+            ball_spawning_speed: BallSpawningSpeed::Comfy,
+        }
     }
 }
 
 pub struct GameContext<'a, 'b: 'a> {
+    // While we could access delta through .engine, it's easier to just expose it once and then
+    // benefit all over the codebase.
+    pub delta: f32,
+    // We'll continually spawn balls using a simple f32 timer.
+    pub spawn_timer: &'a mut f32,
+    pub ball_spawning_speed: &'a mut BallSpawningSpeed,
+    // We could just write c.engine.egui instead, but ... getting in the habit
+    // of re-exporting things into the `GameContext` usually ends up being nice.
+    pub egui: &'a egui::Context,
     pub physics: &'a mut Physics,
     pub engine: &'a mut EngineContext<'b>,
 }
 
-pub struct ComfyGame {
-    pub engine: EngineState,
-    pub state: Option<GameState>,
-}
-
-impl ComfyGame {
-    pub fn new(engine: EngineState) -> Self {
-        Self { state: None, engine }
+fn make_context<'a, 'b: 'a>(
+    state: &'a mut GameState,
+    engine: &'a mut EngineContext<'b>,
+) -> GameContext<'a, 'b> {
+    GameContext {
+        spawn_timer: &mut state.spawn_timer,
+        delta: engine.delta,
+        ball_spawning_speed: &mut state.ball_spawning_speed,
+        egui: engine.egui,
+        physics: &mut state.physics,
+        engine,
     }
 }
 
-impl GameLoop for ComfyGame {
-    fn update(&mut self) {
-        let mut c = self.engine.make_context();
+fn setup(c: &mut GameContext) {
+    let rbd_handle = c.physics.insert_rbd(RigidBodyBuilder::new().build());
 
-        if self.state.is_none() {
-            let mut state = GameState::new(&mut c);
-            setup(&mut state, &mut c);
+    c.physics.insert_collider_with_parent(
+        ColliderBuilder::new().build(),
+        rbd_handle,
+    );
 
-            self.state = Some(state);
-        }
+    // We can add a circle constraint which prevents any body from leaving the constrained area.
+    // Note that currently blobs constraints work based on position and ignore collider radius.
+    c.physics
+        .constraints
+        .push(Constraint { position: Vec2::ZERO, radius: 5.0 });
 
-        if let Some(state) = self.state.as_mut() {
-            run_early_update_stages(&mut c);
-            run_mid_update_stages(&mut c);
-
-            update(&mut GameContext {
-                physics: &mut state.physics,
-                engine: &mut c,
-            });
-
-            run_late_update_stages(&mut c);
-        }
-    }
-
-    fn engine(&mut self) -> &mut EngineState {
-        &mut self.engine
-    }
+    // We'll need SFX for this
+    c.engine.load_sound_from_bytes(
+        // Every sound gets a string name later used to reference it.
+        "comfy-bell",
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/bell-sfx.ogg"
+        )),
+        StaticSoundSettings::default(),
+    );
 }
 
-fn setup(_state: &mut GameState, _c: &mut EngineContext) {}
+fn update(c: &mut GameContext) {
+    *c.spawn_timer -= c.delta;
 
-fn update(_c: &mut GameContext) {
-    draw_circle(Vec2::ZERO, 0.5, RED, 0);
+    let limit = match c.ball_spawning_speed {
+        BallSpawningSpeed::Comfy => 100,
+        BallSpawningSpeed::Uncomfy => 1000,
+    };
+
+    if *c.spawn_timer <= 0.0 && c.physics.rbd_count() < limit {
+        let max_time = match c.ball_spawning_speed {
+            BallSpawningSpeed::Comfy => 0.4,
+            BallSpawningSpeed::Uncomfy => 0.01,
+        };
+
+        // Every time the timer expires we reset it to a random value.
+        *c.spawn_timer = random_range(0.01, max_time);
+
+        let rbd_handle = c.physics.insert_rbd(
+            RigidBodyBuilder::new().position(random_circle(2.0)).build(),
+        );
+
+        c.physics.insert_collider_with_parent(
+            ColliderBuilder::new().radius(random_range(0.05, 0.4)).build(),
+            rbd_handle,
+        );
+
+        play_sound("comfy-bell");
+    }
+
+    c.physics.step(c.delta as f64);
+
+    // We could iterate rigid bodies individually, but blobs also has a nice way of collecting
+    // debug data in a simple format for rendering/logginc that we'll use to draw all bodies and
+    // colliders.
+    let debug = c.physics.debug_data();
+
+    for body in debug.bodies.iter() {
+        draw_circle(body.transform.translation, 0.1, RED.alpha(0.8), 5);
+    }
+
+    for constraint in c.physics.constraints.iter() {
+        draw_circle(
+            constraint.position,
+            constraint.radius,
+            WHITE.alpha(0.1),
+            3,
+        );
+    }
+
+    // Let's use the colliders arena to draw the colliders for a change. We could
+    // also just use `debug.colliders`.
+    for (_, collider) in c.physics.col_set.iter() {
+        // We'll draw collider circles behind the rigid body circles using a lower z_index.
+        draw_circle(
+            collider.absolute_transform.translation,
+            collider.radius,
+            BLUE.alpha(0.5),
+            4,
+        );
+    }
+
+    draw_text(
+        "Be warned that blobs isn't the most stable with lots of balls :)",
+        Position::screen_percent(0.5, 0.1).to_world(),
+        WHITE,
+        TextAlign::Center,
+    );
+
+    draw_text(
+        &format!("There are now {} balls", c.physics.rbd_count()),
+        Position::screen_percent(0.5, 0.15).to_world(),
+        WHITE,
+        TextAlign::Center,
+    );
+
+    egui::Window::new("More balls")
+        .anchor(egui::Align2::LEFT_TOP, egui::vec2(10.0, 10.0))
+        .show(c.egui, |ui| {
+            match c.ball_spawning_speed {
+                BallSpawningSpeed::Comfy => {
+                    if ui.button("Make it go faster").clicked() {
+                        *c.ball_spawning_speed = BallSpawningSpeed::Uncomfy;
+                    }
+                }
+                BallSpawningSpeed::Uncomfy => {
+                    if ui
+                        .add(egui::Button::new(
+                            egui::RichText::new("NOOOO, PLS STOP!!!").size(
+                                rescale(
+                                    c.physics.rbd_count() as f32,
+                                    0.0..limit as f32,
+                                    10.0..100.0,
+                                ),
+                            ),
+                        ))
+                        .clicked()
+                    {
+                        *c.ball_spawning_speed = BallSpawningSpeed::Comfy;
+                        c.physics.reset();
+                    }
+                }
+            }
+        });
 }
