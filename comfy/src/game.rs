@@ -39,7 +39,17 @@ pub type StateBuilder<T> = fn(&mut EngineContext) -> T;
 // pub type ContextBuilder<'a, 'b: 'a, S, C> =
 //     fn(&'a mut S, &'b mut EngineContext<'b>) -> C;
 
-pub type ContextBuilder<S, C> = fn(&mut S, EngineContext) -> C;
+pub trait ContextBuilder<S> {
+    type Context<'a>;
+
+    fn make_context<'a>(
+        &self,
+        state: &mut S,
+        engine: &mut EngineState,
+    ) -> Self::Context<'a>;
+}
+
+// pub type ContextBuilder<S, C> = fn(&mut S, &mut EngineState) -> C;
 
 pub struct ComfyGame<S, C> {
     pub engine: EngineState,
@@ -47,19 +57,30 @@ pub struct ComfyGame<S, C> {
     pub state: Option<S>,
     pub setup: fn(&mut S, &mut EngineContext),
     pub update: fn(&mut C),
+    pub context_builder: Box<dyn Fn(&mut S, &mut EngineState) -> C>,
+    // pub context_builder: Box<dyn Any>,
 }
 
-impl<S, C> ComfyGame<S, C> {
+impl<S: 'static, C: 'static> ComfyGame<S, C> {
     pub fn new(
         engine: EngineState,
         state_builder: StateBuilder<S>,
         setup: fn(&mut S, &mut EngineContext),
         update: fn(&mut C),
+        context_builder: Box<dyn Fn(&mut S, &mut EngineState) -> C>,
+        // context_builder: Box<dyn Any>,
     ) -> Self {
-        Self { state_builder, state: None, engine, setup, update }
+        Self {
+            state_builder,
+            state: None,
+            engine,
+            setup,
+            update,
+            context_builder,
+        }
     }
 
-    pub fn update(&mut self, make_game_context: ContextBuilder<S, C>) {
+    pub fn update(&mut self) {
         let mut c = self.engine.make_context();
 
         if self.state.is_none() {
@@ -74,7 +95,11 @@ impl<S, C> ComfyGame<S, C> {
             // TODO: early update
             run_mid_update_stages(&mut c);
 
-            let mut game_c = (make_game_context)(state, c);
+            // let context_builder: &dyn Fn(&mut S, &mut EngineState) -> C =
+            //     self.context_builder.downcast_ref().unwrap();
+            // let mut game_c = (context_builder)(state, &mut self.engine);
+
+            let mut game_c = (self.context_builder)(state, &mut self.engine);
             (self.update)(&mut game_c);
 
             // run_late_update_stages(&mut c);

@@ -4,7 +4,6 @@ use crate::*;
 
 pub async fn run_comfy_main_async<S: 'static, C: 'static>(
     mut game: ComfyGame<S, C>,
-    make_context: ContextBuilder<S, C>,
 ) {
     let _tracy = maybe_setup_tracy();
 
@@ -79,7 +78,7 @@ pub async fn run_comfy_main_async<S: 'static, C: 'static>(
                         .unwrap()
                         .begin_frame(&game.engine.egui);
 
-                    game.update(make_context);
+                    game.update();
 
                     game.engine.frame += 1;
                 }

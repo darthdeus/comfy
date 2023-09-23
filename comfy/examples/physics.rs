@@ -12,9 +12,15 @@ pub async fn run() {
 
     let engine = EngineState::new(config);
 
-    let game = ComfyGame::new(engine, GameState::new, setup, update);
+    let game = ComfyGame::new(
+        engine,
+        GameState::new,
+        setup,
+        update,
+        Box::new(game_context_builder),
+    );
 
-    run_comfy_main_async(game, make_game_context).await;
+    run_comfy_main_async(game).await;
 }
 
 fn main() {
@@ -32,12 +38,6 @@ fn main() {
     }
 }
 
-
-struct GameContext<'a> {
-    pub engine: EngineContext<'a>,
-    pub physics: &'a Rc<RefCell<Physics>>,
-}
-
 struct GameState {
     pub physics: Rc<RefCell<Physics>>,
 }
@@ -48,10 +48,15 @@ impl GameState {
     }
 }
 
-pub fn make_game_context<'a>(
-    state: &'a mut GameState,
-    c: EngineContext,
-) -> GameContext<'a> {
+pub struct GameContext<'a, 'b: 'a> {
+    pub physics: &'a Rc<RefCell<Physics>>,
+    pub engine: &'b mut EngineState,
+}
+
+pub fn game_context_builder<'a, 'b: 'a>(
+    state: &'b mut GameState,
+    c: &'a mut EngineState,
+) -> GameContext<'a, 'b> {
     GameContext { physics: &mut state.physics, engine: c }
 }
 
