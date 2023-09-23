@@ -199,34 +199,16 @@ impl EngineState {
                 self.renderer.as_ref().unwrap().egui_ctx.pixels_per_point();
         }
 
-        LightingState::begin_frame();
+        let renderer = self.renderer.as_mut().unwrap();
 
-        if is_key_pressed(KeyCode::F7) {
-            let mut config = self.config.borrow_mut();
-
-            config.dev.show_lighting_config = !config.dev.show_lighting_config;
-            config.dev.show_buffers = !config.dev.show_buffers;
-        }
-
-        if is_key_pressed(KeyCode::F8) {
-            let mut config = self.config.borrow_mut();
-
-            config.dev.show_fps = !config.dev.show_fps;
+        if let Some(texture_queue) =
+            ASSETS.borrow_mut().current_queue.lock().take()
+        {
+            renderer.load_textures(texture_queue);
         }
 
         {
             let _span = span!("text");
-
-            let renderer = self.renderer.as_mut().unwrap();
-
-            ASSETS.borrow_mut().process_load_queue();
-            ASSETS.borrow_mut().process_sound_queue();
-
-            if let Some(texture_queue) =
-                ASSETS.borrow_mut().current_queue.lock().take()
-            {
-                renderer.load_textures(texture_queue);
-            }
 
             let painter =
                 renderer.egui_ctx().layer_painter(egui::LayerId::new(
@@ -282,16 +264,6 @@ impl EngineState {
             if !global_state.mouse_locked {
                 global_state.mouse_world = normalized + camera.center;
             }
-
-            // TODO: make this configurable
-            // renderer
-            //     .window()
-            //     .set_cursor_visible(global_state.mouse_locked);
-        }
-
-        if is_key_pressed(KeyCode::F1) {
-            let mut global_state = GLOBAL_STATE.borrow_mut();
-            global_state.mouse_locked = !global_state.mouse_locked;
         }
 
         self.update();

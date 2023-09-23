@@ -35,6 +35,7 @@ pub use crate::utils::*;
 pub use wgpu;
 pub use wgpu_types;
 
+// TODO: delete & cleanup remains
 // pub trait RunGameLoop {
 //     fn one_frame(&mut self, delta: f32);
 //     fn title(&self) -> String;

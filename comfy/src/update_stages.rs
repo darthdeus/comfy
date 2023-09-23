@@ -2,18 +2,12 @@ use crate::*;
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
 pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
-    #[cfg(feature = "exit-after-startup")]
-    std::process::exit(0);
+    dev_hotkeys(c);
 
-    let _span = span!("game-state update");
+    // Clear all the lights from previous frame
+    LightingState::begin_frame();
 
-    #[cfg(any(feature = "quick-exit", feature = "dev"))]
-    if is_key_down(KeyCode::F1) && is_key_pressed(KeyCode::Escape) {
-        println!("fast exit");
-        std::process::exit(0);
-    }
-
-    AudioSystem::process_sounds();
+    process_asset_queues(c);
 
     if !*c.is_paused.borrow() {
         set_unpaused_time(get_unpaused_time() + c.delta as f64);
@@ -106,6 +100,49 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
     main_camera_mut().update(c.delta);
     c.commands().run_on(&mut c.world.borrow_mut());
     c.world.borrow_mut().flush();
+}
+
+fn dev_hotkeys(c: &EngineContext) {
+    // TODO: get rid of this & move it to nanovoid instead
+    if is_key_pressed(KeyCode::F1) {
+        let mut global_state = GLOBAL_STATE.borrow_mut();
+        global_state.mouse_locked = !global_state.mouse_locked;
+    }
+
+    // TODO: make this configurable
+    // renderer
+    //     .window()
+    //     .set_cursor_visible(global_state.mouse_locked);
+
+    if is_key_pressed(KeyCode::F7) {
+        let mut config = c.config.borrow_mut();
+
+        config.dev.show_lighting_config = !config.dev.show_lighting_config;
+        config.dev.show_buffers = !config.dev.show_buffers;
+    }
+
+    if is_key_pressed(KeyCode::F8) {
+        let mut config = c.config.borrow_mut();
+
+        config.dev.show_fps = !config.dev.show_fps;
+    }
+    #[cfg(feature = "exit-after-startup")]
+    std::process::exit(0);
+
+    let _span = span!("game-state update");
+
+    #[cfg(any(feature = "quick-exit", feature = "dev"))]
+    if is_key_down(KeyCode::F1) && is_key_pressed(KeyCode::Escape) {
+        println!("fast exit");
+        std::process::exit(0);
+    }
+}
+
+fn process_asset_queues(c: &mut EngineContext) {
+    AudioSystem::process_sounds();
+
+    ASSETS.borrow_mut().process_load_queue();
+    ASSETS.borrow_mut().process_sound_queue();
 }
 
 fn update_child_transforms(c: &mut EngineContext) {

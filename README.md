@@ -285,6 +285,12 @@ Only features that require maximum few weeks of work are listed here.
   is flexible enough, but it is an ongoing effort to improve the codebase. That
   being said, almost everything you find in comfy should work to a reasonable
   extent.
+- Reduce re-borrows & `RefCell`s. Right now we use _a lot_ of `RefCell`
+  for almost everything. While this helps in a few places there are many
+  places where it is not necessary, and where we also excessively borrow
+  and re-borrow multiple times per frame. Currently we haven't noticed any of
+  this impacting performance, but it is something that should be cleaned up.
+  There's also a few things which use a `Mutex` unnecessarily.
 
 While comfy is ready to use, the codebase is far from clean. The engine
 evolves rapidly as we work on our games, and there are many parts that can
