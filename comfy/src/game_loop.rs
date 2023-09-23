@@ -2,8 +2,9 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn run_comfy_main_async<S: 'static, C: 'static>(
-    mut game: ComfyGame<S, C>,
+pub async fn run_comfy_main_async<'a, S: 'static, C: 'static>(
+    game: &'static mut ComfyGame<S, C>,
+    context_builder: impl ContextBuilder<S, Context<'a> = C> + 'static + Copy,
 ) {
     let _tracy = maybe_setup_tracy();
 
@@ -59,6 +60,8 @@ pub async fn run_comfy_main_async<S: 'static, C: 'static>(
     game.engine.texture_creator = Some(renderer.texture_creator.clone());
     game.engine.renderer = Some(renderer);
 
+    // game.update(context_builder);
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::MainEventsCleared => {
@@ -70,6 +73,10 @@ pub async fn run_comfy_main_async<S: 'static, C: 'static>(
                 set_delta(delta);
                 set_time(get_time() + delta as f64);
 
+                if game.engine.quit_flag() {
+                    *control_flow = ControlFlow::Exit;
+                }
+
                 {
                     span_with_timing!("frame");
                     game.engine
@@ -78,13 +85,9 @@ pub async fn run_comfy_main_async<S: 'static, C: 'static>(
                         .unwrap()
                         .begin_frame(&game.engine.egui);
 
-                    game.update();
-
                     game.engine.frame += 1;
-                }
 
-                if game.engine.quit_flag() {
-                    *control_flow = ControlFlow::Exit;
+                    game.update(context_builder);
                 }
 
                 {

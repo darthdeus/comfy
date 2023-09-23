@@ -12,15 +12,11 @@ pub async fn run() {
 
     let engine = EngineState::new(config);
 
-    let game = ComfyGame::new(
-        engine,
-        GameState::new,
-        setup,
-        update,
-        Box::new(game_context_builder),
-    );
+    let game = Box::new(ComfyGame::new(engine, GameState::new, setup, update));
 
-    run_comfy_main_async(game).await;
+    let game = Box::leak(game);
+
+    run_comfy_main_async(game, GameContextBuilder).await;
 }
 
 fn main() {
@@ -48,17 +44,33 @@ impl GameState {
     }
 }
 
-pub struct GameContext<'a, 'b: 'a> {
+pub struct GameContext<'a> {
     pub physics: &'a Rc<RefCell<Physics>>,
-    pub engine: &'b mut EngineState,
+    pub engine: &'a mut EngineState,
 }
 
-pub fn game_context_builder<'a, 'b: 'a>(
-    state: &'b mut GameState,
-    c: &'a mut EngineState,
-) -> GameContext<'a, 'b> {
-    GameContext { physics: &mut state.physics, engine: c }
+#[derive(Copy, Clone, Debug)]
+struct GameContextBuilder;
+
+impl ContextBuilder<GameState> for GameContextBuilder {
+    type Context<'context> = GameContext<'context>;
+
+    fn make_context<'a, 'b: 'a>(
+        &self,
+        state: &'b mut GameState,
+        engine: &'b mut EngineState,
+    ) -> Self::Context<'a> {
+        GameContext { physics: &mut state.physics, engine }
+    }
 }
+
+
+// pub fn game_context_builder<'a, 'b: 'a>(
+//     state: &'b mut GameState,
+//     c: &'a mut EngineState,
+// ) -> GameContext<'a, 'b> {
+//     GameContext { physics: &mut state.physics, engine: c }
+// }
 
 // pub fn make_context<'a>(
 //     state: &mut GameState,
