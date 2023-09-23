@@ -352,14 +352,14 @@ comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 - [ ] raytracing
 - [ ] physics
 - [x] SFX
-- [ ] looped music + filter + egui
+- [x] looped music
 - [ ] postprocessing
 - [x] top-down minigame
 - [ ] platformer minigame
 - [x] timed draw
 - [x] ecs sprite
 - [x] ecs animatedsprite
-- [ ] rename example_game to simple_game
+- [x] rename example_game to simple_game
 - [ ] context example
 
 # Games using comfy

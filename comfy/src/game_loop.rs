@@ -4,7 +4,7 @@ use crate::*;
 
 pub async fn wgpu_game_loop(
     #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
-    mut engine_state: Box<dyn RunGameLoop>,
+    mut engine_state: EngineState,
     resolution: winit::dpi::PhysicalSize<i32>,
 ) {
     let event_loop = winit::event_loop::EventLoop::new();

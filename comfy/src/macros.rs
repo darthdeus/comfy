@@ -107,3 +107,36 @@ macro_rules! simple_game {
         simple_game!($name, setup, $update);
     };
 }
+
+#[macro_export]
+macro_rules! comfy_game {
+    ($name:literal, $make_context:ident, $context:ident, $state:ident, $setup:ident, $update:ident) => {
+        define_main!($name);
+
+        pub struct Game {
+            pub state: Option<$state>,
+        }
+
+        impl Game {
+            pub fn new() -> Self {
+                Self { state: None }
+            }
+        }
+
+        impl GameLoop for Game {
+            fn update<'a>(&'a mut self, c: &'a mut EngineContext<'a>) {
+                if self.state.is_none() {
+                    let mut state = $state::new(c);
+                    $setup(&mut state, c);
+
+                    self.state = Some(state);
+                }
+
+                if let Some(state) = self.state.as_mut() {
+                    let mut game_c = make_context(state, c);
+                    $update(&mut game_c);
+                }
+            }
+        }
+    };
+}

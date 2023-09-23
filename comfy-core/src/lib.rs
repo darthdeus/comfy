@@ -132,6 +132,9 @@ pub use once_cell::{
 pub use parking_lot::Mutex;
 pub use rand::{distributions::uniform::SampleUniform, Rng, RngCore};
 
+#[cfg(feature = "blobs")]
+pub use blobs;
+
 #[cfg(all(feature = "memory-stats", not(target_arch = "wasm32")))]
 pub use memory_stats;
 

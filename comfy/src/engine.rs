@@ -1,4 +1,4 @@
-use comfy_wgpu::{RunGameLoop, WgpuRenderer};
+use comfy_wgpu::WgpuRenderer;
 
 use crate::*;
 
@@ -6,12 +6,12 @@ pub trait GameLoop {
     fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
 
     fn early_update(&mut self, _c: &mut EngineContext) {}
-    fn update(&mut self, _c: &mut EngineContext) {}
+    fn update<'a>(&'a mut self, _c: &'a mut EngineContext<'a>) {}
     fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
-impl RunGameLoop for EngineState {
-    fn one_frame(&mut self, delta: f32) {
+impl EngineState {
+    pub fn one_frame(&mut self, delta: f32) {
         self.begin_frame();
 
         set_delta(delta);
@@ -309,24 +309,29 @@ impl RunGameLoop for EngineState {
         }
     }
 
-    fn set_renderer(&mut self, renderer: WgpuRenderer) {
+    // TODO: this really needs a cleanup
+    pub fn set_renderer(&mut self, renderer: WgpuRenderer) {
         self.texture_creator = Some(renderer.texture_creator.clone());
         self.renderer = Some(renderer);
     }
 
-    fn renderer(&mut self) -> &mut WgpuRenderer {
+    // TODO: this really needs a cleanup
+    pub fn renderer(&mut self) -> &mut WgpuRenderer {
         self.renderer.as_mut().expect("renderer must be initialized")
     }
 
-    fn resize(&mut self, new_size: UVec2) {
+    // TODO: this really needs a cleanup
+    pub fn resize(&mut self, new_size: UVec2) {
         self.renderer.as_mut().unwrap().resize(new_size);
     }
 
-    fn quit_flag(&mut self) -> bool {
+    // TODO: this really needs a cleanup
+    pub fn quit_flag(&mut self) -> bool {
         self.quit_flag
     }
 
-    fn title(&self) -> String {
+    // TODO: this really needs a cleanup
+    pub fn title(&self) -> String {
         // TODO: make this configurable
         format!("{} (COMFY ENGINE)", self.config.borrow().game_name)
     }

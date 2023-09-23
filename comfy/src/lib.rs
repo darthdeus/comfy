@@ -9,6 +9,7 @@ mod debug;
 mod draw;
 mod egui_utils;
 mod engine;
+mod game_loop;
 mod macros;
 mod particles;
 mod render;
@@ -24,6 +25,7 @@ pub use crate::debug::*;
 pub use crate::draw::*;
 pub use crate::egui_utils::*;
 pub use crate::engine::*;
+pub use crate::game_loop::*;
 pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
@@ -56,7 +58,7 @@ pub use comfy_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
-pub async fn run_comfy_main_async(engine_state: Box<dyn RunGameLoop>) {
+pub async fn run_comfy_main_async(engine_state: EngineState) {
     if cfg!(feature = "tracy") {
         info!("CONNECTING TO TRACY");
     } else {

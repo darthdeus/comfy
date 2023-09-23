@@ -208,10 +208,6 @@ impl<'a> EngineContext<'a> {
             config.dev.show_debug = !config.dev.show_debug;
         }
 
-        // if self.menu.is_active {
-        //     main_menu_system(self);
-        // }
-
         if let Some(game_loop) = &mut self.game_loop {
             let game_loop = game_loop.clone();
             game_loop.lock().early_update(self);

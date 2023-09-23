@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["use-wgpu"]
+default = ["use-wgpu", "blobs"]
 ci-release = ["file_logger"]
 
 file_logger = ["log4rs", "chrono"]
@@ -15,6 +15,8 @@ tracy = ["tracy-client"]
 jemalloc = ["jemalloc-ctl", "jemallocator"]
 memprof = ["tracy"]
 lua = ["mlua"]
+
+blobs = ["dep:blobs"]
 
 [dependencies]
 arrayvec = "0.7.2"
@@ -27,6 +29,8 @@ log4rs = { version = "1.2.0", optional = true, default-features = false, feature
   "file_appender",
 ] }
 chrono = { version = "0.4.23", optional = true }
+
+blobs = { git = "https://github.com/darthdeus/blobs.git", optional = true }
 
 mlua = { version = "0.8.9", features = ["lua54", "vendored"], optional = true }
 backtrace = "0.3"

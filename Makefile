@@ -3,7 +3,7 @@
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
-EXAMPLE=music
+# EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=particles
 # EXAMPLE=particle_systems
@@ -12,6 +12,7 @@ EXAMPLE=music
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
+EXAMPLE=physics
 
 # default: build-examples
 # default: wasm-build
@@ -19,7 +20,7 @@ EXAMPLE=music
 # default: bitmob
 default: example
 
-FLAGS=--release
+FLAGS=--release --features=blobs
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
 
 bitmob:
