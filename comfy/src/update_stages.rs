@@ -1,12 +1,11 @@
 use crate::*;
 
-// TODO: Some of the ordering in the update stages is definitely incorrect.
-pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
+pub fn run_early_update_stages(c: &mut EngineContext) {
     {
         let mut state = GLOBAL_STATE.borrow_mut();
 
         state.fps = (1.0 / c.delta) as i32;
-        state.egui_scale_factor = c.renderer.egui_ctx.pixels_per_point();
+        state.egui_scale_factor = c.egui.pixels_per_point();
     }
 
     dev_hotkeys(c);
@@ -37,12 +36,9 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
 
     lighting_parameters_window(c);
     update_child_transforms(c);
+}
 
-    {
-        let _span = span!("game_loop.early_update");
-        game_loop.early_update(c);
-    }
-
+pub fn run_mid_update_stages(c: &mut EngineContext) {
     timings_add_value("delta", delta());
 
     pause_system(c);
@@ -53,11 +49,20 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
         play_sound("alarm-next-stage");
         GlobalParams::toggle_flag("debug");
     }
+}
 
-    {
-        let _span = span!("game_loop.update");
-        game_loop.update(c);
-    }
+// TODO: Some of the ordering in the update stages is definitely incorrect.
+pub fn run_late_update_stages(c: &mut EngineContext) {
+    // {
+    //     let _span = span!("game_loop.early_update");
+    //     game_loop.early_update(c);
+    // }
+
+
+    // {
+    //     let _span = span!("game_loop.update");
+    //     game_loop.update(c);
+    // }
 
     update_animated_sprites(c);
     update_trails(c);
@@ -70,11 +75,11 @@ pub fn run_update_stages(game_loop: &mut dyn GameLoop, c: &mut EngineContext) {
     update_perf_counters(c);
     show_lighting_ui(c);
 
-    {
-        // TODO: late update maybe should be a bit later?
-        let _span = span!("game_loop.late_update");
-        game_loop.late_update(c);
-    }
+    // {
+    //     // TODO: late update maybe should be a bit later?
+    //     let _span = span!("game_loop.late_update");
+    //     game_loop.late_update(c);
+    // }
 
     c.draw.borrow_mut().marks.retain_mut(|mark| {
         mark.lifetime -= c.delta;
@@ -169,7 +174,7 @@ fn process_asset_queues(c: &mut EngineContext) {
 fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
-    let painter = c.renderer.egui_ctx().layer_painter(egui::LayerId::new(
+    let painter = c.egui.layer_painter(egui::LayerId::new(
         egui::Order::Background,
         egui::Id::new("text-painter"),
     ));
@@ -200,7 +205,7 @@ fn render_text(c: &mut EngineContext) {
     }
 }
 
-fn update_blood_canvas(c: &mut EngineContext) {
+fn update_blood_canvas(_c: &mut EngineContext) {
     let _span = span!("blood_canvas");
 
     // TODO: this really doesn't belong here
@@ -839,10 +844,11 @@ fn renderer_update(c: &mut EngineContext) {
         clear_color,
         frame: frame_params,
         lights: LightingState::take_lights(),
-        lighting: &mut c.lighting,
+        lighting: c.lighting,
         // sprite_queue,
         mesh_queue,
         particle_queue,
+        egui: c.egui,
     };
 
     // TODO: cleanup unwraps and stuff :)
@@ -856,7 +862,7 @@ fn show_lighting_ui(c: &mut EngineContext) {
         egui::Window::new("Lighting")
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
             .show(c.egui, |ui| {
-                lighting_ui(&mut c.lighting, ui);
+                lighting_ui(c.lighting, ui);
             });
 
         // egui::Window::new("Post Processing").show(&self.egui(), |ui| {

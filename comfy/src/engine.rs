@@ -17,6 +17,7 @@ pub struct EngineState {
     pub cached_loader: RefCell<CachedImageLoader>,
 
     pub draw: RefCell<Draw>,
+    pub egui: egui::Context,
 
     pub frame: u64,
     pub flags: RefCell<HashSet<String>>,
@@ -77,6 +78,7 @@ impl EngineState {
 
         Self {
             cached_loader: RefCell::new(CachedImageLoader::new()),
+            egui: egui::Context::default(),
 
             renderer: None,
             texture_creator: None,
@@ -112,40 +114,40 @@ impl EngineState {
         }
     }
 
-    #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
-    pub fn update(&mut self) {
-        if self.game_loop.is_none() {
-            self.game_loop = Some((self.builder.take().unwrap())());
-        }
-
-        let game_loop = self.game_loop.clone().unwrap();
-
-        let mut c = self.make_context();
-
-        run_update_stages(&mut *game_loop.lock(), &mut c);
-
-        self.frame += 1;
+    pub fn on_event(&mut self, event: &WindowEvent) -> bool {
+        self.renderer.as_mut().unwrap().on_event(event, &self.egui)
     }
 
+    // #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
+    // pub fn update(&mut self) {
+    //     if self.game_loop.is_none() {
+    //         self.game_loop = Some((self.builder.take().unwrap())());
+    //     }
+    //
+    //     let game_loop = self.game_loop.clone().unwrap();
+    //
+    //     let mut c = self.make_context();
+    //
+    //     run_update_stages(&mut *game_loop.lock(), &mut c);
+    // }
+
     pub fn make_context(&mut self) -> EngineContext {
-        let renderer = self.renderer.as_ref().unwrap();
-        let egui = renderer.egui_ctx();
+        let renderer = self.renderer.as_mut().unwrap();
+        // let egui = renderer.egui_ctx();
         let texture_creator = self.texture_creator.as_ref().unwrap();
 
         EngineContext {
             cached_loader: &self.cached_loader,
-            graphics_context: &renderer.context,
-            textures: &renderer.textures,
-            surface_config: &renderer.config,
-            render_texture_format: renderer.render_texture_format,
-
+            // graphics_context: &renderer.context,
+            // textures: &renderer.textures,
+            // surface_config: &renderer.config,
+            // render_texture_format: renderer.render_texture_format,
+            egui_wants_mouse: self.egui.wants_pointer_input(),
             renderer,
 
             delta: delta(),
 
-            egui,
-            egui_wants_mouse: egui.wants_pointer_input(),
-
+            egui: &self.egui,
             draw: &mut self.draw,
             frame: self.frame,
 
@@ -169,9 +171,8 @@ impl EngineState {
             changes: &self.changes,
             notifications: &mut self.notifications,
 
-            post_processing_effects: &renderer.post_processing_effects,
-            shaders: &renderer.shaders,
-
+            // post_processing_effects: &renderer.post_processing_effects,
+            // shaders: &renderer.shaders,
             is_paused: &self.is_paused,
             show_pause_menu: &mut self.show_pause_menu,
             quit_flag: &mut self.quit_flag,

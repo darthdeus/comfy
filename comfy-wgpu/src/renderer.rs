@@ -57,7 +57,6 @@ pub struct WgpuRenderer {
 
     pub egui_winit: egui_winit::State,
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
-    pub egui_ctx: egui::Context,
 
     pub screenshot_buffer: SizedBuffer,
 
@@ -501,35 +500,6 @@ impl WgpuRenderer {
 
         info!("Initializing with scale factor: {}", window.scale_factor());
 
-        let egui_ctx = egui::Context::default();
-
-        let fonts = egui::FontDefinitions::default();
-
-        // TODO: expose this for easier user defined fonts
-        #[allow(unused_macros)]
-        macro_rules! load_font {
-            ($family_name:literal, $file_name:literal) => {
-                let family_name = $family_name.to_string();
-
-                fonts.font_data.insert(
-                    family_name.clone(),
-                    egui::FontData::from_static(include_bytes!(concat!(
-                        "../../assets/",
-                        $file_name,
-                        ".ttf"
-                    ))),
-                );
-
-                fonts
-                    .families
-                    .insert(egui::FontFamily::Name($family_name.into()), vec![
-                        family_name,
-                    ]);
-            };
-        }
-
-        egui_ctx.set_fonts(fonts);
-
         let textures = Arc::new(Mutex::new(textures));
 
         let texture_creator =
@@ -697,7 +667,6 @@ impl WgpuRenderer {
 
             egui_winit,
             egui_render_routine: RefCell::new(egui_render_routine),
-            egui_ctx,
 
             first_pass_texture,
             first_pass_bind_group,
@@ -980,7 +949,7 @@ impl WgpuRenderer {
         }
     }
 
-    pub fn render_egui(&self, view: &wgpu::TextureView) {
+    pub fn render_egui(&self, view: &wgpu::TextureView, params: &DrawParams) {
         let _span = span!("render_egui");
 
         let mut encoder =
@@ -988,7 +957,7 @@ impl WgpuRenderer {
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
-                &self.egui_ctx,
+                &params.egui,
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,
@@ -1011,8 +980,12 @@ impl WgpuRenderer {
         self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
-    pub fn on_event(&mut self, event: &winit::event::WindowEvent) -> bool {
-        self.egui_winit.on_event(&self.egui_ctx, event).consumed
+    pub fn on_event(
+        &mut self,
+        event: &winit::event::WindowEvent,
+        egui_ctx: &egui::Context,
+    ) -> bool {
+        self.egui_winit.on_event(egui_ctx, event).consumed
     }
 
     pub fn render_meshes(
@@ -1348,10 +1321,10 @@ impl WgpuRenderer {
         self
     }
 
-    pub fn begin_frame(&mut self) {
+    pub fn begin_frame(&mut self, egui_ctx: &egui::Context) {
         let _span = span!("begin_frame");
 
-        self.egui_ctx
+        egui_ctx
             .begin_frame(self.egui_winit.take_egui_input(&self.window));
     }
 
@@ -1633,7 +1606,7 @@ impl WgpuRenderer {
         }
 
         self.render_post_processing(&surface_view, params.lighting);
-        self.render_egui(&surface_view);
+        self.render_egui(&surface_view, &params);
 
         if params.config.dev.show_buffers {
             self.render_debug(&surface_view);
@@ -1677,10 +1650,6 @@ impl WgpuRenderer {
         );
 
         self.egui_winit.set_pixels_per_point(scale_factor);
-    }
-
-    pub fn egui_ctx(&self) -> &egui::Context {
-        &self.egui_ctx
     }
 
     pub fn load_textures(&mut self, texture_queue: TextureLoadQueue) {

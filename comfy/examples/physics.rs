@@ -10,12 +10,11 @@ pub async fn run() {
         ..Default::default()
     };
 
-    let engine_state = EngineState::new(config);
+    let engine = EngineState::new(config);
 
-    let game =
-        ComfyGame::new(engine, GameState::new, make_context, setup, update);
+    let game = ComfyGame::new(engine, GameState::new, setup, update);
 
-    run_comfy_main_async(engine_state).await;
+    run_comfy_main_async(game, make_game_context).await;
 }
 
 fn main() {
@@ -49,12 +48,17 @@ impl GameState {
     }
 }
 
-pub fn make_context<'a, 'b: 'a>(
-    state: &'a mut GameState,
+pub fn make_game_context<'a, 'b: 'a>(
+    state: &'b mut GameState,
     c: &'b mut EngineContext<'b>,
-) -> GameContext<'b> {
+) -> GameContext<'a> {
     GameContext { physics: &mut state.physics, engine: c }
 }
+
+// pub fn make_context<'a>(
+//     state: &mut GameState,
+//     c: &mut EngineContext,
+// ) -> GameContext<'a> {
 
 fn setup(_state: &mut GameState, _c: &mut EngineContext) {}
 
@@ -63,7 +67,7 @@ fn update(_c: &mut GameContext) {
 }
 
 fn foo<'a>(state: &'a mut GameState, c: &'a mut EngineContext<'a>) {
-    let _c = make_context(state, c);
+    let _c = make_game_context(state, c);
 }
 
 // fn main() {}

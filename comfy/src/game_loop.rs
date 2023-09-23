@@ -2,11 +2,25 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn wgpu_game_loop<S, C>(
-    #[cfg(not(target_arch = "wasm32"))] mut loop_helper: LoopHelper,
+pub async fn run_comfy_main_async<S: 'static, C: 'static>(
     mut game: ComfyGame<S, C>,
-    resolution: winit::dpi::PhysicalSize<i32>,
+    make_context: ContextBuilder<S, C>,
 ) {
+    let _tracy = maybe_setup_tracy();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let target_framerate = 60;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut loop_helper = spin_sleep::LoopHelper::builder()
+        .build_with_target_rate(target_framerate);
+
+    // TODO: baaaaaaad, but for now ...
+    #[cfg(target_arch = "wasm32")]
+    let resolution = winit::dpi::PhysicalSize::new(960, 560);
+    #[cfg(not(target_arch = "wasm32"))]
+    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
+
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
         .with_title(game.engine.title())
@@ -57,11 +71,17 @@ pub async fn wgpu_game_loop<S, C>(
                 set_delta(delta);
                 set_time(get_time() + delta as f64);
 
-
                 {
                     span_with_timing!("frame");
-                    game.engine.renderer.as_mut().unwrap().begin_frame();
-                    game.engine.update();
+                    game.engine
+                        .renderer
+                        .as_mut()
+                        .unwrap()
+                        .begin_frame(&game.engine.egui);
+
+                    game.update(make_context);
+
+                    game.engine.frame += 1;
                 }
 
                 if game.engine.quit_flag() {
@@ -91,14 +111,7 @@ pub async fn wgpu_game_loop<S, C>(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if game
-                    .engine
-                    .renderer()
-                    .as_mut_any()
-                    .downcast_mut::<WgpuRenderer>()
-                    .unwrap()
-                    .on_event(event)
-                {
+                if game.engine.on_event(event) {
                     return;
                 }
 

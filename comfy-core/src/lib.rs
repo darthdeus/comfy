@@ -564,6 +564,7 @@ pub struct DrawParams<'a> {
     pub mesh_queue: Vec<MeshDraw>,
 
     pub particle_queue: Vec<ParticleDraw>,
+    pub egui: &'a egui::Context,
 }
 
 #[derive(Copy, Clone, Debug)]

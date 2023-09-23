@@ -66,32 +66,6 @@ pub use comfy_wgpu::*;
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
-pub async fn run_comfy_main_async<S, C>(game: ComfyGame<S, C>) {
-    let _tracy = maybe_setup_tracy();
-
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let target_framerate = 60;
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let loop_helper = spin_sleep::LoopHelper::builder()
-        .build_with_target_rate(target_framerate);
-
-    // TODO: baaaaaaad, but for now ...
-    #[cfg(target_arch = "wasm32")]
-    let resolution = winit::dpi::PhysicalSize::new(960, 560);
-    #[cfg(not(target_arch = "wasm32"))]
-    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
-
-    wgpu_game_loop(
-        #[cfg(not(target_arch = "wasm32"))]
-        loop_helper,
-        game,
-        resolution,
-    )
-    .await;
-}
-
 pub fn timed_two_frames(
     interval: f32,
     f1: &'static str,
@@ -237,12 +211,14 @@ pub fn image_button_without_c(
 }
 
 #[cfg(not(feature = "tracy"))]
-fn maybe_setup_tracy() {
+fn maybe_setup_tracy() -> i32 {
     info!("TRACING DISABLED");
+    // We don't really care about the value, but if () is returned rustc complains about binding ()
+    0
 }
 
 #[cfg(feature = "tracy")]
-fn maybe_setup_tracy() {
+fn maybe_setup_tracy() -> tracy_client::Client {
     info!("CONNECTING TO TRACY");
 
     let client = tracy_client::Client::start();

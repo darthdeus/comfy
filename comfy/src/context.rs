@@ -26,10 +26,11 @@ pub type ContextFn =
 
 pub struct EngineContext<'a> {
     pub cached_loader: &'a RefCell<CachedImageLoader>,
-    pub graphics_context: &'a GraphicsContext,
-    pub textures: &'a Arc<Mutex<TextureMap>>,
-    pub surface_config: &'a wgpu::SurfaceConfiguration,
-    pub render_texture_format: wgpu::TextureFormat,
+    // pub graphics_context: &'a GraphicsContext,
+    // pub textures: &'a Arc<Mutex<TextureMap>>,
+    // pub surface_config: &'a wgpu::SurfaceConfiguration,
+    // pub render_texture_format: wgpu::TextureFormat,
+    pub renderer: &'a mut WgpuRenderer,
 
     pub draw: &'a RefCell<Draw>,
 
@@ -55,15 +56,12 @@ pub struct EngineContext<'a> {
     pub config: &'a RefCell<GameConfig>,
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 
-    pub renderer: &'a WgpuRenderer,
-
     pub mouse_world: Vec2,
     pub is_paused: &'a RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
-    pub post_processing_effects: &'a RefCell<Vec<PostProcessingEffect>>,
-    pub shaders: &'a RefCell<ShaderMap>,
-
+    // pub post_processing_effects: &'a RefCell<Vec<PostProcessingEffect>>,
+    // pub shaders: &'a RefCell<ShaderMap>,
     pub to_despawn: &'a RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
     pub flags: &'a RefCell<HashSet<String>>,
@@ -86,10 +84,10 @@ impl<'a> EngineContext<'a> {
         address_mode: wgpu::AddressMode,
     ) {
         load_texture_from_engine_bytes(
-            self.graphics_context,
+            &self.renderer.context,
             name,
             bytes,
-            &mut self.textures.lock(),
+            &mut self.renderer.textures.lock(),
             address_mode,
         );
     }
@@ -175,24 +173,26 @@ impl<'a> EngineContext<'a> {
     ) {
         let effect = PostProcessingEffect::new(
             name.to_string(),
-            &self.graphics_context.device,
-            &[&self.graphics_context.texture_layout],
-            self.surface_config,
-            self.render_texture_format,
+            &self.renderer.context.device,
+            &[&self.renderer.context.texture_layout],
+            &self.renderer.config,
+            self.renderer.render_texture_format,
             shader.clone(),
         );
 
         if index == -1 {
-            self.post_processing_effects.borrow_mut().push(effect);
+            self.renderer.post_processing_effects.borrow_mut().push(effect);
         } else if index >= 0 {
-            self.post_processing_effects
+            self.renderer
+                .post_processing_effects
                 .borrow_mut()
                 .insert(index as usize, effect);
         } else {
             panic!("Invalid index = {}, must be -1 or non-negative.", index);
         }
 
-        self.shaders
+        self.renderer
+            .shaders
             .borrow_mut()
             .insert(name.to_string().into(), shader.clone());
     }
