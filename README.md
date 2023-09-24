@@ -358,36 +358,6 @@ server](https://discord.gg/M8hySjuG48).
 
 comfy is free and open source and dual licensed under MIT and Apache 2.0 licenses.
 
-# TODO pre-release:
-
-- [ ] configurable resolution
-- [ ] .as_srgb() surface view
-- [ ] get rid of .as_world_size() for sizes
-- [x] generate wasm examples
-- [x] generate webms for website
-- [x] simple sprite
-- [x] simple text
-- [x] simple shapes
-- [x] simple particles
-- [x] lighting example
-- [ ] combat text example
-- [x] font loading
-- [x] particle systems
-- [x] text
-- [ ] blood canvas
-- [ ] raytracing
-- [ ] physics
-- [x] SFX
-- [x] looped music
-- [ ] postprocessing
-- [x] top-down minigame
-- [ ] platformer minigame
-- [x] timed draw
-- [x] ecs sprite
-- [x] ecs animatedsprite
-- [x] rename example_game to simple_game
-- [ ] context example
-
 # Games using comfy
 
 Comfy is being used by [LogLog Games](https://loglog.games/), and currently
