@@ -5,18 +5,20 @@ macro_rules! reloadable_wgsl_shader {
     ($name:literal) => {{
         let struct_prefix = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/shaders/structs.wgsl"
+            "/shaders/structs.wgsl"
         ));
 
         cfg_if! {
             if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let shader = include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/../assets/shaders/", $name, ".wgsl"));
+                    "/shaders/", $name, ".wgsl"));
             } else {
                 let path = concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/../assets/shaders/", $name, ".wgsl");
+                    "/shaders/", $name, ".wgsl"
+                );
+
                 info!("DEV loading shader: {}", path);
                 let shader: String = std::fs::read_to_string(path).unwrap().into();
             }
@@ -34,12 +36,12 @@ macro_rules! include_wgsl_fragment_shader {
     ($name:literal) => {{
         let struct_prefix = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/shaders/structs.wgsl"
+            "/shaders/structs.wgsl"
         ));
 
         let pp_prefix = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/shaders/user_post_processing_vertex.wgsl"
+            "/shaders/user_post_processing_vertex.wgsl"
         ));
 
         let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
@@ -55,12 +57,12 @@ macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
         let struct_prefix = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/shaders/structs.wgsl"
+            "/shaders/structs.wgsl"
         ));
 
         let pp_prefix = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/shaders/post_processing_vertex.wgsl"
+            "/shaders/post_processing_vertex.wgsl"
         ));
 
         let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
@@ -70,11 +72,11 @@ macro_rules! reloadable_wgsl_fragment_shader {
                 let frag_part =
                     include_str!(concat!(
                         env!("CARGO_MANIFEST_DIR"),
-                        "/../assets/shaders/", $name, ".wgsl"));
+                        "/shaders/", $name, ".wgsl"));
             } else {
                 let path = concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/../assets/shaders/", $name, ".wgsl");
+                    "/shaders/", $name, ".wgsl");
                 info!("DEV loading shader: {}", path);
 
                 let frag_part = std::fs::read_to_string(path)
@@ -123,9 +125,14 @@ pub fn simple_fragment_shader(
     name: &'static str,
     frag: &'static str,
 ) -> Shader {
-    let struct_prefix = include_str!("../../assets/shaders/structs.wgsl");
-    let frag_shader_prefix =
-        include_str!("../../assets/shaders/post_processing_vertex.wgsl");
+    let struct_prefix = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/shaders/structs.wgsl"
+    ));
+    let frag_shader_prefix = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/shaders/post_processing_vertex.wgsl"
+    ));
 
     Shader {
         name: name.to_string(),
@@ -146,7 +153,10 @@ impl MipmapGenerator {
                 device.create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Blit Shader"),
                     source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
-                        include_str!("../../assets/shaders/blit.wgsl"),
+                        include_str!(concat!(
+                            env!("CARGO_MANIFEST_DIR"),
+                            "/shaders/blit.wgsl"
+                        )),
                     )),
                 });
 

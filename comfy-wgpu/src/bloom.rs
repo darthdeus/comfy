@@ -185,7 +185,10 @@ impl Bloom {
             &[texture_layout],
             simple_fragment_shader(
                 "bloom-mip-blur",
-                include_str!("../../assets/shaders/bloom-mip-blur.wgsl"),
+                include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/shaders/bloom-mip-blur.wgsl"
+                )),
             ),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
@@ -204,7 +207,10 @@ impl Bloom {
             &[texture_layout],
             simple_fragment_shader(
                 "bloom-mip-blur",
-                include_str!("../../assets/shaders/bloom-merge.wgsl"),
+                include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/shaders/bloom-merge.wgsl"
+                )),
             ),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
@@ -295,7 +301,10 @@ impl Bloom {
             &[texture_layout, &lighting_params_layout, &blur_direction_layout],
             simple_fragment_shader(
                 "bloom-gauss",
-                include_str!("../../assets/shaders/bloom-gauss.wgsl"),
+                include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/shaders/bloom-gauss.wgsl"
+                )),
             ),
             wgpu::BlendState::REPLACE,
         );
