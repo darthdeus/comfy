@@ -41,7 +41,7 @@ jobs:
         if: runner.os == 'linux'
 
       - name: Build & run tests
-        run: cargo test
+        run: cargo test --features blobs
         # env:
         #   CARGO_INCREMENTAL: 0
         #   RUSTFLAGS: "-C debuginfo=0 -D warnings"
