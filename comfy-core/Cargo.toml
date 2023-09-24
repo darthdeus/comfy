@@ -34,7 +34,7 @@ blobs = { version = "0.2.1", optional = true }
 
 mlua = { version = "0.8.9", features = ["lua54", "vendored"], optional = true }
 backtrace = "0.3"
-color-backtrace = { git = "https://github.com/darthdeus/color-backtrace.git", default-features = false }
+color-backtrace = { git = "https://github.com/darthdeus/color-backtrace.git", default-features = false, rev = "f4e51c4922a3052cccdb071db464592cbe324613" }
 
 glam = { version = "0.24.1" }
 egui = "0.22.0"
@@ -44,7 +44,7 @@ egui-winit = { version = "0.22.0", optional = true, default-features = false, fe
 
 num-traits = "0.2.16"
 
-include_dir = { git = "https://github.com/darthdeus/include_dir" }
+include_dir = { git = "https://github.com/darthdeus/include_dir", rev = "4fc0b35d95833c964fdc163f998a446579140b0f" }
 
 thunderdome = "0.6.0"
 
@@ -96,7 +96,7 @@ kira = { version = "0.8.4", default-features = false, features = [
 
 anymap = "0.12.1"
 crossbeam = "0.8.2"
-git-version = { git = "https://github.com/darthdeus/git-version" }
+git-version = { git = "https://github.com/darthdeus/git-version", rev = "258d54fb61fcf9d808b375eeab882d4dcc40c08f" }
 lazy_static = "1.4.0"
 parking_lot = "0.12.1"
 nanoserde = "0.1.32"
