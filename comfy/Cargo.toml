@@ -2,7 +2,7 @@
 name = "comfy"
 version = "0.1.0"
 edition = "2021"
-license = "MIT or Apache"
+license = "MIT OR Apache-2.0"
 description = "A comfy 2d game engine in Rust."
 authors = ["Jakub Arnold <darthdeus@gmail.com>"]
 homepage = "https://comfyengine.org/"
