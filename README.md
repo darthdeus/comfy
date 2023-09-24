@@ -1,3 +1,5 @@
+# [![Comfy](assets/comfy-big.png)](https://comfyengine.org)
+
 [![Crates.io](https://img.shields.io/crates/v/comfy.svg)](https://crates.io/crates/comfy)
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/darthdeus/comfy#license)
 [![Crates.io](https://img.shields.io/crates/d/comfy.svg)](https://crates.io/crates/comfy)
