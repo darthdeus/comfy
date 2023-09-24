@@ -255,7 +255,7 @@ impl WgpuRenderer {
                     $name,
                     include_bytes!(concat!(
                         env!("CARGO_MANIFEST_DIR"),
-                        "/../assets/",
+                        "/assets/",
                         $name,
                         ".png"
                     )),
