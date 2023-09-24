@@ -176,10 +176,9 @@ opinionated way of making games.
 There are many more subtle differences, but in principle you can think of as
 comfy as "macroquad with more batteries included, built on top of wgpu, with
 less cross platform capabilities". Note that because comfy builds on wgpu and
-not OpenGL we don't have the same immediate mode interactions with Gthat
-because comfy builds on wgpu and not OpenGL we don't have the same immediate
-mode interactions with GL. This makes some things more difficult, e.g. render
-targets, changing shader uniforms, etc.
+not OpenGL we don't have the same immediate mode interactions with GL. This
+makes some things more difficult, e.g. render targets, changing shader
+uniforms, etc.
 
 Comfy intends to support all of these features, but it will take a bit more
 development. Many engines (e.g. bevy and rend3) end up using render graphs in
