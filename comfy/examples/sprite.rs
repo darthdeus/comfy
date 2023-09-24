@@ -10,7 +10,6 @@ fn setup(c: &mut EngineContext) {
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/comfy.png"
         )),
-        wgpu::AddressMode::ClampToEdge,
     );
 }
 

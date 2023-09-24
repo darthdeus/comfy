@@ -12,7 +12,6 @@ fn setup(c: &mut EngineContext) {
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/comfy.png"
         )),
-        wgpu::AddressMode::ClampToEdge,
     );
 
     // Spawn a new entity with a sprite and a transform.

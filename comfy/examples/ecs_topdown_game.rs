@@ -13,7 +13,6 @@ fn setup(c: &mut EngineContext) {
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/grass.png"
         )),
-        wgpu::AddressMode::ClampToEdge,
     );
 
     // Load the player texture
@@ -23,7 +22,6 @@ fn setup(c: &mut EngineContext) {
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/chicken.png"
         )),
-        wgpu::AddressMode::ClampToEdge,
     );
 
     for x in 0..50 {

@@ -3,15 +3,12 @@ use comfy::*;
 simple_game!("Sprite Example", setup, update);
 
 fn setup(c: &mut EngineContext) {
-    load_texture_from_engine_bytes(
-        &c.renderer.context,
+    c.load_texture_from_bytes(
         "player",
         include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../assets/player.png"
         )),
-        &mut c.renderer.textures.lock(),
-        wgpu::AddressMode::ClampToEdge,
     );
 }
 
