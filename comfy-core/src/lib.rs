@@ -99,8 +99,6 @@ pub use std::future::Future;
 pub use std::pin::Pin;
 pub use std::task::Poll;
 
-pub use color_backtrace;
-
 pub use hecs;
 pub use hecs::{CommandBuffer, DynamicBundle, Entity, World};
 pub use simple_easing::*;
@@ -154,8 +152,6 @@ pub use winit::{
     window::Window,
 };
 
-pub use include_dir;
-
 pub use thunderdome::{Arena, Index};
 
 pub use maplit::hashmap;
@@ -197,9 +193,12 @@ pub use console_log;
 pub use anymap::AnyMap;
 pub use bitflags::bitflags;
 pub use crossbeam;
-pub use git_version;
 pub use lazy_static::lazy_static;
 pub use ordered_float::OrderedFloat;
+
+pub use comfy_color_backtrace as color_backtrace;
+pub use comfy_git_version as git_version;
+pub use comfy_include_dir as include_dir;
 
 pub use kira;
 pub use kira::manager::{AudioManager, AudioManagerSettings};

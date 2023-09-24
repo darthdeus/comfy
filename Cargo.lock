@@ -272,8 +272,9 @@ checksum = "b4682ae6287fcf752ecaabbfcc7b6f9b72aa33933dc23a554d853aea8eea8635"
 
 [[package]]
 name = "blobs"
-version = "0.2.0"
-source = "git+https://github.com/darthdeus/blobs.git#6f5e0d42c531d039c18c23e51f202a00eefb4045"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f6133acadf9f9c64284e531d3be077c84cf44c2ff5cb712aa2a36cb1e0e7853"
 dependencies = [
  "approx",
  "assert_approx_eq",
@@ -444,16 +445,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "color-backtrace"
-version = "0.5.1"
-source = "git+https://github.com/darthdeus/color-backtrace.git#f4e51c4922a3052cccdb071db464592cbe324613"
-dependencies = [
- "atty",
- "backtrace",
- "termcolor",
-]
-
-[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -484,6 +475,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "comfy-color-backtrace"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06b5362a40443d9c27cfb57456c4a602be9ff432acd66da77e0c343e7283dd43"
+dependencies = [
+ "atty",
+ "backtrace",
+ "termcolor",
+]
+
+[[package]]
 name = "comfy-core"
 version = "0.1.0"
 dependencies = [
@@ -498,7 +500,9 @@ dependencies = [
  "bytemuck",
  "cfg-if",
  "chrono",
- "color-backtrace",
+ "comfy-color-backtrace",
+ "comfy-git-version",
+ "comfy_include_dir",
  "console_error_panic_hook",
  "console_log",
  "crossbeam",
@@ -508,12 +512,10 @@ dependencies = [
  "epaint",
  "fs_extra",
  "getrandom",
- "git-version",
  "glam",
  "glob",
  "hecs",
  "image",
- "include_dir",
  "inline_tweak",
  "instant",
  "itertools 0.11.0",
@@ -551,6 +553,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "comfy-git-version"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "172a8eae75a04aadfe18c54c854f83e67ba019c4a152bc6d5f995da0fc23b395"
+dependencies = [
+ "comfy-git-version-macro",
+]
+
+[[package]]
+name = "comfy-git-version-macro"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50eddb48ea406660a999cc6587f4cc858742f7f2dc9f70f7190efa7d570bee6f"
+
+[[package]]
 name = "comfy-wgpu"
 version = "0.1.0"
 dependencies = [
@@ -565,6 +582,25 @@ dependencies = [
  "wgpu",
  "wgpu-types",
  "winit",
+]
+
+[[package]]
+name = "comfy_include_dir"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b55b28713b87d1808d04df17a4df54e7fe2d98faf538e08823bb63a80d99dc6"
+dependencies = [
+ "comfy_include_dir_macros",
+]
+
+[[package]]
+name = "comfy_include_dir_macros"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40f406ef048802d72571865158891658c0d5604cca16be77ec481e93d78c5378"
+dependencies = [
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
@@ -1033,19 +1069,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c80984affa11d98d1b88b66ac8853f143217b399d3c74116778ff8fdb4ed2e"
 
 [[package]]
-name = "git-version"
-version = "0.3.5"
-source = "git+https://github.com/darthdeus/git-version#258d54fb61fcf9d808b375eeab882d4dcc40c08f"
-dependencies = [
- "git-version-macro",
-]
-
-[[package]]
-name = "git-version-macro"
-version = "0.3.5"
-source = "git+https://github.com/darthdeus/git-version#258d54fb61fcf9d808b375eeab882d4dcc40c08f"
-
-[[package]]
 name = "glam"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1247,23 +1270,6 @@ dependencies = [
  "num-traits",
  "png",
  "qoi",
-]
-
-[[package]]
-name = "include_dir"
-version = "0.7.3"
-source = "git+https://github.com/darthdeus/include_dir#4fc0b35d95833c964fdc163f998a446579140b0f"
-dependencies = [
- "include_dir_macros",
-]
-
-[[package]]
-name = "include_dir_macros"
-version = "0.7.3"
-source = "git+https://github.com/darthdeus/include_dir#4fc0b35d95833c964fdc163f998a446579140b0f"
-dependencies = [
- "proc-macro2",
- "quote",
 ]
 
 [[package]]
