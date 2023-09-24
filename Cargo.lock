@@ -271,13 +271,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4682ae6287fcf752ecaabbfcc7b6f9b72aa33933dc23a554d853aea8eea8635"
 
 [[package]]
-name = "bitmob"
-version = "0.1.0"
-dependencies = [
- "comfy",
-]
-
-[[package]]
 name = "blobs"
 version = "0.2.0"
 source = "git+https://github.com/darthdeus/blobs.git#6f5e0d42c531d039c18c23e51f202a00eefb4045"

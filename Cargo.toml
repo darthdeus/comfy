@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["comfy", "comfy-core", "comfy-wgpu", "games/bitmob"]
+members = ["comfy", "comfy-core", "comfy-wgpu"]
 
 [profile.dev]
 opt-level = 3

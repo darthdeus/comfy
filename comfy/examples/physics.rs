@@ -1,5 +1,12 @@
+#[cfg(not(feature = "blobs"))]
+compile_error!(
+    "The `blobs` must be enabled to compile the physics example. Compile with \
+     `cargo run --example physics --features blobs`"
+);
+
 use blobs::*;
 use comfy::*;
+
 
 // This example shows an integration between comfy and blobs, a simple 2d physics engine. It's not
 // the most beautiful example, and maybe a bit verbose for what it does, but it tries to showcase

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["use-wgpu", "blobs"]
+default = ["use-wgpu"]
 ci-release = ["file_logger"]
 
 file_logger = ["log4rs", "chrono"]

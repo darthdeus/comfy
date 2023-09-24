@@ -69,7 +69,13 @@ pub fn draw_quad(
     });
 }
 
-// TODO: compare to fast sprite
+/// Draws a sprite on the screen.
+///
+/// * `texture` - A handle to the texture to draw.
+/// * `position` - World position where to draw.
+/// * `tint` - The color tint to apply to the sprite.
+/// * `z_index` - The z-index of the sprite. Higher values are drawn on top of lower values.
+/// * `world_size` - The size of the world. Used for scaling.
 pub fn draw_sprite(
     texture: TextureHandle,
     position: Vec2,

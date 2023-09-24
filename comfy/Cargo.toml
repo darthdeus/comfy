@@ -6,8 +6,10 @@ license = "MIT or Apache"
 description = "A comfy 2d game engine in Rust."
 
 [features]
-default = ["color-backtrace", "quick-exit"]
+default = ["color-backtrace", "quick-exit", "blobs"]
 use-wgpu = []
+
+blobs = []
 
 memory-stats = ["comfy-core/memory-stats"]
 color-backtrace = []
