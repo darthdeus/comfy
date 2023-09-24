@@ -2,6 +2,9 @@
 name = "comfy-core"
 version = "0.1.0"
 edition = "2021"
+license = "MIT or Apache"
+description = "A comfy 2d game engine in Rust."
+authors = ["Jakub Arnold <darthdeus@gmail.com>"]
 
 [features]
 default = ["use-wgpu"]

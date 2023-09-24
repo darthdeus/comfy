@@ -2,6 +2,9 @@
 name = "comfy-wgpu"
 version = "0.1.0"
 edition = "2021"
+license = "MIT or Apache"
+description = "A comfy 2d game engine in Rust."
+authors = ["Jakub Arnold <darthdeus@gmail.com>"]
 
 [features]
 default = []
@@ -37,4 +40,3 @@ futures-intrusive = "0.5.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wgpu = { version = "0.16.0", features = ["webgl"] }
 web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
-
