@@ -65,18 +65,6 @@ macro_rules! reloadable_wgsl_fragment_shader {
 
         let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
 
-        // #[cfg(feature = "ci-release")]
-        // let frag_part =
-        //     include_str!(concat!("../../assets/shaders/", $name, ".wgsl"));
-        //
-        // #[cfg(not(feature = "ci-release"))]
-        // let path = concat!("assets/shaders/", $name, ".wgsl");
-        // #[cfg(not(feature = "ci-release"))]
-        // info!("DEV loading shader: {}", path);
-        // #[cfg(not(feature = "ci-release"))]
-        // let frag_part = std::fs::read_to_string(path)
-        //     .expect(&format!("shader at {path} must exist"));
-
         cfg_if! {
             if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let frag_part =

@@ -470,7 +470,7 @@ dependencies = [
 name = "comfy"
 version = "0.1.0"
 dependencies = [
- "comfy-core",
+ "comfy-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "comfy-wgpu",
 ]
 
@@ -553,6 +553,71 @@ dependencies = [
 ]
 
 [[package]]
+name = "comfy-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ba66177ff9b471c4381fe36575f234f757439e8d53825498c58d2d83f85364d"
+dependencies = [
+ "anyhow",
+ "anymap",
+ "arrayvec",
+ "atomic_refcell",
+ "backtrace",
+ "bimap",
+ "bitflags 2.4.0",
+ "bytemuck",
+ "cfg-if",
+ "comfy-color-backtrace",
+ "comfy-git-version",
+ "comfy_include_dir",
+ "console_error_panic_hook",
+ "console_log",
+ "crossbeam",
+ "egui",
+ "egui-winit",
+ "env_logger",
+ "epaint",
+ "fs_extra",
+ "getrandom",
+ "glam",
+ "glob",
+ "hecs",
+ "image",
+ "inline_tweak",
+ "instant",
+ "itertools 0.11.0",
+ "jemalloc-ctl",
+ "jemallocator",
+ "kira",
+ "lazy_static",
+ "log",
+ "maplit",
+ "memory-stats",
+ "mlua",
+ "nanoserde",
+ "notify",
+ "num-complex",
+ "num-traits",
+ "once_cell",
+ "ordered-float",
+ "parking_lot",
+ "pid",
+ "pollster",
+ "rand",
+ "rayon",
+ "simple-easing",
+ "smallvec",
+ "spin_sleep",
+ "thunderdome",
+ "tinyvec",
+ "tracy-client",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "winit",
+]
+
+[[package]]
 name = "comfy-git-version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -572,7 +637,7 @@ name = "comfy-wgpu"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
- "comfy-core",
+ "comfy-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "egui",
  "egui-wgpu",
  "egui-winit",
