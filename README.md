@@ -235,6 +235,23 @@ The only features you'll find in comfy are those which can be immediately used,
 understood, and that work from day 1. If a feature is not being used in a real
 game it won't appear in the engine source code.
 
+## [godot-rust](https://godot-rust.github.io/)
+
+If the goal is to "actually make a game", especially in 3D, then godot-rust is
+very likely the winner. No rust engine can match what Godot offers, and having
+used godot-rust to make
+[BITGUN](https://store.steampowered.com/app/1673940/BITGUN/) over the course of
+a year we can say that it is very mature, stable and well maintained.
+
+However, the main benefit (Godot) is also its greatest downside for us. We've
+found that code-based frameworks are much more fun to use. Many people consider
+GDScript to be the problematic part in Godot, but when working on BITGUN it
+actually helped us quite a bit, as there are many things which "only need a few
+lines of code" and don't really benefit from using Rust.
+
+Especially if you're considering making a 3D game, godot-rust is probably the best
+option of helping you ship something.
+
 ## [ggez](https://ggez.rs/)
 
 ggez is one of those libraries that have been around for a while, but I've

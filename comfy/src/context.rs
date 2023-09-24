@@ -75,7 +75,17 @@ impl<'a> EngineContext<'a> {
         blood_canvas_reset();
     }
 
-    pub fn load_texture_from_bytes(
+    pub fn load_texture_from_bytes(&self, name: &str, bytes: &[u8]) {
+        load_texture_from_engine_bytes(
+            &self.renderer.context,
+            name,
+            bytes,
+            &mut self.renderer.textures.lock(),
+            wgpu::AddressMode::ClampToEdge,
+        );
+    }
+
+    pub fn load_texture_from_bytes_ex(
         &self,
         name: &str,
         bytes: &[u8],
