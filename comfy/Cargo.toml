@@ -32,6 +32,5 @@ jemalloc = ["comfy-core/jemalloc"]
 lua = ["comfy-core/lua"]
 
 [dependencies]
-# comfy-wgpu = { path = "../comfy-wgpu" }
-comfy-wgpu = "0.1.0"
-comfy-core = "0.1.0"
+comfy-wgpu = { path = "../comfy-wgpu", version = "0.1.0" }
+comfy-core = { path = "../comfy-core", version = "0.1.0" }
