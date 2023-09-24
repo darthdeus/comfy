@@ -471,7 +471,7 @@ name = "comfy"
 version = "0.1.0"
 dependencies = [
  "comfy-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "comfy-wgpu",
+ "comfy-wgpu 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -635,6 +635,25 @@ checksum = "50eddb48ea406660a999cc6587f4cc858742f7f2dc9f70f7190efa7d570bee6f"
 [[package]]
 name = "comfy-wgpu"
 version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "comfy-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "futures-intrusive",
+ "image",
+ "web-sys",
+ "wgpu",
+ "wgpu-types",
+ "winit",
+]
+
+[[package]]
+name = "comfy-wgpu"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4423102aa7b097b89ae1c6281140ee766058a946248c228d6406dd62d2334c24"
 dependencies = [
  "bytemuck",
  "comfy-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
