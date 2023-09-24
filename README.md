@@ -28,6 +28,16 @@ enough.
 
 > `comfy` is named comfy, because it is very comfy to use.
 
+```rust
+use comfy::*;
+
+simple_game!("Nice red circle", update);
+
+fn update(_c: &mut EngineContext) {
+    draw_circle(vec2(0.0, 0.0), 0.5, RED, 0);
+}
+```
+
 The ultimate goal of comfy is to do the obvious thing as simply as
 possible without unnecessray ceremony. If something is annoying to use, it
 is a bug that should be fixed. We're not necessarily aiming at beginner
