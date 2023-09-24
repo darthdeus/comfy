@@ -150,8 +150,8 @@ fn update(c: &mut GameContext) {
     }
 
     draw_text(
-        "Be warned that blobs isn't the most stable with lots of balls :)",
-        Position::screen_percent(0.5, 0.1).to_world(),
+        "Be warned, blobs isn't very stable with many balls :)",
+        Position::screen_percent(0.5, 0.85).to_world(),
         WHITE,
         TextAlign::Center,
     );

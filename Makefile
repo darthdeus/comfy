@@ -16,11 +16,11 @@ EXAMPLE=animated_sprites
 # EXAMPLE=sound
 # EXAMPLE=text
 
-# default: build-examples
+default: build-examples
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-default: example
+# default: example
 
 FLAGS=--release --features=blobs
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
@@ -38,9 +38,6 @@ profile-startup:
 	cargo run --example shapes --features exit-after-startup
 
 build-examples:
-	./build-examples.sh
-
-wasm-build:
 	./build-examples.sh
 
 serve:
