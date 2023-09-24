@@ -71,7 +71,10 @@ impl EngineState {
 
         ASSETS.borrow_mut().load_sound_from_bytes(
             "error",
-            include_bytes!("../../assets/error.ogg"),
+            include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/assets/error.ogg"
+            )),
             StaticSoundSettings::default(),
         );
 
