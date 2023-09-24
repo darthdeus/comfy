@@ -16,7 +16,8 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     #[cfg(target_arch = "wasm32")]
     // let resolution = winit::dpi::PhysicalSize::new(960, 560);
     // let resolution = winit::dpi::PhysicalSize::new(860, 520);
-    let resolution = winit::dpi::LogicalSize::new(860, 520);
+    // let resolution = winit::dpi::LogicalSize::new(860, 520);
+    let resolution = winit::dpi::LogicalSize::new(1106, 526);
     #[cfg(not(target_arch = "wasm32"))]
     let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
 
