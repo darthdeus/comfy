@@ -6,7 +6,7 @@ simple_game!("Music Example", GameState, setup, update);
 
 // GameState can be any struct that can store any fields, only
 // requirement is that `GameState::new(c: &EngineContext)` exists.
-struct GameState {
+pub struct GameState {
     pub music_playing: bool,
 }
 
