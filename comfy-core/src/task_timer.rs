@@ -1,4 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    mem,
+    sync::{Arc, Mutex},
+};
+
+
 use crate::*;
 
 pub struct TaskTimer {
@@ -18,7 +23,7 @@ impl TaskTimer {
 
     fn get_duration(&self, task_name: &str) -> Option<Duration> {
         let timers = self.timers.lock().unwrap();
-        timers.get(task_name).cloned()
+        timers.get(task_name).copied()
     }
 }
 
@@ -32,8 +37,9 @@ impl Drop for TaskGuard {
     fn drop(&mut self) {
         let elapsed = self.start_time.elapsed();
         let mut timers = self.timers.lock().unwrap();
-        let entry =
-            timers.entry(self.task_name.clone()).or_insert(Duration::new(0, 0));
+        let entry = timers
+            .entry(mem::take(&mut self.task_name))
+            .or_insert(Duration::ZERO);
         *entry += elapsed;
     }
 }
