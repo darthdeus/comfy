@@ -1,6 +1,6 @@
 [package]
 name = "comfy"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A comfy 2d game engine in Rust."
@@ -32,5 +32,5 @@ jemalloc = ["comfy-core/jemalloc"]
 lua = ["comfy-core/lua"]
 
 [dependencies]
-comfy-wgpu = { path = "../comfy-wgpu", version = "0.1.0" }
-comfy-core = { path = "../comfy-core", version = "0.1.0" }
+comfy-wgpu = { path = "../comfy-wgpu", version = "0.1.1" }
+comfy-core = { path = "../comfy-core", version = "0.1.1" }

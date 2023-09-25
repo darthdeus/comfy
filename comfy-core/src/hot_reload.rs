@@ -18,14 +18,15 @@ impl HotReload {
             notify::RecommendedWatcher::new(tx, Default::default()).unwrap();
 
 
-        let mut x = Self { rx, watcher };
-
-        let path =
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../comfy-wgpu/shaders");
-
-        x.watch_path(Path::new(&path)).unwrap();
-
-        x
+        // let mut x = Self { rx, watcher };
+        //
+        // let path =
+        //     concat!(env!("CARGO_MANIFEST_DIR"), "/../comfy-wgpu/shaders");
+        //
+        // x.watch_path(Path::new(&path)).unwrap();
+        //
+        // x
+        Self { rx, watcher }
     }
 
     pub fn watch_path(&mut self, path: &Path) -> Result<()> {

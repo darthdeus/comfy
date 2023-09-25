@@ -1,6 +1,6 @@
 [package]
 name = "comfy-wgpu"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A comfy 2d game engine in Rust."
@@ -17,7 +17,7 @@ tracy = []
 record-pngs = []
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.1.0", features = ["use-wgpu"] }
+comfy-core = { path = "../comfy-core", version = "0.1.1", features = ["use-wgpu"] }
 
 wgpu = { version = "0.16.0", features = ["expose-ids"] }
 wgpu-types = "0.16.0"
