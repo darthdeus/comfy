@@ -4,7 +4,15 @@ simple_game!("Post Processing", setup, update);
 
 fn setup(c: &mut EngineContext) {
     let name = "fun-chromatic-aberration";
-    let shader = include_wgsl_fragment_shader!("fun-chromatic-aberration.wgsl");
+
+    let shader = Shader {
+        name: name.to_string(),
+        source: include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/examples/fun-chromatic-aberration.wgsl"
+        ))
+        .to_string(),
+    };
 
     c.insert_post_processing_effect(0, name, shader);
 }

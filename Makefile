@@ -1,6 +1,6 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
-EXAMPLE=animated_sprites
+# EXAMPLE=animated_sprites
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
@@ -11,16 +11,16 @@ EXAMPLE=animated_sprites
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
-# EXAMPLE=sprite
+EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
 
-default: build-examples
+# default: build-examples
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-# default: example
+default: example
 
 FLAGS=--release --features=blobs
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn

@@ -17,9 +17,9 @@ mod pipelines;
 mod post_processing;
 mod render_pass;
 mod renderer;
+mod screenshot;
 mod texture;
 mod utils;
-mod screenshot;
 
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;

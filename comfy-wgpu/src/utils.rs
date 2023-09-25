@@ -31,26 +31,12 @@ macro_rules! reloadable_wgsl_shader {
     }};
 }
 
-#[macro_export]
-macro_rules! include_wgsl_fragment_shader {
-    ($name:literal) => {{
-        let struct_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/structs.wgsl"
-        ));
-
-        let pp_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/user_post_processing_vertex.wgsl"
-        ));
-
-        let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
-        let frag_part = include_str!($name);
-        let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
-
-        Shader { name: $name.to_string(), source: full_shader.to_string() }
-    }};
-}
+// #[macro_export]
+// macro_rules! include_wgsl_fragment_shader {
+//     ($name:expr, $source:expr) => {{
+//         Shader { name: $name.to_string(), source: full_shader.to_string() }
+//     }};
+// }
 
 #[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {

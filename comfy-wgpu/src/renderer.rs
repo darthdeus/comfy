@@ -1324,8 +1324,7 @@ impl WgpuRenderer {
     pub fn begin_frame(&mut self, egui_ctx: &egui::Context) {
         let _span = span!("begin_frame");
 
-        egui_ctx
-            .begin_frame(self.egui_winit.take_egui_input(&self.window));
+        egui_ctx.begin_frame(self.egui_winit.take_egui_input(&self.window));
     }
 
     pub fn update(&mut self, params: &mut DrawParams) {

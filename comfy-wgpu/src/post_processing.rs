@@ -67,6 +67,28 @@ impl PostProcessingEffect {
     }
 }
 
+pub const USER_SHADER_PREFIX: &str = concat!(
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl")),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/shaders/user_post_processing_vertex.wgsl"
+    ))
+);
+
+pub fn create_user_shader_module(
+    device: &wgpu::Device,
+    shader: &Shader,
+) -> wgpu::ShaderModule {
+    let full_shader = format!("{}{}", USER_SHADER_PREFIX, &shader.source);
+
+    let descriptor = wgpu::ShaderModuleDescriptor {
+        label: Some(&shader.name),
+        source: wgpu::ShaderSource::Wgsl(full_shader.as_str().into()),
+    };
+
+    device.create_shader_module(descriptor)
+}
+
 pub fn create_post_processing_pipeline(
     name: &str,
     device: &wgpu::Device,
@@ -75,6 +97,7 @@ pub fn create_post_processing_pipeline(
     shader: Shader,
     blend: wgpu::BlendState,
 ) -> wgpu::RenderPipeline {
+    // let shader = create_user_shader_module(device, &shader);
     let shader = device.create_shader_module(shader.to_wgpu());
 
     let pipeline_layout =
