@@ -64,7 +64,6 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
 
                 let _span = span!("texture");
 
-
                 // TODO: no need to sort anymore
                 for draw in group.sorted_by_key(|draw| draw.mesh.z_index) {
                     result.push(RenderPassData {
