@@ -35,50 +35,53 @@ macro_rules! define_main {
 
 #[macro_export]
 macro_rules! simple_game {
-    ($name:literal, $state:ident, $setup:ident, $update:ident) => {
-        $crate::define_main!($name, ComfyGame);
-
-        pub struct ComfyGame {
-            pub engine: $crate::EngineState,
-            pub state: Option<$state>,
+    ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
+        struct ComfyGameContext<'a, 'b> {
+            state: &'a mut $state,
+            engine: &'a mut $crate::EngineContext<'b>,
         }
 
-        impl ComfyGame {
-            pub fn new(engine: $crate::EngineState) -> Self {
-                Self { state: None, engine }
-            }
+        #[inline]
+        #[must_use]
+        #[doc(hidden)]
+        fn _comfy_make_context<'a, 'b>(
+            state: &'a mut $state,
+            engine: &'a mut $crate::EngineContext<'b>,
+        ) -> ComfyGameContext<'a, 'b> {
+            ComfyGameContext { state, engine }
         }
 
-        impl GameLoop for ComfyGame {
-            fn engine(&mut self) -> &mut EngineState {
-                &mut self.engine
-            }
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_setup_context(context: &mut ComfyGameContext<'_, '_>) {
+            $setup(context.state, context.engine)
+        }
 
-            fn update(&mut self) {
-                let mut c = self.engine.make_context();
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_update_context(context: &mut ComfyGameContext<'_, '_>) {
+            $update(context.state, context.engine)
+        }
 
-                let state = self.state.get_or_insert_with(|| {
-                    let mut state = $state::new(&mut c);
-                    $setup(&mut state, &mut c);
-
-                    state
-                });
-
-                run_early_update_stages(&mut c);
-                $update(state, &mut c);
-                run_late_update_stages(&mut c);
-            }
+        $crate::comfy_game! {
+            $name,
+            ComfyGameContext,
+            $state,
+            _comfy_make_context,
+            _comfy_setup_context,
+            _comfy_update_context,
         }
     };
 
-    ($name:literal, $setup:ident, $update:ident) => {
+    ($name:literal, $setup:ident, $update:ident $(,)?) => {
         #[doc(hidden)]
         struct ComfyEmptyState;
 
         impl ComfyEmptyState {
             #[inline]
+            #[must_use]
             #[doc(hidden)]
-            pub fn new(_context: &mut $crate::EngineContext) -> Self {
+            pub fn new(_context: &mut $crate::EngineContext<'_>) -> Self {
                 Self
             }
         }
@@ -87,7 +90,7 @@ macro_rules! simple_game {
         #[doc(hidden)]
         fn _comfy_setup_empty_state(
             _state: &mut ComfyEmptyState,
-            context: &mut $crate::EngineContext,
+            context: &mut $crate::EngineContext<'_>,
         ) {
             $setup(context)
         }
@@ -96,7 +99,7 @@ macro_rules! simple_game {
         #[doc(hidden)]
         fn _comfy_update_empty_state(
             _state: &mut ComfyEmptyState,
-            context: &mut $crate::EngineContext,
+            context: &mut $crate::EngineContext<'_>,
         ) {
             $update(context)
         }
@@ -105,14 +108,17 @@ macro_rules! simple_game {
             $name,
             ComfyEmptyState,
             _comfy_setup_empty_state,
-            _comfy_update_empty_state
+            _comfy_update_empty_state,
         }
     };
 
-    ($name:literal, $update:ident) => {
+    ($name:literal, $update:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        fn _comfy_setup_empty_context(_context: &mut $crate::EngineContext) {}
+        fn _comfy_setup_empty_context(
+            _context: &mut $crate::EngineContext<'_>,
+        ) {
+        }
 
         simple_game!($name, _comfy_setup_empty_context, $update);
     };
@@ -120,18 +126,19 @@ macro_rules! simple_game {
 
 #[macro_export]
 macro_rules! comfy_game {
-    ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident) => {
+    ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident $(,)?) => {
         define_main!($name, ComfyGame);
 
         pub struct ComfyGame {
             pub engine: EngineState,
             pub state: Option<$state>,
-            pub setup_called: bool,
         }
 
         impl ComfyGame {
+            #[inline]
+            #[must_use]
             pub fn new(engine: EngineState) -> Self {
-                Self { state: None, engine, setup_called: false }
+                Self { state: None, engine }
             }
         }
 
@@ -139,29 +146,26 @@ macro_rules! comfy_game {
             fn update(&mut self) {
                 let mut c = self.engine.make_context();
 
-                if self.state.is_none() {
-                    self.state = Some(GameState::new(&mut c));
-                }
+                run_early_update_stages(&mut c);
 
-                if let Some(state) = self.state.as_mut() {
-                    run_early_update_stages(&mut c);
-
-                    {
+                let mut game_c: $context = match self.state.as_mut() {
+                    Some(state) => $make_context(state, &mut c),
+                    None => {
+                        let state: $state = $state::new(&mut c);
+                        let state = self.state.insert(state);
                         let mut game_c = $make_context(state, &mut c);
-
-                        if !self.setup_called {
-                            self.setup_called = true;
-
-                            $setup(&mut game_c);
-                        }
-
-                        $update(&mut game_c);
+                        $setup(&mut game_c);
+                        game_c
                     }
+                };
 
-                    run_late_update_stages(&mut c);
-                }
+                $update(&mut game_c);
+
+                run_late_update_stages(&mut c);
             }
 
+            #[inline]
+            #[must_use]
             fn engine(&mut self) -> &mut EngineState {
                 &mut self.engine
             }
