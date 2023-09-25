@@ -17,7 +17,7 @@ tracy = []
 record-pngs = []
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.1.1", features = ["use-wgpu"] }
+comfy-core = { path = "../comfy-core", version = "0.1.2", features = ["use-wgpu"] }
 
 wgpu = { version = "0.16.0", features = ["expose-ids"] }
 wgpu-types = "0.16.0"

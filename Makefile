@@ -42,3 +42,8 @@ build-examples:
 
 serve:
 	simple-http-server target/generated -c wasm,html,js -i
+
+publish-crates:
+	cargo publish -p comfy-core
+	cargo publish -p comfy-wgpu
+	cargo publish -p comfy
