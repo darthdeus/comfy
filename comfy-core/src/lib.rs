@@ -1099,7 +1099,7 @@ impl std::fmt::Display for SemanticVer {
 #[macro_export]
 macro_rules! define_versions {
     () => {
-        pub const GIT_VERSION: &str = git_version::git_version!();
+        // pub const GIT_VERSION: &str = git_version::git_version!();
 
         lazy_static! {
             pub static ref VERSION: SemanticVer = SemanticVer {
@@ -1117,9 +1117,9 @@ macro_rules! define_versions {
                 env!("CARGO_PKG_VERSION_MINOR"),
                 ".",
                 env!("CARGO_PKG_VERSION_PATCH"),
-                "(",
-                git_version::git_version!(),
-                ")"
+                // "(",
+                // git_version::git_version!(),
+                // ")"
             )
         }
     };
