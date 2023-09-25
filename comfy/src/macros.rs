@@ -36,15 +36,15 @@ macro_rules! define_main {
 #[macro_export]
 macro_rules! simple_game {
     ($name:literal, $state:ident, $setup:ident, $update:ident) => {
-        define_main!($name, ComfyGame);
+        $crate::define_main!($name, ComfyGame);
 
         pub struct ComfyGame {
-            pub engine: EngineState,
+            pub engine: $crate::EngineState,
             pub state: Option<$state>,
         }
 
         impl ComfyGame {
-            pub fn new(engine: EngineState) -> Self {
+            pub fn new(engine: $crate::EngineState) -> Self {
                 Self { state: None, engine }
             }
         }
@@ -57,60 +57,64 @@ macro_rules! simple_game {
             fn update(&mut self) {
                 let mut c = self.engine.make_context();
 
-                if self.state.is_none() {
+                let state = self.state.get_or_insert_with(|| {
                     let mut state = $state::new(&mut c);
                     $setup(&mut state, &mut c);
 
-                    self.state = Some(state);
-                }
-
-                if let Some(state) = self.state.as_mut() {
-                    run_early_update_stages(&mut c);
-                    $update(state, &mut c);
-                    run_late_update_stages(&mut c);
-                }
-            }
-        }
-    };
-
-    ($name:literal, $setup:ident, $update:ident) => {
-        define_main!($name, ComfyGame);
-
-        pub struct ComfyGame {
-            pub engine: EngineState,
-            pub setup_done: bool,
-        }
-
-        impl ComfyGame {
-            pub fn new(engine: EngineState) -> Self {
-                Self { engine, setup_done: false }
-            }
-        }
-
-        impl GameLoop for ComfyGame {
-            fn engine(&mut self) -> &mut EngineState {
-                &mut self.engine
-            }
-
-            fn update(&mut self) {
-                let mut c = self.engine.make_context();
-
-                if !self.setup_done {
-                    self.setup_done = true;
-                    $setup(&mut c);
-                }
+                    state
+                });
 
                 run_early_update_stages(&mut c);
-                $update(&mut c);
+                $update(state, &mut c);
                 run_late_update_stages(&mut c);
             }
         }
     };
 
-    ($name:literal, $update:ident) => {
-        fn setup(_c: &mut EngineContext) {}
+    ($name:literal, $setup:ident, $update:ident) => {
+        #[doc(hidden)]
+        struct ComfyEmptyState;
 
-        simple_game!($name, setup, $update);
+        impl ComfyEmptyState {
+            #[inline]
+            #[doc(hidden)]
+            pub fn new(_context: &mut $crate::EngineContext) -> Self {
+                Self
+            }
+        }
+
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_setup_empty_state(
+            _state: &mut ComfyEmptyState,
+            context: &mut $crate::EngineContext,
+        ) {
+            $setup(context)
+        }
+
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_update_empty_state(
+            _state: &mut ComfyEmptyState,
+            context: &mut $crate::EngineContext,
+        ) {
+            $update(context)
+        }
+
+        $crate::simple_game! {
+            $name,
+            ComfyEmptyState,
+            _comfy_setup_empty_state,
+            _comfy_update_empty_state
+        }
+    };
+
+    ($name:literal, $update:ident) => {
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_setup_empty_context(_context: &mut $crate::EngineContext) {}
+
+        simple_game!($name, _comfy_setup_empty_context, $update);
     };
 }
 
