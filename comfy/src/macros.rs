@@ -36,7 +36,7 @@ macro_rules! define_main {
 #[macro_export]
 macro_rules! simple_game {
     ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
-        struct ComfyGameContext<'a, 'b> {
+        pub struct ComfyGameContext<'a, 'b> {
             state: &'a mut $state,
             engine: &'a mut $crate::EngineContext<'b>,
         }
@@ -75,7 +75,7 @@ macro_rules! simple_game {
 
     ($name:literal, $setup:ident, $update:ident $(,)?) => {
         #[doc(hidden)]
-        struct ComfyEmptyState;
+        pub struct ComfyEmptyState;
 
         impl ComfyEmptyState {
             #[inline]
