@@ -11,6 +11,13 @@
 **If you're new here, check out the [comfy announcement on our
 blog](https://comfyengine.org/blog/first/).**
 
+_**NOTE: The `master` branch now has breaking changes, and a `v0.2.0` release
+will happen relatively soon. In order to not delay this too much more things
+will break on `master` before that happens. The changes should be for the
+better, and the book will be fully updated with a changelog & migration tips.
+Most should remain unaffected, unless you relied on some undocumented features
+:)**_
+
 Comfy is a fun 2D game engine built in Rust. It's designed to be
 opinionated, productive, and easy to use. It uses [wgpu](https://wgpu.rs/)
 and [winit](https://docs.rs/winit/latest/winit/), which makes it
