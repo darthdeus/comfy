@@ -557,7 +557,7 @@ impl WgpuRenderer {
         // make_effect!("darken");
 
         // make_effect!("screen-shake");
-        make_effect!("chromatic-aberration");
+        // make_effect!("chromatic-aberration");
         // make_effect!("film-grain");
 
         // make_effect!("copy");
