@@ -509,10 +509,7 @@ fn show_errors(c: &mut EngineContext) {
 }
 
 fn update_perf_counters(c: &mut EngineContext) {
-    if cfg!(feature = "dev") &&
-        c.config().dev.show_fps &&
-        c.config().dev.recording_mode == RecordingMode::None
-    {
+    if cfg!(not(feature = "ci-release")) && c.config().dev.show_fps {
         let _span = span!("perf counters");
 
         let dt = c.dt_stats.next(frame_time());
