@@ -1,12 +1,14 @@
+use comfy_core::GameConfig;
+
+#[inline]
+#[doc(hidden)]
+pub fn _comfy_default_config(config: GameConfig) -> GameConfig {
+    config
+}
+
 #[macro_export]
 macro_rules! define_main {
     ($name:literal, $game:ident $(,)?) => {
-        #[inline]
-        #[doc(hidden)]
-        fn _comfy_default_config(config: GameConfig) -> GameConfig {
-            config
-        }
-
         define_main!($name, $game, _comfy_default_config);
     };
 
@@ -45,7 +47,7 @@ macro_rules! define_main {
 
 #[macro_export]
 macro_rules! simple_game {
-    ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
+    ($name:literal, $state:ident, $config:ident, $setup:ident, $update:ident $(,)?) => {
         pub struct ComfyGameContext<'a, 'b> {
             state: &'a mut $state,
             engine: &'a mut $crate::EngineContext<'b>,
@@ -84,40 +86,12 @@ macro_rules! simple_game {
     };
 
     ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
-        pub struct ComfyGameContext<'a, 'b> {
-            state: &'a mut $state,
-            engine: &'a mut $crate::EngineContext<'b>,
-        }
-
-        #[inline]
-        #[must_use]
-        #[doc(hidden)]
-        fn _comfy_make_context<'a, 'b>(
-            state: &'a mut $state,
-            engine: &'a mut $crate::EngineContext<'b>,
-        ) -> ComfyGameContext<'a, 'b> {
-            ComfyGameContext { state, engine }
-        }
-
-        #[inline]
-        #[doc(hidden)]
-        fn _comfy_setup_context(context: &mut ComfyGameContext<'_, '_>) {
-            $setup(context.state, context.engine)
-        }
-
-        #[inline]
-        #[doc(hidden)]
-        fn _comfy_update_context(context: &mut ComfyGameContext<'_, '_>) {
-            $update(context.state, context.engine)
-        }
-
-        $crate::comfy_game! {
+        $crate::simple_game! {
             $name,
-            ComfyGameContext,
             $state,
-            _comfy_make_context,
-            _comfy_setup_context,
-            _comfy_update_context,
+            _comfy_empty_config,
+            $setup,
+            $update,
         }
     };
 
@@ -174,8 +148,8 @@ macro_rules! simple_game {
 
 #[macro_export]
 macro_rules! comfy_game {
-    ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident $(,)?) => {
-        define_main!($name, ComfyGame);
+    ($name:literal, $context:ident, $state:ident, $make_context:ident, $config:ident, $setup:ident, $update:ident $(,)?) => {
+        define_main!($name, ComfyGame, $config);
 
         pub struct ComfyGame {
             pub engine: EngineState,
@@ -217,6 +191,18 @@ macro_rules! comfy_game {
             fn engine(&mut self) -> &mut EngineState {
                 &mut self.engine
             }
+        }
+    };
+
+    ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident $(,)?) => {
+        $crate::comfy_game! {
+            $name,
+            $context,
+            $state,
+            $make_context,
+            _comfy_default_config,
+            $setup,
+            $update,
         }
     };
 }
