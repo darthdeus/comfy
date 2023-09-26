@@ -47,25 +47,12 @@ fn run_mid_update_stages(c: &mut EngineContext) {
     point_lights_system(c);
 
     if is_key_pressed(KeyCode::F6) {
-        // TODO: bake in some basic sfx into the engine
-        play_sound("alarm-next-stage");
         GlobalParams::toggle_flag("debug");
     }
 }
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
 pub fn run_late_update_stages(c: &mut EngineContext) {
-    // {
-    //     let _span = span!("game_loop.early_update");
-    //     game_loop.early_update(c);
-    // }
-
-
-    // {
-    //     let _span = span!("game_loop.update");
-    //     game_loop.update(c);
-    // }
-
     update_animated_sprites(c);
     update_trails(c);
     update_drawables(c);
@@ -76,12 +63,6 @@ pub fn run_late_update_stages(c: &mut EngineContext) {
     show_errors(c);
     update_perf_counters(c);
     show_lighting_ui(c);
-
-    // {
-    //     // TODO: late update maybe should be a bit later?
-    //     let _span = span!("game_loop.late_update");
-    //     game_loop.late_update(c);
-    // }
 
     c.draw.borrow_mut().marks.retain_mut(|mark| {
         mark.lifetime -= c.delta;

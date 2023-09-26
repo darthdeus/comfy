@@ -185,12 +185,10 @@ impl WgpuRenderer {
 
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
-        #[cfg(all(feature = "record-pngs", not(target_arch = "wasm32")))]
+        #[cfg(feature = "record-pngs")]
         let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT |
             wgpu::TextureUsages::COPY_SRC;
-        #[cfg(all(not(feature = "record-pngs"), not(target_arch = "wasm32")))]
-        let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(not(feature = "record-pngs"))]
         let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
 
         let config = wgpu::SurfaceConfiguration {
@@ -199,12 +197,7 @@ impl WgpuRenderer {
             width: size.width,
             height: size.height,
             present_mode: caps.present_modes[0],
-            // #[cfg(not(target_arch = "wasm32"))]
-            // present_mode: wgpu::PresentMode::Immediate,
-            // #[cfg(target_arch = "wasm32")]
-            // present_mode: wgpu::PresentMode::Fifo,
-            // TODO: not in build?
-            alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            alpha_mode: caps.alpha_modes[0],
             view_formats: vec![],
         };
 
@@ -960,7 +953,7 @@ impl WgpuRenderer {
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
-                &params.egui,
+                params.egui,
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,

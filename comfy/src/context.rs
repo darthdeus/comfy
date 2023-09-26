@@ -26,16 +26,12 @@ pub type ContextFn =
 
 pub struct EngineContext<'a> {
     pub cached_loader: &'a RefCell<CachedImageLoader>,
-    // pub graphics_context: &'a GraphicsContext,
-    // pub textures: &'a Arc<Mutex<TextureMap>>,
-    // pub surface_config: &'a wgpu::SurfaceConfiguration,
-    // pub render_texture_format: wgpu::TextureFormat,
     pub renderer: &'a mut WgpuRenderer,
 
     pub draw: &'a RefCell<Draw>,
 
     pub world: &'a mut Rc<RefCell<World>>,
-    pub commands: &'a RefCell<CommandBuffer>,
+    pub commands: &'a mut RefCell<CommandBuffer>,
 
     pub delta: f32,
     pub frame: u64,
@@ -49,20 +45,20 @@ pub struct EngineContext<'a> {
     pub egui: &'a egui::Context,
     pub egui_wants_mouse: bool,
 
-    pub cooldowns: &'a RefCell<Cooldowns>,
-    pub changes: &'a RefCell<ChangeTracker>,
-    pub notifications: &'a RefCell<Notifications>,
+    pub cooldowns: &'a mut RefCell<Cooldowns>,
+    pub changes: &'a mut RefCell<ChangeTracker>,
+    pub notifications: &'a mut RefCell<Notifications>,
 
-    pub config: &'a RefCell<GameConfig>,
+    pub config: &'a mut RefCell<GameConfig>,
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 
     pub mouse_world: Vec2,
-    pub is_paused: &'a RefCell<bool>,
+    pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
-    pub to_despawn: &'a RefCell<Vec<Entity>>,
+    pub to_despawn: &'a mut RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
-    pub flags: &'a RefCell<HashSet<String>>,
+    pub flags: &'a mut RefCell<HashSet<String>>,
 
     pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
 }

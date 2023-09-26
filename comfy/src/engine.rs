@@ -6,8 +6,6 @@ pub trait GameLoop {
     fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
     fn engine(&mut self) -> &mut EngineState;
     fn update(&mut self);
-    // fn early_update(&mut self, _c: &mut EngineContext) {}
-    // fn late_update(&mut self, _c: &mut EngineContext) {}
 }
 
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
@@ -158,24 +156,24 @@ impl EngineState {
 
             mouse_world: mouse_world(),
 
-            flags: &self.flags,
+            flags: &mut self.flags,
             lighting: &mut self.lighting,
 
             meta: &mut self.meta,
 
             world: &mut self.world,
-            commands: &self.commands,
+            commands: &mut self.commands,
 
-            config: &self.config,
+            config: &mut self.config,
             game_loop: &mut self.game_loop,
 
             cooldowns: &mut self.cooldowns,
-            changes: &self.changes,
+            changes: &mut self.changes,
             notifications: &mut self.notifications,
 
             // post_processing_effects: &renderer.post_processing_effects,
             // shaders: &renderer.shaders,
-            is_paused: &self.is_paused,
+            is_paused: &mut self.is_paused,
             show_pause_menu: &mut self.show_pause_menu,
             quit_flag: &mut self.quit_flag,
 
