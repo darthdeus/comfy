@@ -14,6 +14,7 @@ pub struct GameConfig {
 
     pub ship: ShipConfig,
 
+    pub bloom_enabled: bool,
     pub lighting: GlobalLightingParams,
     pub lighting_enabled: bool,
 
@@ -37,6 +38,7 @@ impl Default for GameConfig {
 
             ship: ShipConfig::default(),
 
+            bloom_enabled: false,
             lighting: GlobalLightingParams::default(),
             lighting_enabled: false,
 

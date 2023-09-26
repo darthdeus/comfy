@@ -712,6 +712,7 @@ impl WgpuRenderer {
         &mut self,
         screen_view: &wgpu::TextureView,
         params: &GlobalLightingParams,
+        game_config: &GameConfig,
     ) {
         let _span = span!("render_post_processing");
         let mut encoder =
@@ -719,12 +720,14 @@ impl WgpuRenderer {
 
         let mut input_bind_group = &self.first_pass_bind_group;
 
-        self.bloom.draw(
-            &self.context.device,
-            &self.texture_layout,
-            &self.first_pass_bind_group,
-            &mut encoder,
-        );
+        if game_config.bloom_enabled {
+            self.bloom.draw(
+                &self.context.device,
+                &self.texture_layout,
+                &self.first_pass_bind_group,
+                &mut encoder,
+            );
+        }
 
         let post_processing_effects = self.post_processing_effects.borrow();
 
@@ -787,11 +790,13 @@ impl WgpuRenderer {
             }
         }
 
-        self.bloom.blit_final(
-            &mut encoder,
-            &self.tonemapping_texture.view,
-            params,
-        );
+        if game_config.bloom_enabled {
+            self.bloom.blit_final(
+                &mut encoder,
+                &self.tonemapping_texture.view,
+                params,
+            );
+        }
 
         let tonemapping_pipeline =
             self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
@@ -1602,7 +1607,11 @@ impl WgpuRenderer {
             }
         }
 
-        self.render_post_processing(&surface_view, params.lighting);
+        self.render_post_processing(
+            &surface_view,
+            params.lighting,
+            params.config,
+        );
         self.render_egui(&surface_view, &params);
 
         if params.config.dev.show_buffers {
