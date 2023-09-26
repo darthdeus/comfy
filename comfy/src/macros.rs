@@ -1,31 +1,29 @@
-use comfy_core::GameConfig;
-
-#[inline]
-#[doc(hidden)]
-pub fn _comfy_default_config(config: GameConfig) -> GameConfig {
-    config
-}
-
 #[macro_export]
 macro_rules! define_main {
     ($name:literal, $game:ident $(,)?) => {
+        #[inline]
+        #[doc(hidden)]
+        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+            config
+        }
+
         define_main!($name, $game, _comfy_default_config);
     };
 
     ($name:literal, $game:ident, $config:ident $(,)?) => {
-        define_versions!();
+        $crate::define_versions!();
 
         pub async fn run() {
-            let config = GameConfig {
+            let config = $crate::GameConfig {
                 game_name: $name,
                 version: version_str(),
                 ..Default::default()
             };
 
-            let engine = EngineState::new($config(config));
+            let engine = $crate::EngineState::new($config(config));
             let game = $game::new(engine);
 
-            run_comfy_main_async(game).await;
+            $crate::run_comfy_main_async(game).await;
         }
 
         fn main() {
@@ -34,12 +32,12 @@ macro_rules! define_main {
 
             #[cfg(not(target_arch = "wasm32"))]
             {
-                pollster::block_on(run());
+                $crate::pollster::block_on(run());
             }
 
             #[cfg(target_arch = "wasm32")]
             {
-                wasm_bindgen_futures::spawn_local(run());
+                $crate::wasm_bindgen_futures::spawn_local(run());
             }
         }
     };
@@ -87,6 +85,12 @@ macro_rules! simple_game {
     };
 
     ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
+        #[inline]
+        #[doc(hidden)]
+        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+            config
+        }
+
         $crate::simple_game! {
             $name,
             $state,
@@ -138,7 +142,10 @@ macro_rules! simple_game {
     ($name:literal, $update:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        fn _comfy_setup_empty_context(_context: &mut EngineContext<'_>) {}
+        fn _comfy_setup_empty_context(
+            _context: &mut $crate::EngineContext<'_>,
+        ) {
+        }
 
         simple_game!($name, _comfy_setup_empty_context, $update);
     };
@@ -147,26 +154,26 @@ macro_rules! simple_game {
 #[macro_export]
 macro_rules! comfy_game {
     ($name:literal, $context:ident, $state:ident, $make_context:ident, $config:ident, $setup:ident, $update:ident $(,)?) => {
-        define_main!($name, ComfyGame, $config);
+        $crate::define_main!($name, ComfyGame, $config);
 
         pub struct ComfyGame {
-            pub engine: EngineState,
+            pub engine: $crate::EngineState,
             pub state: Option<$state>,
         }
 
         impl ComfyGame {
             #[inline]
             #[must_use]
-            pub fn new(engine: EngineState) -> Self {
+            pub fn new(engine: $crate::EngineState) -> Self {
                 Self { state: None, engine }
             }
         }
 
-        impl GameLoop for ComfyGame {
+        impl $crate::GameLoop for ComfyGame {
             fn update(&mut self) {
                 let mut c = self.engine.make_context();
 
-                run_early_update_stages(&mut c);
+                $crate::run_early_update_stages(&mut c);
 
                 let mut game_c: $context = match self.state.as_mut() {
                     Some(state) => $make_context(state, &mut c),
@@ -181,18 +188,24 @@ macro_rules! comfy_game {
 
                 $update(&mut game_c);
 
-                run_late_update_stages(&mut c);
+                $crate::run_late_update_stages(&mut c);
             }
 
             #[inline]
             #[must_use]
-            fn engine(&mut self) -> &mut EngineState {
+            fn engine(&mut self) -> &mut $crate::EngineState {
                 &mut self.engine
             }
         }
     };
 
     ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident $(,)?) => {
+        #[inline]
+        #[doc(hidden)]
+        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+            config
+        }
+
         $crate::comfy_game! {
             $name,
             $context,
