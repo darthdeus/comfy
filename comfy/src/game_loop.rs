@@ -12,21 +12,24 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     let mut loop_helper = spin_sleep::LoopHelper::builder()
         .build_with_target_rate(target_framerate);
 
-    // TODO: baaaaaaad, but for now ...
-    #[cfg(target_arch = "wasm32")]
-    // let resolution = winit::dpi::PhysicalSize::new(960, 560);
-    // let resolution = winit::dpi::PhysicalSize::new(860, 520);
-    // let resolution = winit::dpi::LogicalSize::new(860, 520);
-    let resolution = winit::dpi::LogicalSize::new(1106, 526);
-    #[cfg(not(target_arch = "wasm32"))]
-    let resolution = winit::dpi::PhysicalSize::new(1920, 1080);
+    let resolution = game.engine().config.get_mut().resolution;
 
     let event_loop = winit::event_loop::EventLoop::new();
-    let window = winit::window::WindowBuilder::new()
-        .with_title(game.engine().title())
-        .with_inner_size(resolution)
-        .build(&event_loop)
-        .unwrap();
+    let window =
+        winit::window::WindowBuilder::new().with_title(game.engine().title());
+
+    let window = match resolution {
+        ResolutionConfig::Physical(w, h) => {
+            window.with_inner_size(winit::dpi::PhysicalSize::new(w, h))
+        }
+
+        ResolutionConfig::Logical(w, h) => {
+            window.with_inner_size(winit::dpi::LogicalSize::new(w, h))
+        }
+    };
+
+
+    let window = window.build(&event_loop).unwrap();
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -34,8 +37,8 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
         window.set_inner_size(PhysicalSize::new(
-            resolution.width,
-            resolution.height,
+            resolution.width(),
+            resolution.height(),
         ));
 
         use winit::platform::web::WindowExtWebSys;

@@ -960,7 +960,7 @@ impl WgpuRenderer {
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
-                &params.egui,
+                params.egui,
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,

@@ -80,6 +80,7 @@ macro_rules! simple_game {
             ComfyGameContext,
             $state,
             _comfy_make_context,
+            $config,
             _comfy_setup_context,
             _comfy_update_context,
         }
@@ -89,7 +90,7 @@ macro_rules! simple_game {
         $crate::simple_game! {
             $name,
             $state,
-            _comfy_empty_config,
+            _comfy_default_config,
             $setup,
             $update,
         }
@@ -137,10 +138,7 @@ macro_rules! simple_game {
     ($name:literal, $update:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        fn _comfy_setup_empty_context(
-            _context: &mut $crate::EngineContext<'_>,
-        ) {
-        }
+        fn _comfy_setup_empty_context(_context: &mut EngineContext<'_>) {}
 
         simple_game!($name, _comfy_setup_empty_context, $update);
     };
