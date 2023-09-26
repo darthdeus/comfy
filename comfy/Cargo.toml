@@ -11,7 +11,6 @@ repository = "https://github.com/darthdeus/comfy"
 
 [features]
 default = ["color-backtrace", "quick-exit"]
-use-wgpu = []
 
 blobs = []
 

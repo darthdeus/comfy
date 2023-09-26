@@ -2,6 +2,7 @@ use crate::*;
 
 use image::DynamicImage;
 use image::GenericImageView;
+use image::ImageResult;
 
 #[derive(Debug)]
 pub struct Texture {
@@ -159,7 +160,7 @@ impl Texture {
         bytes: &[u8],
         label: &str,
         is_normal_map: bool,
-    ) -> Result<(DynamicImage, Self)> {
+    ) -> ImageResult<(DynamicImage, Self)> {
         let img = image::load_from_memory(bytes)?;
         let tex =
             Self::from_image(device, queue, &img, Some(label), is_normal_map)?;
@@ -173,7 +174,7 @@ impl Texture {
         img: &image::DynamicImage,
         label: Option<&str>,
         is_normal_map: bool,
-    ) -> Result<Self> {
+    ) -> ImageResult<Self> {
         Self::from_image_ex(
             device,
             queue,
@@ -191,7 +192,7 @@ impl Texture {
         label: Option<&str>,
         is_normal_map: bool,
         address_mode: wgpu::AddressMode,
-    ) -> Result<Self> {
+    ) -> ImageResult<Self> {
         let img = img.flipv();
         let rgba = img.to_rgba8();
         let dimensions = img.dimensions();
@@ -257,7 +258,7 @@ impl Texture {
         device: &wgpu::Device,
         img: &image::DynamicImage,
         label: Option<&str>,
-    ) -> Result<Self> {
+    ) -> ImageResult<Self> {
         let dimensions = img.dimensions();
         Self::create_uninit(device, dimensions.0, dimensions.1, label)
     }
@@ -267,7 +268,7 @@ impl Texture {
         width: u32,
         height: u32,
         label: Option<&str>,
-    ) -> Result<Self> {
+    ) -> ImageResult<Self> {
         let size = wgpu::Extent3d { width, height, depth_or_array_layers: 1 };
 
         let format = wgpu::TextureFormat::Rgba8UnormSrgb;

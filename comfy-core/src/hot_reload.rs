@@ -29,7 +29,7 @@ impl HotReload {
         Self { rx, watcher }
     }
 
-    pub fn watch_path(&mut self, path: &Path) -> Result<()> {
+    pub fn watch_path(&mut self, path: &Path) -> notify::Result<()> {
         self.watcher.watch(path, RecursiveMode::Recursive)?;
         Ok(())
     }

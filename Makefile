@@ -22,7 +22,7 @@ EXAMPLE=sprite
 # default: bitmob
 default: example
 
-FLAGS=--release --features=blobs
+FLAGS=--features=blobs
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
 
 bitmob:

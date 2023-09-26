@@ -1,31 +1,5 @@
 use crate::*;
 
-pub fn load_ttf_font(_path: &str) -> Result<Font> {
-    Ok(Font(0))
-}
-
-pub fn load_ttf_font_from_bytes(_bytes: &[u8]) -> Result<Font> {
-    Ok(Font(0))
-}
-
-pub fn measure_text(
-    _text: &str,
-    _font: Option<Font>,
-    _font_size: u16,
-    _font_scale: f32,
-) -> TextDimensions {
-    TextDimensions { width: 2.0, height: 2.0, offset_y: 0.0 }
-}
-
-pub struct TextDimensions {
-    pub width: f32,
-    pub height: f32,
-    pub offset_y: f32,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct Font(pub usize);
-
 #[derive(Clone, Debug)]
 pub struct TextParams {
     pub font: egui::FontId,

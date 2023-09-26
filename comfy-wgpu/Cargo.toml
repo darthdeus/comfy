@@ -17,7 +17,7 @@ tracy = []
 record-pngs = []
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.1.2", features = ["use-wgpu"] }
+comfy-core = { path = "../comfy-core", version = "0.1.2" }
 
 wgpu = { version = "0.16.0", features = ["expose-ids"] }
 wgpu-types = "0.16.0"
@@ -30,13 +30,9 @@ egui-winit = { version = "0.22.0", default-features = false, features = [] }
 image = { version = "0.24", default-features = false, features = [
   "png",
   "jpeg",
-  # "bmp",
-  # "webp",
-  "qoi",
 ] }
 
 bytemuck = { version = "1.12", default-features = false, features = ["derive"] }
-
 futures-intrusive = "0.5.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
