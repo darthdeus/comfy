@@ -127,6 +127,8 @@ impl WgpuRenderer {
             .await
             .unwrap();
 
+        info!("Using adapter: {:?}", adapter.get_info().name);
+
         trace!("Requesting device");
 
         #[cfg(not(target_arch = "wasm32"))]
