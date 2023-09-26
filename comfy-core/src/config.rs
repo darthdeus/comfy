@@ -2,9 +2,26 @@ use crate::*;
 
 pub const COMBAT_TEXT_LIFETIME: f32 = 0.4;
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct ShipConfig {
-    pub auto_disengage_angular_autopilot: bool,
+#[derive(Copy, Clone, Debug)]
+pub enum ResolutionConfig {
+    Physical(u32, u32),
+    Logical(u32, u32),
+}
+
+impl ResolutionConfig {
+    pub fn width(&self) -> u32 {
+        match self {
+            Self::Physical(w, _) => *w,
+            Self::Logical(w, _) => *w,
+        }
+    }
+
+    pub fn height(&self) -> u32 {
+        match self {
+            Self::Physical(_, h) => *h,
+            Self::Logical(_, h) => *h,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -12,7 +29,7 @@ pub struct GameConfig {
     pub game_name: &'static str,
     pub version: &'static str,
 
-    pub ship: ShipConfig,
+    pub resolution: ResolutionConfig,
 
     pub bloom_enabled: bool,
     pub lighting: GlobalLightingParams,
@@ -32,11 +49,16 @@ pub struct GameConfig {
 
 impl Default for GameConfig {
     fn default() -> Self {
+        #[cfg(target_arch = "wasm32")]
+        let resolution = ResolutionConfig::Logical(1106, 526);
+        #[cfg(not(target_arch = "wasm32"))]
+        let resolution = ResolutionConfig::Physical(1920, 1080);
+
         Self {
             game_name: "TODO_GAME_NAME",
             version: "TODO_VERSION",
 
-            ship: ShipConfig::default(),
+            resolution,
 
             bloom_enabled: false,
             lighting: GlobalLightingParams::default(),

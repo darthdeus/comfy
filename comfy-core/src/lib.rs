@@ -1094,8 +1094,8 @@ macro_rules! define_versions {
     () => {
         // pub const GIT_VERSION: &str = git_version::git_version!();
 
-        lazy_static! {
-            pub static ref VERSION: SemanticVer = SemanticVer {
+        $crate::lazy_static! {
+            pub static ref VERSION: $crate::SemanticVer = $crate::SemanticVer {
                 major: env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
                 minor: env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
                 patch: env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
