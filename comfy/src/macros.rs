@@ -1,6 +1,16 @@
 #[macro_export]
 macro_rules! define_main {
-    ($name:literal, $game:ident) => {
+    ($name:literal, $game:ident $(,)?) => {
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_default_config(config: GameConfig) -> GameConfig {
+            config
+        }
+
+        define_main!($name, $game, _comfy_default_config);
+    };
+
+    ($name:literal, $game:ident, $config:ident $(,)?) => {
         define_versions!();
 
         pub async fn run() {
@@ -10,7 +20,7 @@ macro_rules! define_main {
                 ..Default::default()
             };
 
-            let engine = EngineState::new(config);
+            let engine = EngineState::new($config(config));
             let game = $game::new(engine);
 
             run_comfy_main_async(game).await;
@@ -35,6 +45,44 @@ macro_rules! define_main {
 
 #[macro_export]
 macro_rules! simple_game {
+    ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
+        pub struct ComfyGameContext<'a, 'b> {
+            state: &'a mut $state,
+            engine: &'a mut $crate::EngineContext<'b>,
+        }
+
+        #[inline]
+        #[must_use]
+        #[doc(hidden)]
+        fn _comfy_make_context<'a, 'b>(
+            state: &'a mut $state,
+            engine: &'a mut $crate::EngineContext<'b>,
+        ) -> ComfyGameContext<'a, 'b> {
+            ComfyGameContext { state, engine }
+        }
+
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_setup_context(context: &mut ComfyGameContext<'_, '_>) {
+            $setup(context.state, context.engine)
+        }
+
+        #[inline]
+        #[doc(hidden)]
+        fn _comfy_update_context(context: &mut ComfyGameContext<'_, '_>) {
+            $update(context.state, context.engine)
+        }
+
+        $crate::comfy_game! {
+            $name,
+            ComfyGameContext,
+            $state,
+            _comfy_make_context,
+            _comfy_setup_context,
+            _comfy_update_context,
+        }
+    };
+
     ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
         pub struct ComfyGameContext<'a, 'b> {
             state: &'a mut $state,
