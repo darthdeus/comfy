@@ -202,10 +202,12 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        game.engine().resize(uvec2(
-                            physical_size.width,
-                            physical_size.height,
-                        ));
+                        if physical_size.width > 0  && physical_size.height > 0 {
+                            game.engine().resize(uvec2(
+                                physical_size.width,
+                                physical_size.height,
+                            ));
+                        }
                     }
 
                     WindowEvent::ScaleFactorChanged {

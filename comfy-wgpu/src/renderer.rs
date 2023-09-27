@@ -972,7 +972,6 @@ impl WgpuRenderer {
         {
             let mut render_pass =
                 encoder.simple_render_pass("egui Render Pass", None, view);
-
             egui_render.render_pass.render(
                 &mut render_pass,
                 &paint_jobs,
@@ -1487,9 +1486,9 @@ impl WgpuRenderer {
     pub fn draw(&mut self, params: DrawParams) {
         span_with_timing!("render");
 
-        let output = {
-            let _span = span!("get current surface");
-            self.surface.get_current_texture().unwrap()
+        let output = match self.surface.get_current_texture() {
+            Ok(texture) => texture,
+            Err(_) => { return; }
         };
 
         let surface_view = {
