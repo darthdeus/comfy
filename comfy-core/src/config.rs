@@ -30,6 +30,7 @@ pub struct GameConfig {
     pub version: &'static str,
 
     pub resolution: ResolutionConfig,
+    pub min_resolution: ResolutionConfig,
 
     pub bloom_enabled: bool,
     pub lighting: GlobalLightingParams,
@@ -54,11 +55,17 @@ impl Default for GameConfig {
         #[cfg(not(target_arch = "wasm32"))]
         let resolution = ResolutionConfig::Physical(1920, 1080);
 
+        #[cfg(target_arch = "wasm32")]
+        let min_resolution = ResolutionConfig::Logical(200, 100);
+        #[cfg(not(target_arch = "wasm32"))]
+        let min_resolution = ResolutionConfig::Physical(200, 100);
+
         Self {
             game_name: "TODO_GAME_NAME",
             version: "TODO_VERSION",
 
             resolution,
+            min_resolution,
 
             bloom_enabled: false,
             lighting: GlobalLightingParams::default(),

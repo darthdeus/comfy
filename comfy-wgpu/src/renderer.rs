@@ -1638,19 +1638,16 @@ impl WgpuRenderer {
 
         let scale_factor = self.window.scale_factor() as f32;
 
-        let new_size =
+        self.size =
             winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
 
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.surface.configure(&self.context.device, &self.config);
-        }
+        self.config.width =  self.size.width;
+        self.config.height = self.size.height;
+        self.surface.configure(&self.context.device, &self.config);
 
         self.egui_render_routine.borrow_mut().resize(
-            new_size.width,
-            new_size.height,
+            self.size.width,
+            self.size.height,
             scale_factor,
         );
 
