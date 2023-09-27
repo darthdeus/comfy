@@ -26,9 +26,9 @@ pub fn spawn_combat_text(
     ));
 }
 
-pub fn combat_text_system(c: &mut EngineContext) {
+pub fn combat_text_system() {
     for (_, (combat_text, lifetime)) in
-        c.world.borrow_mut().query_mut::<(&mut CombatText, &DespawnAfter)>()
+        world_mut().query_mut::<(&mut CombatText, &DespawnAfter)>()
     {
         let progress =
             (COMBAT_TEXT_LIFETIME - lifetime.0) / COMBAT_TEXT_LIFETIME;

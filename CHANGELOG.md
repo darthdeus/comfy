@@ -1,0 +1,22 @@
+# v0.2.0
+
+The main change in this release is that `EngineContext` does not exist
+anymore. This should simplify a lot of the confusion, as the #1 question
+about Comfy from _many_ people was about `GameContext` and `EngineContext`
+and why are there two any why do we even need them.
+
+Since Comfy already uses globals for many things, it makes sense to just
+embrace this fully and move the remaining things to globals as well. Many
+of the values provided in `EngineContext` were already available through
+globals and just re-exported, so this shouldn't be a huge issue.
+
+Comfy will still use `EngineContext` internally for some things, but this
+won't be re-exported to the users as everything should be accessible by
+other means.
+
+List of removed things and where to find them now:
+
+- `c.delta` -> `delta()`. This is likely going to be something that most users (including US)
+  re-export into their `GameContext/GameState` anyway.
+- `c.world()` -> `world()`. ECS world already lived in a single instance, it's now moved into a single global.
+- `c.commands()` -> `commands()`. Same as above.

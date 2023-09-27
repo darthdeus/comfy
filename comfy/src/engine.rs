@@ -161,9 +161,6 @@ impl EngineState {
 
             meta: &mut self.meta,
 
-            world: &mut self.world,
-            commands: &mut self.commands,
-
             config: &mut self.config,
             game_loop: &mut self.game_loop,
 

@@ -193,7 +193,7 @@ macro_rules! comfy_game {
 
                 $update(&mut game_c);
 
-                $crate::run_late_update_stages(&mut c);
+                $crate::run_late_update_stages(&mut c, delta());
             }
 
             #[inline]
