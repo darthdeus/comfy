@@ -95,7 +95,7 @@ fn update(c: &mut EngineContext) {
 
         if moved {
             animated_sprite.flip_x = move_dir.x < 0.0;
-            transform.position += move_dir.normalize() * speed * dt;
+            transform.position += move_dir.normalize_or_zero() * speed * dt;
             animated_sprite.play("walk");
         } else {
             animated_sprite.play("idle");
