@@ -301,7 +301,6 @@ impl AnimatedSpriteBuilder {
             self.state = Some(animation.to_state());
         }
 
-
         self.animations.insert(name.to_string(), animation);
 
         self
@@ -443,21 +442,17 @@ impl AnimationState {
 
     pub fn current_rect(&self) -> (Cow<'static, str>, Option<IRect>) {
         match self.source {
-            AnimationSource::Files { ref prefix, .. } => {
-                (
-                    Into::<Cow<'static, str>>::into(format!(
-                        "{}{}",
-                        prefix, self.current_frame
-                    )),
-                    None,
-                )
-            }
-            AnimationSource::Atlas { ref name, offset, step, size, .. } => {
-                (
-                    name.clone(),
-                    Some(IRect::new(offset + step * self.current_frame, size)),
-                )
-            }
+            AnimationSource::Files { ref prefix, .. } => (
+                Into::<Cow<'static, str>>::into(format!(
+                    "{}{}",
+                    prefix, self.current_frame
+                )),
+                None,
+            ),
+            AnimationSource::Atlas { ref name, offset, step, size, .. } => (
+                name.clone(),
+                Some(IRect::new(offset + step * self.current_frame, size)),
+            ),
             AnimationSource::Spritesheet { ref name, spritesheet } => {
                 let image_size = Assets::image_size(texture_id(name))
                     .unwrap_or_else(|| {
@@ -477,7 +472,6 @@ impl AnimationState {
                 let offset = ivec2(col, row) * size;
 
                 let rect = IRect::new(offset, size);
-
 
                 (name.clone(), Some(rect))
             }
