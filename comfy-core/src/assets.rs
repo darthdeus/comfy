@@ -13,8 +13,8 @@ pub fn texture_id_safe(id: &str) -> Option<TextureHandle> {
 
 pub struct LoadSoundRequest {
     pub path: String,
+    pub absolute_path: Option<String>,
     pub handle: Sound,
-    pub bytes: Vec<u8>,
 }
 
 pub struct LoadRequest {
@@ -244,28 +244,55 @@ impl Assets {
 
             while let Ok(item) = self.sound_recv.lock().try_recv() {
                 let sounds = self.sounds.clone();
+                let asset_source = self.asset_source.as_ref();
 
                 let sound_loop = move || {
-                    // TODO: do this properly
-                    let settings = if item.path.contains("music") {
-                        StaticSoundSettings::new().loop_region(..)
-                    } else {
-                        StaticSoundSettings::default()
-                    };
+                    if let Some(asset_source) = asset_source {
+                        let bytes: Vec<u8> = if let Some(absolute_path) =
+                            item.absolute_path
+                        {
+                            trace!("Loading absolute path {}", absolute_path);
+                            std::fs::read(&absolute_path).unwrap_or_else(
+                                |err| {
+                                    panic!(
+                                        "Failed to load {}, err: {}",
+                                        absolute_path, err
+                                    );
+                                },
+                            )
+                        } else {
+                            trace!("Loading embedded path {}", item.path);
+                            asset_source
+                                .dir
+                                .get_file(&item.path)
+                                .unwrap_or_else(|| {
+                                    panic!("Failed to load {}", item.path);
+                                })
+                                .contents()
+                                .to_vec()
+                        };
 
-                    match StaticSoundData::from_cursor(
-                        std::io::Cursor::new(item.bytes),
-                        settings,
-                    ) {
-                        Ok(sound) => {
-                            trace!("Sound {}", item.path);
-                            sounds.lock().insert(item.handle, sound);
-                        }
-                        Err(err) => {
-                            error!(
-                                "Failed to parse sound at {}: {:?}",
-                                item.path, err
-                            );
+                        // TODO: do this properly
+                        let settings = if item.path.contains("music") {
+                            StaticSoundSettings::new().loop_region(..)
+                        } else {
+                            StaticSoundSettings::default()
+                        };
+
+                        match StaticSoundData::from_cursor(
+                            std::io::Cursor::new(bytes),
+                            settings,
+                        ) {
+                            Ok(sound) => {
+                                trace!("Sound {}", item.path);
+                                sounds.lock().insert(item.handle, sound);
+                            }
+                            Err(err) => {
+                                error!(
+                                    "Failed to parse sound at {}: {:?}",
+                                    item.path, err
+                                );
+                            }
                         }
                     }
                 };
@@ -394,18 +421,10 @@ impl Assets {
                     target_arch = "wasm32"
                 )) {
                     info!("Embedded Sound {}", relative_path);
-
-                    let file = asset_source
-                        .dir
-                        .get_file(&relative_path)
-                        .unwrap_or_else(|| {
-                            panic!("Failed to load {}", relative_path);
-                        });
-
                     LoadSoundRequest {
                         path: relative_path,
+                        absolute_path: None,
                         handle,
-                        bytes: file.contents().to_vec(),
                     }
                 } else {
                     info!("File Sound: {}", relative_path);
@@ -418,14 +437,10 @@ impl Assets {
                         .to_string_lossy()
                         .to_string();
 
-                    trace!("Loading absolute path {}", absolute_path);
-
-                    let contents = std::fs::read(absolute_path).unwrap();
-
                     LoadSoundRequest {
                         path: relative_path,
+                        absolute_path: Some(absolute_path),
                         handle,
-                        bytes: contents,
                     }
                 };
 
