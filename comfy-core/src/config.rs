@@ -23,15 +23,18 @@ impl ResolutionConfig {
         }
     }
 
-    pub fn ensure_non_zero(&mut self) -> ResolutionConfig{
+    pub fn ensure_non_zero(&mut self) -> ResolutionConfig {
         const MIN_WINDOW_SIZE: u32 = 1;
         match self {
-            ResolutionConfig::Physical(w, h) | ResolutionConfig::Logical(w, h) if *w <= 0 || *h <= 0 => {
+            ResolutionConfig::Physical(w, h) |
+            ResolutionConfig::Logical(w, h)
+                if *w <= 0 || *h <= 0 =>
+            {
                 *w = MIN_WINDOW_SIZE;
                 *h = MIN_WINDOW_SIZE;
-            },
+            }
             _ => (),
-        }  
+        }
         self.clone()
     }
 }

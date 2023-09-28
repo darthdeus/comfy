@@ -1488,7 +1488,9 @@ impl WgpuRenderer {
 
         let output = match self.surface.get_current_texture() {
             Ok(texture) => texture,
-            Err(_) => { return; }
+            Err(_) => {
+                return;
+            }
         };
 
         let surface_view = {
@@ -1641,7 +1643,7 @@ impl WgpuRenderer {
         self.size =
             winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
 
-        self.config.width =  self.size.width;
+        self.config.width = self.size.width;
         self.config.height = self.size.height;
         self.surface.configure(&self.context.device, &self.config);
 
