@@ -5,6 +5,7 @@ mod animated_sprite;
 mod animation;
 mod cached_image_loader;
 mod combat_text;
+mod comfy_hecs;
 mod context;
 mod cooldowns;
 mod debug;
@@ -13,7 +14,6 @@ mod egui_utils;
 mod engine;
 mod game;
 mod game_loop;
-mod comfy_hecs;
 mod macros;
 mod particles;
 mod render;
@@ -26,6 +26,7 @@ pub use crate::animated_sprite::*;
 pub use crate::animation::*;
 pub use crate::cached_image_loader::*;
 pub use crate::combat_text::*;
+pub use crate::comfy_hecs::*;
 pub use crate::context::*;
 pub use crate::cooldowns::*;
 pub use crate::debug::*;
@@ -34,7 +35,6 @@ pub use crate::egui_utils::*;
 pub use crate::engine::*;
 pub use crate::game::*;
 pub use crate::game_loop::*;
-pub use crate::comfy_hecs::*;
 pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
@@ -56,11 +56,10 @@ pub use std::{
 };
 
 pub use comfy_core;
+pub use comfy_core::*;
 pub use comfy_core::{Assets, *};
 
 pub use std::path::Path;
-
-pub use comfy_core::*;
 
 pub use comfy_wgpu;
 pub use comfy_wgpu::*;
