@@ -290,12 +290,8 @@ impl AnimatedSpriteBuilder {
         looping: bool,
         source: AnimationSource,
     ) -> AnimatedSpriteBuilder {
-        let animation = Animation {
-            name: name.to_string(),
-            frame_time,
-            looping,
-            source: source.clone(),
-        };
+        let animation =
+            Animation { name: name.to_string(), frame_time, looping, source };
 
         if self.state.is_none() {
             self.state = Some(animation.to_state());
