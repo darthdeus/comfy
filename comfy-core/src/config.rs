@@ -56,9 +56,9 @@ impl Default for GameConfig {
         let resolution = ResolutionConfig::Physical(1920, 1080);
 
         #[cfg(target_arch = "wasm32")]
-        let min_resolution = ResolutionConfig::Logical(200, 100);
+        let min_resolution = ResolutionConfig::Logical(1, 1);
         #[cfg(not(target_arch = "wasm32"))]
-        let min_resolution = ResolutionConfig::Physical(200, 100);
+        let min_resolution = ResolutionConfig::Physical(1, 1);
 
         Self {
             game_name: "TODO_GAME_NAME",
