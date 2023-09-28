@@ -182,6 +182,7 @@ macro_rules! comfy_game {
                 let mut game_c: $context = match self.state.as_mut() {
                     Some(state) => $make_context(state, &mut c),
                     None => {
+                        #[allow(clippy::unnecessary_mut_passed)]
                         let state: $state = $state::new(&mut c);
                         let state = self.state.insert(state);
                         let mut game_c = $make_context(state, &mut c);
