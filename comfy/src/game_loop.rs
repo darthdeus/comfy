@@ -30,7 +30,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
 
     let window = window.build(&event_loop).unwrap();
 
-    let min_resolution = match game.engine().config.get_mut().min_resolution {
+    let min_resolution = match  game.engine().config.get_mut().min_resolution.ensure_non_zero() {
         ResolutionConfig::Physical(w, h) => {
             window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(w, h)));
             (w, h)
@@ -40,6 +40,8 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
             (w, h)
         }
     };
+
+    println!("{:?}", min_resolution);
 
     #[cfg(target_arch = "wasm32")]
     {
