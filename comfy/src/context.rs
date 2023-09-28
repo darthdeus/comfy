@@ -198,7 +198,7 @@ impl<'a> EngineContext<'a> {
         self.renderer
             .shaders
             .borrow_mut()
-            .insert(name.to_string().into(), shader.clone());
+            .insert(name.to_string().into(), shader);
     }
 
     // pub fn early_update(&mut self) {
