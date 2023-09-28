@@ -1,12 +1,5 @@
-#[cfg(not(feature = "blobs"))]
-compile_error!(
-    "The `blobs` must be enabled to compile the physics example. Compile with \
-     `cargo run --example physics --features blobs`"
-);
-
 use blobs::*;
 use comfy::*;
-
 
 // This example shows an integration between comfy and blobs, a simple 2d physics engine. It's not
 // the most beautiful example, and maybe a bit verbose for what it does, but it tries to showcase
@@ -172,29 +165,27 @@ fn update(c: &mut GameContext) {
 
     egui::Window::new("More balls")
         .anchor(egui::Align2::LEFT_TOP, egui::vec2(10.0, 10.0))
-        .show(c.egui, |ui| {
-            match c.ball_spawning_speed {
-                BallSpawningSpeed::Comfy => {
-                    if ui.button("Make it go faster").clicked() {
-                        *c.ball_spawning_speed = BallSpawningSpeed::Uncomfy;
-                    }
+        .show(c.egui, |ui| match c.ball_spawning_speed {
+            BallSpawningSpeed::Comfy => {
+                if ui.button("Make it go faster").clicked() {
+                    *c.ball_spawning_speed = BallSpawningSpeed::Uncomfy;
                 }
-                BallSpawningSpeed::Uncomfy => {
-                    if ui
-                        .add(egui::Button::new(
-                            egui::RichText::new("NOOOO, PLS STOP!!!").size(
-                                rescale(
-                                    c.physics.rbd_count() as f32,
-                                    0.0..limit as f32,
-                                    10.0..100.0,
-                                ),
+            }
+            BallSpawningSpeed::Uncomfy => {
+                if ui
+                    .add(egui::Button::new(
+                        egui::RichText::new("NOOOO, PLS STOP!!!").size(
+                            rescale(
+                                c.physics.rbd_count() as f32,
+                                0.0..limit as f32,
+                                10.0..100.0,
                             ),
-                        ))
-                        .clicked()
-                    {
-                        *c.ball_spawning_speed = BallSpawningSpeed::Comfy;
-                        c.physics.reset();
-                    }
+                        ),
+                    ))
+                    .clicked()
+                {
+                    *c.ball_spawning_speed = BallSpawningSpeed::Comfy;
+                    c.physics.reset();
                 }
             }
         });

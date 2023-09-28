@@ -33,3 +33,8 @@ lua = ["comfy-core/lua"]
 [dependencies]
 comfy-wgpu = { path = "../comfy-wgpu", version = "0.1.2" }
 comfy-core = { path = "../comfy-core", version = "0.1.2" }
+
+[[example]]
+name = "physics"
+src = "examples/physics"
+required-features = ["blobs"]
