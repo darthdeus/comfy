@@ -36,5 +36,4 @@ comfy-core = { path = "../comfy-core", version = "0.1.2" }
 
 [[example]]
 name = "physics"
-src = "examples/physics"
 required-features = ["blobs"]

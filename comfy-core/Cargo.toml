@@ -81,9 +81,6 @@ maplit = "1.0.2"
 
 bimap = "0.6.3"
 
-fs_extra = "1.2"
-glob = "0.3"
-
 kira = { version = "0.8.4", default-features = false, features = [
   "cpal",
   "ogg",
