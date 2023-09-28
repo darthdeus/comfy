@@ -1486,10 +1486,14 @@ impl WgpuRenderer {
     pub fn draw(&mut self, params: DrawParams) {
         span_with_timing!("render");
 
-        let output = match self.surface.get_current_texture() {
-            Ok(texture) => texture,
-            Err(_) => {
-                return;
+        let output = {
+            let _span = span!("get current surface");
+
+            match self.surface.get_current_texture() {
+                Ok(texture) => texture,
+                Err(_) => {
+                    return;
+                }
             }
         };
 
