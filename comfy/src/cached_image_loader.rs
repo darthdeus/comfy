@@ -91,4 +91,3 @@ impl CachedImageLoader {
         self.load(ctx, path).map(|x| x.0)
     }
 }
-

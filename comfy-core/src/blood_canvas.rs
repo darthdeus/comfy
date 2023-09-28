@@ -25,11 +25,10 @@ pub struct BloodCanvas {
 }
 
 impl BloodCanvas {
-    pub fn new(creator: Arc<AtomicRefCell<dyn TextureCreator + Send + Sync + 'static>>) -> Self {
-        Self {
-            creator,
-            blocks: HashMap::default(),
-        }
+    pub fn new(
+        creator: Arc<AtomicRefCell<dyn TextureCreator + Send + Sync + 'static>>,
+    ) -> Self {
+        Self { creator, blocks: HashMap::default() }
     }
 
     pub fn set_pixel(&mut self, position: Vec2, color: Color) {
@@ -42,18 +41,17 @@ impl BloodCanvas {
         let key = ivec2(x, y);
 
         self.blocks.entry(key).or_insert_with(|| {
-            let image =
-                DynamicImage::ImageRgba8(RgbaImage::new(BLOCK_SIZE as u32, BLOCK_SIZE as u32));
+            let image = DynamicImage::ImageRgba8(RgbaImage::new(
+                BLOCK_SIZE as u32,
+                BLOCK_SIZE as u32,
+            ));
 
             let name = format!("blood-canvas-{}-{}", x, y);
 
-            let handle = self.creator.borrow_mut().handle_from_image(&name, &image);
+            let handle =
+                self.creator.borrow_mut().handle_from_image(&name, &image);
 
-            CanvasBlock {
-                handle,
-                image,
-                modified: false,
-            }
+            CanvasBlock { handle, image, modified: false }
         })
     }
 
@@ -71,7 +69,8 @@ impl BloodCanvas {
 
         for dx in -radius..radius {
             for dy in -radius..radius {
-                if dx * dx + dy * dy < radius * radius && flip_coin(pixel_prob) {
+                if dx * dx + dy * dy < radius * radius && flip_coin(pixel_prob)
+                {
                     self.set_pixel_internal(x + dx, y + dy, color());
                 }
             }
@@ -117,12 +116,15 @@ impl BloodCanvas {
 
             for x in 0..rect.size.x {
                 for y in 0..rect.size.y {
-                    let px =
-                        image.get_pixel((x + rect.offset.x) as u32, (y + rect.offset.y) as u32);
+                    let px = image.get_pixel(
+                        (x + rect.offset.x) as u32,
+                        (y + rect.offset.y) as u32,
+                    );
 
                     if px.0[3] > 0 {
                         self.set_pixel(
-                            position + vec2(x as f32, y as f32) / 16.0 - size_offset / 16.0,
+                            position + vec2(x as f32, y as f32) / 16.0 -
+                                size_offset / 16.0,
                             // position,
                             Into::<Color>::into(px) * tint,
                             // RED,
@@ -135,6 +137,10 @@ impl BloodCanvas {
 }
 
 pub trait TextureCreator: Debug {
-    fn handle_from_image(&self, name: &str, image: &DynamicImage) -> TextureHandle;
+    fn handle_from_image(
+        &self,
+        name: &str,
+        image: &DynamicImage,
+    ) -> TextureHandle;
     fn update_texture(&self, image: &DynamicImage, texture: TextureHandle);
 }

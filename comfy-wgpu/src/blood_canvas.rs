@@ -28,7 +28,12 @@ pub fn blood_canvas_reset() {
     BLOOD_CANVAS.get().unwrap().borrow_mut().blocks = HashMap::default();
 }
 
-pub fn blood_circle_at(position: Vec2, radius: i32, pixel_prob: f32, color: fn() -> Color) {
+pub fn blood_circle_at(
+    position: Vec2,
+    radius: i32,
+    pixel_prob: f32,
+    color: fn() -> Color,
+) {
     BLOOD_CANVAS
         .get()
         .unwrap()
@@ -42,11 +47,12 @@ pub fn blood_canvas_blit_at(
     source_rect: Option<IRect>,
     tint: Color,
 ) {
-    BLOOD_CANVAS
-        .get()
-        .unwrap()
-        .borrow_mut()
-        .blit_at(texture, position, source_rect, tint);
+    BLOOD_CANVAS.get().unwrap().borrow_mut().blit_at(
+        texture,
+        position,
+        source_rect,
+        tint,
+    );
 }
 
 #[derive(Debug)]
@@ -54,14 +60,22 @@ pub struct WgpuTextureCreator {
     pub device: Arc<wgpu::Device>,
     pub queue: Arc<wgpu::Queue>,
     pub layout: Arc<wgpu::BindGroupLayout>,
-    pub textures: Arc<Mutex<HashMap<TextureHandle, (wgpu::BindGroup, Texture)>>>,
+    pub textures:
+        Arc<Mutex<HashMap<TextureHandle, (wgpu::BindGroup, Texture)>>>,
 }
 
 impl TextureCreator for WgpuTextureCreator {
-    fn handle_from_image(&self, name: &str, image: &DynamicImage) -> TextureHandle {
-        let texture = Texture::from_image_uninit(&self.device, image, Some(name)).unwrap();
+    fn handle_from_image(
+        &self,
+        name: &str,
+        image: &DynamicImage,
+    ) -> TextureHandle {
+        let texture =
+            Texture::from_image_uninit(&self.device, image, Some(name))
+                .unwrap();
 
-        let bind_group = self.device.simple_bind_group(name, &texture, &self.layout);
+        let bind_group =
+            self.device.simple_bind_group(name, &texture, &self.layout);
 
         let handle = texture_path(name);
         self.textures.lock().insert(handle, (bind_group, texture));

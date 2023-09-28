@@ -202,11 +202,8 @@ pub fn lighting_ui(
         "Ambient Light Intensity",
         &mut params.ambient_light_intensity,
     );
-    changed |= field_editor(
-        ui,
-        "Quadratic Falloff",
-        &mut params.quadratic_falloff,
-    );
+    changed |=
+        field_editor(ui, "Quadratic Falloff", &mut params.quadratic_falloff);
 
     changed |=
         field_editor(ui, "Light Blend Mode", &mut params.light_blending_mode);

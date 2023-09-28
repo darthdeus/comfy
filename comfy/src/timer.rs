@@ -65,21 +65,15 @@ impl BurstTimer {
         match self.state {
             BurstState::Burst { remaining, timer } => {
                 if timer > 0.0 {
-                    self.state = BurstState::Burst {
-                        remaining,
-                        timer: timer - delta,
-                    };
+                    self.state =
+                        BurstState::Burst { remaining, timer: timer - delta };
                 } else if remaining == 0 {
-                    self.state = BurstState::Reload {
-                        timer: self.reload_time,
-                    };
+                    self.state = BurstState::Reload { timer: self.reload_time };
                 }
             }
             BurstState::Reload { timer } => {
                 if timer > 0.0 {
-                    self.state = BurstState::Reload {
-                        timer: timer - delta,
-                    };
+                    self.state = BurstState::Reload { timer: timer - delta };
                 } else {
                     self.state = BurstState::Idle;
                 }

@@ -14,7 +14,7 @@ brace_style = "SameLineWhere"
 combine_control_expr = false
 
 # fn_args_layout = "Compressed"
-fn_args_layout = "Tall"
+fn_params_layout = "Tall"
 # fn_single_line = true
 
 force_multiline_blocks = true
