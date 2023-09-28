@@ -41,8 +41,6 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
         }
     };
 
-    println!("{:?}", min_resolution);
-
     #[cfg(target_arch = "wasm32")]
     {
         // Winit prevents sizing with CSS, so we have to set
