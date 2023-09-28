@@ -294,7 +294,7 @@ impl Bloom {
             "Bloom Gaussian",
             device,
             format,
-            &[texture_layout, &lighting_params_layout, &blur_direction_layout],
+            &[texture_layout, lighting_params_layout, &blur_direction_layout],
             simple_fragment_shader(
                 "bloom-gauss",
                 include_str!(concat!(
