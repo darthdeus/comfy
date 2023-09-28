@@ -134,6 +134,14 @@ impl ChangeTracker {
     }
 }
 
+static COOLDOWNS: Lazy<Arc<AtomicRefCell<Cooldowns>>> =
+    Lazy::new(|| Arc::new(AtomicRefCell::new(Cooldowns::new())));
+
+
+pub fn cooldowns() -> AtomicRefMut<'static, Cooldowns> {
+    COOLDOWNS.borrow_mut()
+}
+
 pub struct Cooldowns {
     data: HashMap<u64, f32>,
 }

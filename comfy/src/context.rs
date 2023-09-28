@@ -130,20 +130,12 @@ impl<'a> EngineContext<'a> {
         self.to_despawn.borrow_mut().push(entity);
     }
 
-    pub fn query() {
-        todo!();
-    }
-
     pub fn config(&self) -> core::cell::Ref<GameConfig> {
         self.config.borrow()
     }
 
     pub fn config_mut(&self) -> core::cell::RefMut<GameConfig> {
         self.config.borrow_mut()
-    }
-
-    pub fn cooldowns(&self) -> core::cell::RefMut<Cooldowns> {
-        self.cooldowns.borrow_mut()
     }
 
     pub fn draw(&self) -> core::cell::Ref<Draw> {
