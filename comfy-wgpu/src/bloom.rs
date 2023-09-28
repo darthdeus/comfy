@@ -7,7 +7,6 @@ pub const BLOOM_MIP_LEVEL_COUNT: u32 = 10;
 const BLUR_DIR_ZERO: [u32; 4] = [0, 0, 0, 0];
 const BLUR_DIR_ONE: [u32; 4] = [1, 0, 0, 0];
 
-
 pub struct FrameBuffer {
     pub texture: Texture,
     pub bind_group: wgpu::BindGroup,
@@ -129,7 +128,6 @@ impl Bloom {
         // let use_hdr = true;
         // let hdr_format = wgpu::TextureFormat::Rgba16Float;
 
-
         // let blur_bind_group_layout = device.simple_bind_group("Bloom Blur", texture, layout)
         // let blur_bind_group_layout =
         //     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -160,7 +158,6 @@ impl Bloom {
         //             },
         //         ],
         //     });
-
 
         let blur_texture = Texture::create_scaled_mip_filter_surface_texture(
             device,
@@ -293,7 +290,6 @@ impl Bloom {
                 }],
             });
 
-
         let gaussian_pipeline = create_post_processing_pipeline(
             "Bloom Gaussian",
             device,
@@ -308,7 +304,6 @@ impl Bloom {
             ),
             wgpu::BlendState::REPLACE,
         );
-
 
         Self {
             context: context.clone(),
@@ -540,7 +535,6 @@ impl Bloom {
     }
 }
 
-
 // {,
 //     let mut encoder = self.device.simple_encoder("Bloom MipMaps");
 
@@ -581,7 +575,6 @@ impl Bloom {
 //     view_formats: &[],
 // });
 
-
 /// Calculates blend intensities of blur pyramid levels
 /// during the upsampling + compositing stage.
 ///
@@ -606,13 +599,13 @@ fn compute_blend_factor(
     mip: f32,
     max_mip: f32,
 ) -> f32 {
-    let mut lf_boost =
-        (1.0 - (1.0 - (mip / max_mip))
-            .powf(1.0 / (1.0 - bloom_settings.low_frequency_boost_curvature))) *
-            bloom_settings.low_frequency_boost;
-    let high_pass_lq = 1.0 -
-        (((mip / max_mip) - bloom_settings.high_pass_frequency) /
-            bloom_settings.high_pass_frequency)
+    let mut lf_boost = (1.0
+        - (1.0 - (mip / max_mip))
+            .powf(1.0 / (1.0 - bloom_settings.low_frequency_boost_curvature)))
+        * bloom_settings.low_frequency_boost;
+    let high_pass_lq = 1.0
+        - (((mip / max_mip) - bloom_settings.high_pass_frequency)
+            / bloom_settings.high_pass_frequency)
             .clamp(0.0, 1.0);
     lf_boost *= match bloom_settings.composite_mode {
         BloomCompositeMode::EnergyConserving => 1.0 - bloom_settings.intensity,
@@ -621,7 +614,6 @@ fn compute_blend_factor(
 
     (bloom_settings.intensity + lf_boost) * high_pass_lq
 }
-
 
 /// Applies a bloom effect to an HDR-enabled 2d or 3d camera.
 ///
