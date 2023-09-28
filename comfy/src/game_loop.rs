@@ -28,8 +28,23 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
         }
     };
 
-
     let window = window.build(&event_loop).unwrap();
+
+    let min_resolution =
+        match game.engine().config.get_mut().min_resolution.ensure_non_zero() {
+            ResolutionConfig::Physical(w, h) => {
+                window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(
+                    w, h,
+                )));
+                (w, h)
+            }
+            ResolutionConfig::Logical(w, h) => {
+                window.set_min_inner_size(Some(winit::dpi::LogicalSize::new(
+                    w, h,
+                )));
+                (w, h)
+            }
+        };
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -202,10 +217,14 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        game.engine().resize(uvec2(
-                            physical_size.width,
-                            physical_size.height,
-                        ));
+                        if physical_size.width > min_resolution.0 &&
+                            physical_size.height > min_resolution.1
+                        {
+                            game.engine().resize(uvec2(
+                                physical_size.width,
+                                physical_size.height,
+                            ));
+                        }
                     }
 
                     WindowEvent::ScaleFactorChanged {

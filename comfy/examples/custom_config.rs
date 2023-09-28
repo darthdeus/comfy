@@ -5,6 +5,7 @@ simple_game!("Portrait mode", GameState, config, setup, update);
 fn config(config: GameConfig) -> GameConfig {
     GameConfig {
         resolution: ResolutionConfig::Physical(600, 600 * 16 / 9),
+        min_resolution: ResolutionConfig::Physical(100, 100 * 16 / 9),
         ..config
     }
 }

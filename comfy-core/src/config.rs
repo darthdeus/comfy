@@ -22,6 +22,21 @@ impl ResolutionConfig {
             Self::Logical(_, h) => *h,
         }
     }
+
+    pub fn ensure_non_zero(&mut self) -> ResolutionConfig {
+        const MIN_WINDOW_SIZE: u32 = 1;
+        match self {
+            ResolutionConfig::Physical(w, h) |
+            ResolutionConfig::Logical(w, h)
+                if *w <= 0 || *h <= 0 =>
+            {
+                *w = MIN_WINDOW_SIZE;
+                *h = MIN_WINDOW_SIZE;
+            }
+            _ => (),
+        }
+        self.clone()
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -30,6 +45,7 @@ pub struct GameConfig {
     pub version: &'static str,
 
     pub resolution: ResolutionConfig,
+    pub min_resolution: ResolutionConfig,
 
     pub bloom_enabled: bool,
     pub lighting: GlobalLightingParams,
@@ -54,11 +70,17 @@ impl Default for GameConfig {
         #[cfg(not(target_arch = "wasm32"))]
         let resolution = ResolutionConfig::Physical(1920, 1080);
 
+        #[cfg(target_arch = "wasm32")]
+        let min_resolution = ResolutionConfig::Logical(1, 1);
+        #[cfg(not(target_arch = "wasm32"))]
+        let min_resolution = ResolutionConfig::Physical(1, 1);
+
         Self {
             game_name: "TODO_GAME_NAME",
             version: "TODO_VERSION",
 
             resolution,
+            min_resolution,
 
             bloom_enabled: false,
             lighting: GlobalLightingParams::default(),
