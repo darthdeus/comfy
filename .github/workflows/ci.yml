@@ -42,6 +42,12 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
         if: runner.os == 'linux'
 
+      - name: Cache rust modules
+        uses: Swatinem/rust-cache@v2.0.1
+        with:
+          cache-on-failure: true
+          shared-key: ubuntu-build
+
       - name: Build & run tests
         run: cargo test --features blobs
 
