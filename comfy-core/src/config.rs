@@ -131,8 +131,10 @@ impl Default for DevConfig {
 
             #[cfg(feature = "ci-release")]
             show_fps: false,
-            #[cfg(not(feature = "ci-release"))]
+            #[cfg(feature = "dev")]
             show_fps: true,
+            #[cfg(any(not(feature = "dev"), not(feature = "ci-release")))]
+            show_fps: false,
 
             draw_colliders: false,
             draw_collision_marks: false,
