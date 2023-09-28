@@ -20,3 +20,6 @@ List of removed things and where to find them now:
   re-export into their `GameContext/GameState` anyway.
 - `c.world()` -> `world()`. ECS world already lived in a single instance, it's now moved into a single global.
 - `c.commands()` -> `commands()`. Same as above.
+- `c.cooldowns()` -> `cooldowns()`. This might be worth re-exporting into
+  `GameContext` if accessed frequently, but in either way there's no extra
+  overhead compared to before.

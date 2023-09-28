@@ -29,12 +29,8 @@ pub struct EngineState {
 
     pub meta: AnyMap,
 
-    pub world: Rc<RefCell<World>>,
-    pub commands: RefCell<CommandBuffer>,
-
     pub config: RefCell<GameConfig>,
 
-    pub cooldowns: RefCell<Cooldowns>,
     pub changes: RefCell<ChangeTracker>,
     pub notifications: RefCell<Notifications>,
 
@@ -95,12 +91,8 @@ impl EngineState {
 
             lighting: config.lighting,
 
-            world: Rc::new(RefCell::new(World::new())),
-            commands: RefCell::new(CommandBuffer::new()),
-
             config: RefCell::new(config),
 
-            cooldowns: RefCell::new(Cooldowns::new()),
             changes: RefCell::new(ChangeTracker::new()),
             notifications: RefCell::new(Notifications::new()),
 
@@ -164,7 +156,6 @@ impl EngineState {
             config: &mut self.config,
             game_loop: &mut self.game_loop,
 
-            cooldowns: &mut self.cooldowns,
             changes: &mut self.changes,
             notifications: &mut self.notifications,
 

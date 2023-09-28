@@ -42,7 +42,6 @@ pub struct EngineContext<'a> {
     pub egui: &'a egui::Context,
     pub egui_wants_mouse: bool,
 
-    pub cooldowns: &'a mut RefCell<Cooldowns>,
     pub changes: &'a mut RefCell<ChangeTracker>,
     pub notifications: &'a mut RefCell<Notifications>,
 

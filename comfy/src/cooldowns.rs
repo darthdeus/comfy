@@ -134,7 +134,7 @@ impl ChangeTracker {
     }
 }
 
-static COOLDOWNS: Lazy<Arc<AtomicRefCell<Cooldowns>>> =
+pub static COOLDOWNS: Lazy<Arc<AtomicRefCell<Cooldowns>>> =
     Lazy::new(|| Arc::new(AtomicRefCell::new(Cooldowns::new())));
 
 

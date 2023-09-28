@@ -326,7 +326,7 @@ fn pause_system(c: &mut EngineContext) {
     }
 
     if !*c.is_paused.borrow() && !c.flags.borrow().contains(PAUSE_PHYSICS) {
-        c.cooldowns.borrow_mut().tick(c.delta);
+        cooldowns().tick(c.delta);
         c.notifications.borrow_mut().tick(c.delta);
     }
 }

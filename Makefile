@@ -1,7 +1,8 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
-EXAMPLE=custom_config
+# EXAMPLE=custom_config
+EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game

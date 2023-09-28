@@ -1,10 +1,10 @@
 use crate::*;
 
 // TODO: this should eventually turn into a comfy-hecs crate
-static WORLD: Lazy<Arc<AtomicRefCell<World>>> =
+pub static WORLD: Lazy<Arc<AtomicRefCell<World>>> =
     Lazy::new(|| Arc::new(AtomicRefCell::new(World::new())));
 
-static COMMANDS: Lazy<Arc<AtomicRefCell<CommandBuffer>>> =
+pub static COMMANDS: Lazy<Arc<AtomicRefCell<CommandBuffer>>> =
     Lazy::new(|| Arc::new(AtomicRefCell::new(CommandBuffer::new())));
 
 pub fn world() -> AtomicRef<'static, World> {
