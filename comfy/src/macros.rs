@@ -3,7 +3,9 @@ macro_rules! define_main {
     ($name:literal, $game:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+        pub fn _comfy_default_config(
+            config: $crate::GameConfig,
+        ) -> $crate::GameConfig {
             config
         }
 
@@ -87,7 +89,9 @@ macro_rules! simple_game {
     ($name:literal, $state:ident, $setup:ident, $update:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+        pub fn _comfy_default_config(
+            config: $crate::GameConfig,
+        ) -> $crate::GameConfig {
             config
         }
 
@@ -202,7 +206,9 @@ macro_rules! comfy_game {
     ($name:literal, $context:ident, $state:ident, $make_context:ident, $setup:ident, $update:ident $(,)?) => {
         #[inline]
         #[doc(hidden)]
-        pub fn _comfy_default_config(config: $crate::GameConfig) -> $crate::GameConfig {
+        pub fn _comfy_default_config(
+            config: $crate::GameConfig,
+        ) -> $crate::GameConfig {
             config
         }
 
