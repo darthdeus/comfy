@@ -23,7 +23,6 @@ pub struct LoadRequest {
     pub bytes: Vec<u8>,
 }
 
-
 pub struct LoadedImage {
     pub path: String,
     pub handle: TextureHandle,
@@ -137,7 +136,6 @@ impl Assets {
         //         }
         //     })
         //     .collect_vec();
-
 
         let (tx_sound, rx_sound) =
             std::sync::mpsc::channel::<LoadSoundRequest>();
@@ -620,19 +618,10 @@ impl Assets {
     }
 }
 
-pub fn load_multiple_sounds(pairs: &Vec<(String, String)>) {
-    for (key, relative_path) in pairs {
-        ASSETS
-            .borrow_mut()
-            .sound_load_queue
-            .push((key.clone(), relative_path.clone()));
-    }
+pub fn load_multiple_sounds(pairs: Vec<(String, String)>) {
+    ASSETS.borrow_mut().sound_load_queue.extend(pairs)
 }
 
-pub fn load_multiple_textures(pairs: &[(String, String)]) {
-    let mut assets = ASSETS.borrow_mut();
-
-    for (key, relative_path) in pairs.iter() {
-        assets.texture_load_queue.push((key.clone(), relative_path.clone()));
-    }
+pub fn load_multiple_textures(pairs: Vec<(String, String)>) {
+    ASSETS.borrow_mut().texture_load_queue.extend(pairs)
 }
