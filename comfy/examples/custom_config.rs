@@ -1,6 +1,6 @@
 use comfy::*;
 
-simple_game!("Nice red circle", GameState, config, setup, update);
+simple_game!("Portrait mode", GameState, config, setup, update);
 
 fn config(config: GameConfig) -> GameConfig {
     GameConfig {
