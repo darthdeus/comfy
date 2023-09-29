@@ -231,12 +231,14 @@ impl Assets {
                     .collect();
 
                 let mut queue = current_queue.lock();
+                let new_asset_count = texture_queue.len();
 
                 if let Some(queue) = queue.as_mut() {
                     queue.extend(texture_queue);
                 } else {
                     *queue = Some(texture_queue);
                 }
+                add_assets_loaded(new_asset_count);
             }
         }
 
@@ -292,6 +294,7 @@ impl Assets {
                             Ok(sound) => {
                                 trace!("Sound {}", item_path);
                                 sounds.lock().insert(handle, sound);
+                                add_assets_loaded(1);
                             }
                             Err(err) => {
                                 error!(

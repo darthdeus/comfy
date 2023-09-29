@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
 use crate::*;
 
@@ -15,6 +15,16 @@ static TIME: AtomicU64 = AtomicU64::new(unsafe { std::mem::transmute(0.0f64) });
 
 static UNPAUSED_TIME: AtomicU64 =
     AtomicU64::new(unsafe { std::mem::transmute(0.0f64) });
+
+static ASSETS_LOADED: AtomicUsize = AtomicUsize::new(0);
+
+pub fn assets_loaded() -> usize {
+    ASSETS_LOADED.load(Ordering::SeqCst)
+}
+
+pub fn add_assets_loaded(newly_loaded_count: usize) {
+    ASSETS_LOADED.fetch_add(newly_loaded_count, Ordering::SeqCst);
+}
 
 pub fn frame_time() -> f32 {
     f32::from_bits(FRAME_TIME.load(Ordering::SeqCst))
