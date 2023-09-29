@@ -1,4 +1,7 @@
-use std::sync::mpsc::{Receiver, Sender};
+use std::{
+    sync::mpsc::{Receiver, Sender},
+    thread,
+};
 
 use crate::*;
 
@@ -242,14 +245,19 @@ impl Assets {
             #[cfg(not(target_arch = "wasm32"))]
             let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
-            while let Ok(item) = self.sound_recv.lock().try_recv() {
-                let sounds = self.sounds.clone();
-                let asset_source = self.asset_source.as_ref();
+            if let Some(asset_source) = &self.asset_source {
+                while let Ok(item) = self.sound_recv.lock().try_recv() {
+                    let sounds = self.sounds.clone();
 
-                let sound_loop = move || {
-                    if let Some(asset_source) = asset_source {
+                    // TODO: remove clones? or OK to keep?
+                    let item_path = item.path.clone();
+                    let absolute_path = item.absolute_path.clone();
+                    let handle = item.handle.clone();
+                    let dir = asset_source.dir;
+
+                    let sound_loop = move || {
                         let bytes: Vec<u8> = if let Some(absolute_path) =
-                            item.absolute_path
+                            absolute_path
                         {
                             trace!("Loading absolute path {}", absolute_path);
                             std::fs::read(&absolute_path).unwrap_or_else(
@@ -261,19 +269,17 @@ impl Assets {
                                 },
                             )
                         } else {
-                            trace!("Loading embedded path {}", item.path);
-                            asset_source
-                                .dir
-                                .get_file(&item.path)
+                            trace!("Loading embedded path {}", item_path);
+                            dir.get_file(&item_path)
                                 .unwrap_or_else(|| {
-                                    panic!("Failed to load {}", item.path);
+                                    panic!("Failed to load {}", item_path);
                                 })
                                 .contents()
                                 .to_vec()
                         };
 
                         // TODO: do this properly
-                        let settings = if item.path.contains("music") {
+                        let settings = if item_path.contains("music") {
                             StaticSoundSettings::new().loop_region(..)
                         } else {
                             StaticSoundSettings::default()
@@ -284,24 +290,24 @@ impl Assets {
                             settings,
                         ) {
                             Ok(sound) => {
-                                trace!("Sound {}", item.path);
-                                sounds.lock().insert(item.handle, sound);
+                                trace!("Sound {}", item_path);
+                                sounds.lock().insert(handle, sound);
                             }
                             Err(err) => {
                                 error!(
                                     "Failed to parse sound at {}: {:?}",
-                                    item.path, err
+                                    item_path, err
                                 );
                             }
                         }
-                    }
-                };
+                    };
 
-                #[cfg(target_arch = "wasm32")]
-                sound_loop();
+                    #[cfg(target_arch = "wasm32")]
+                    sound_loop();
 
-                #[cfg(not(target_arch = "wasm32"))]
-                pool.install(sound_loop);
+                    #[cfg(not(target_arch = "wasm32"))]
+                    pool.spawn(sound_loop);
+                }
             }
         }
 
