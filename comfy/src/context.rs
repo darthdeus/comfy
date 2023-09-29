@@ -35,7 +35,6 @@ pub struct EngineContext<'a> {
 
     pub dt_stats: &'a mut MovingStats,
     pub fps_stats: &'a mut MovingStats,
-    pub lighting: &'a mut GlobalLightingParams,
 
     pub meta: &'a mut AnyMap,
 

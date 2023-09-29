@@ -42,7 +42,7 @@ Comfy `v0.1.0` had bloom turned on by default. This turned out to be quite
 problematic on older integrated GPUs as some users reported, as the builtin
 bloom does 20 blur passes :)
 
-In `v0.2.0` bloom is now turned off by default. You can still enable it by calling 
+In `v0.2.0` bloom is now turned off by default. You can still enable it by calling
 TODO
 TODO
 TODO
@@ -66,4 +66,7 @@ chance anyone actually used it, but if you did, it'll come back soon I promise.
 Post processing is one of the things that should improve after `v0.2.0` is out,
 and we'll be able to add more effects and make them easier to use.
 
+## Minor changes:
 
+- `GameConfig` is no longer `Copy`. This shouldn't really affect anyone in
+  any way, as it was behind a `RefCell` anyway.

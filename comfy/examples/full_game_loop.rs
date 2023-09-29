@@ -118,13 +118,9 @@ fn update(c: &mut GameContext) {
 // -------------------------------------------------------------------
 
 pub async fn run() {
-    let config = GameConfig {
-        game_name: "Full Game Loop Example",
-        // comfy includes a `define_versions!()` macro that creates a `version_str()`
-        // function that returns a version from cargo & git.
-        version: "v0.0.1",
-        ..Default::default()
-    };
+    // comfy includes a `define_versions!()` macro that creates a `version_str()`
+    // function that returns a version from cargo & git.
+    init_game_config("Full Game Loop Example".to_string(), "v0.0.1");
 
     let engine = EngineState::new(config);
     let game = ComfyGame::new(engine);

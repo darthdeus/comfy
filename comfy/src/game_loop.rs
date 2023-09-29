@@ -12,7 +12,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     let mut loop_helper = spin_sleep::LoopHelper::builder()
         .build_with_target_rate(target_framerate);
 
-    let resolution = game.engine().config.get_mut().resolution;
+    let resolution = game_config().resolution;
 
     let event_loop = winit::event_loop::EventLoop::new();
     let window =
@@ -30,21 +30,20 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
 
     let window = window.build(&event_loop).unwrap();
 
-    let min_resolution =
-        match game.engine().config.get_mut().min_resolution.ensure_non_zero() {
-            ResolutionConfig::Physical(w, h) => {
-                window.set_min_inner_size(Some(winit::dpi::PhysicalSize::new(
-                    w, h,
-                )));
-                (w, h)
-            }
-            ResolutionConfig::Logical(w, h) => {
-                window.set_min_inner_size(Some(winit::dpi::LogicalSize::new(
-                    w, h,
-                )));
-                (w, h)
-            }
-        };
+    let min_resolution = match game_config_mut()
+        .min_resolution
+        .ensure_non_zero()
+    {
+        ResolutionConfig::Physical(w, h) => {
+            window
+                .set_min_inner_size(Some(winit::dpi::PhysicalSize::new(w, h)));
+            (w, h)
+        }
+        ResolutionConfig::Logical(w, h) => {
+            window.set_min_inner_size(Some(winit::dpi::LogicalSize::new(w, h)));
+            (w, h)
+        }
+    };
 
     #[cfg(target_arch = "wasm32")]
     {

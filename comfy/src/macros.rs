@@ -16,13 +16,9 @@ macro_rules! define_main {
         $crate::define_versions!();
 
         pub async fn run() {
-            let config = $crate::GameConfig {
-                game_name: $name,
-                version: version_str(),
-                ..Default::default()
-            };
+            init_game_config($name.to_string(), version_str(), $config);
 
-            let engine = $crate::EngineState::new($config(config));
+            let engine = $crate::EngineState::new();
             let game = $game::new(engine);
 
             $crate::run_comfy_main_async(game).await;
