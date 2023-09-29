@@ -39,9 +39,6 @@ pub struct EngineContext<'a> {
 
     pub meta: &'a mut AnyMap,
 
-    pub egui: &'a egui::Context,
-    pub egui_wants_mouse: bool,
-
     pub changes: &'a mut RefCell<ChangeTracker>,
     pub notifications: &'a mut RefCell<Notifications>,
 
@@ -118,7 +115,7 @@ impl<'a> EngineContext<'a> {
             );
         }
 
-        self.egui.set_fonts(font_defs);
+        egui().set_fonts(font_defs);
     }
 
     pub fn mark(&self, pos: Vec2, color: Color, lifetime: f32) {

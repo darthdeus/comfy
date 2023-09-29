@@ -2,6 +2,20 @@ use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 use crate::*;
 
+// static EGUI_CONTEXT: Lazy<AtomicRefCell<egui::Context>> =
+//     Lazy::new(|| AtomicRefCell::new(egui::Context::default()));
+//
+// pub fn egui() -> AtomicRef<'static, egui::Context> {
+//     EGUI_CONTEXT.borrow()
+// }
+
+static EGUI_CONTEXT: Lazy<egui::Context> =
+    Lazy::new(|| egui::Context::default());
+
+pub fn egui() -> &'static egui::Context {
+    &*EGUI_CONTEXT
+}
+
 static FRAME_TIME: AtomicU32 =
     AtomicU32::new(unsafe { std::mem::transmute(1.0f32) });
 

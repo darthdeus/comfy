@@ -14,7 +14,6 @@ pub struct EngineState {
     pub cached_loader: RefCell<CachedImageLoader>,
 
     pub draw: RefCell<Draw>,
-    pub egui: egui::Context,
 
     pub frame: u64,
     pub flags: RefCell<HashSet<String>>,
@@ -74,7 +73,6 @@ impl EngineState {
 
         Self {
             cached_loader: RefCell::new(CachedImageLoader::new()),
-            egui: egui::Context::default(),
 
             renderer: None,
             texture_creator: None,
@@ -107,7 +105,7 @@ impl EngineState {
     }
 
     pub fn on_event(&mut self, event: &WindowEvent) -> bool {
-        self.renderer.as_mut().unwrap().on_event(event, &self.egui)
+        self.renderer.as_mut().unwrap().on_event(event, egui())
     }
 
     // #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
@@ -134,12 +132,10 @@ impl EngineState {
             // textures: &renderer.textures,
             // surface_config: &renderer.config,
             // render_texture_format: renderer.render_texture_format,
-            egui_wants_mouse: self.egui.wants_pointer_input(),
             renderer,
 
             delta: delta(),
 
-            egui: &self.egui,
             draw: &mut self.draw,
             frame: self.frame,
 

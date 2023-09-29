@@ -10,7 +10,7 @@ fn update(c: &EngineContext) {
         .collapsible(false)
         .title_bar(false)
         .resizable(false)
-        .show(c.egui, |ui| {
+        .show(egui(), |ui| {
             if ui.button("Click me!").clicked() {
                 c.draw.borrow_mut().timed(3.0, |_c| {
                     draw_text(

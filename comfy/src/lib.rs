@@ -152,7 +152,7 @@ pub fn image_button_ex(
     image_button_without_c(
         text,
         &mut c.cached_loader.borrow_mut(),
-        c.egui,
+        egui(),
         ui,
         texture,
         params,

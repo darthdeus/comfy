@@ -7,7 +7,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
         let mut state = GLOBAL_STATE.borrow_mut();
 
         state.fps = (1.0 / delta) as i32;
-        state.egui_scale_factor = c.egui.pixels_per_point();
+        state.egui_scale_factor = egui().pixels_per_point();
     }
 
     dev_hotkeys(c);
@@ -157,7 +157,7 @@ fn process_asset_queues(c: &mut EngineContext) {
 fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
-    let painter = c.egui.layer_painter(egui::LayerId::new(
+    let painter = egui().layer_painter(egui::LayerId::new(
         egui::Order::Background,
         egui::Id::new("text-painter"),
     ));
@@ -449,7 +449,7 @@ fn process_notifications(c: &mut EngineContext) {
             .title_bar(false)
             .frame(egui::Frame::default())
             .collapsible(false)
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let _background_shape = ui.painter().add(egui::Shape::Noop);
                 ui.add_space(18.0);
 
@@ -479,7 +479,7 @@ fn process_notifications(c: &mut EngineContext) {
                 //         ui.min_size(),
                 //     ),
                 //     c.cached_loader,
-                //     c.egui,
+                //     egui(),
                 //     "panel-horizontal",
                 // );
 
@@ -497,7 +497,7 @@ fn show_errors(c: &mut EngineContext) {
         if !errors.data.is_empty() {
             egui::Window::new("Errors")
                 .anchor(egui::Align2::LEFT_TOP, egui::vec2(20.0, 20.0))
-                .show(c.egui, |ui| {
+                .show(egui(), |ui| {
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         for (_, value) in ERRORS.borrow().data.iter() {
                             ui.colored_label(RED.egui(), value.as_ref());
@@ -518,7 +518,7 @@ fn update_perf_counters(c: &mut EngineContext) {
         egui::Window::new("Performance")
             .anchor(egui::Align2::RIGHT_BOTTOM, egui::vec2(0.0, 0.0))
             .default_width(250.0)
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let real_fps = get_fps();
 
                 let fps_color = if real_fps < 55 { RED } else { WHITE };
@@ -651,7 +651,7 @@ pub fn lighting_parameters_window(c: &EngineContext) {
     if GlobalParams::flag("debug") {
         egui::Window::new("Parameters")
             .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(150.0, -80.0))
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let mut params = GLOBAL_PARAMS.borrow_mut();
 
                 let floats = [
@@ -825,7 +825,7 @@ fn renderer_update(c: &mut EngineContext) {
         // sprite_queue,
         mesh_queue,
         particle_queue,
-        egui: c.egui,
+        egui: egui(),
     };
 
     // TODO: cleanup unwraps and stuff :)
@@ -838,7 +838,7 @@ fn show_lighting_ui(c: &mut EngineContext) {
     if c.config.borrow().dev.show_lighting_config {
         egui::Window::new("Lighting")
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 lighting_ui(c.lighting, ui);
             });
 

@@ -2,7 +2,7 @@
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
 # EXAMPLE=custom_config
-EXAMPLE=cooldowns
+# EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
@@ -17,6 +17,7 @@ EXAMPLE=cooldowns
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
+EXAMPLE=timed_draw
 
 # default: build-examples
 # default: wasm-build
