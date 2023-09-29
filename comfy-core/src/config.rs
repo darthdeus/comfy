@@ -40,9 +40,41 @@ impl ResolutionConfig {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+static GAME_CONFIG: OnceCell<AtomicRefCell<GameConfig>> = OnceCell::new();
+
+pub fn init_game_config(
+    game_name: String,
+    version: &'static str,
+    config_fn: fn(GameConfig) -> GameConfig,
+) {
+    GAME_CONFIG
+        .set(AtomicRefCell::new(config_fn(GameConfig {
+            game_name,
+            version,
+            ..Default::default()
+        })))
+        .expect(
+            "init_game_config() should only be called once by comfy itself",
+        );
+}
+
+pub fn game_config() -> AtomicRef<'static, GameConfig> {
+    GAME_CONFIG
+        .get()
+        .expect("game_config() must be called after comfy main runs")
+        .borrow()
+}
+
+pub fn game_config_mut() -> AtomicRefMut<'static, GameConfig> {
+    GAME_CONFIG
+        .get()
+        .expect("game_config() must be called after comfy main runs")
+        .borrow_mut()
+}
+
+#[derive(Clone, Debug)]
 pub struct GameConfig {
-    pub game_name: &'static str,
+    pub game_name: String,
     pub version: &'static str,
 
     pub resolution: ResolutionConfig,
@@ -77,7 +109,7 @@ impl Default for GameConfig {
         let min_resolution = ResolutionConfig::Physical(1, 1);
 
         Self {
-            game_name: "TODO_GAME_NAME",
+            game_name: "TODO_GAME_NAME".to_string(),
             version: "TODO_VERSION",
 
             resolution,

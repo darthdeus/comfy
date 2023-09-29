@@ -24,11 +24,7 @@ pub struct EngineState {
     pub renderer: Option<WgpuRenderer>,
     pub texture_creator: Option<Arc<AtomicRefCell<WgpuTextureCreator>>>,
 
-    pub lighting: GlobalLightingParams,
-
     pub meta: AnyMap,
-
-    pub config: RefCell<GameConfig>,
 
     pub changes: RefCell<ChangeTracker>,
     pub notifications: RefCell<Notifications>,
@@ -43,7 +39,7 @@ pub struct EngineState {
 }
 
 impl EngineState {
-    pub fn new(config: GameConfig) -> Self {
+    pub fn new() -> Self {
         cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -86,10 +82,6 @@ impl EngineState {
             flags: RefCell::new(HashSet::new()),
 
             meta: AnyMap::new(),
-
-            lighting: config.lighting,
-
-            config: RefCell::new(config),
 
             changes: RefCell::new(ChangeTracker::new()),
             notifications: RefCell::new(Notifications::new()),
@@ -145,11 +137,9 @@ impl EngineState {
             mouse_world: mouse_world(),
 
             flags: &mut self.flags,
-            lighting: &mut self.lighting,
 
             meta: &mut self.meta,
 
-            config: &mut self.config,
             game_loop: &mut self.game_loop,
 
             changes: &mut self.changes,
@@ -191,6 +181,6 @@ impl EngineState {
     // TODO: this really needs a cleanup
     pub fn title(&self) -> String {
         // TODO: make this configurable
-        format!("{} (COMFY ENGINE)", self.config.borrow().game_name)
+        format!("{} (COMFY ENGINE)", game_config().game_name)
     }
 }
