@@ -67,3 +67,8 @@ Post processing is one of the things that should improve after `v0.2.0` is out,
 and we'll be able to add more effects and make them easier to use.
 
 
+## Next up
+
+The global namespace is currently polluted by a lot of things. The next
+`v0.3.0` release will focus on cleaning this up and making some things more
+directly accessible (e.g. some globals which are now currently not public).
