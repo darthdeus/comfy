@@ -28,14 +28,15 @@ impl ResolutionConfig {
         match self {
             ResolutionConfig::Physical(w, h) |
             ResolutionConfig::Logical(w, h)
-                if *w <= 0 || *h <= 0 =>
+                if *w == 0 || *h == 0 =>
             {
                 *w = MIN_WINDOW_SIZE;
                 *h = MIN_WINDOW_SIZE;
             }
             _ => (),
         }
-        self.clone()
+
+        *self
     }
 }
 
