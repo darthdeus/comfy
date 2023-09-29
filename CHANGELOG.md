@@ -17,7 +17,7 @@ other means.
 List of removed things and where to find them now:
 
 - `c.delta` -> `delta()`. This is likely going to be something that most users
-  (including US) re-export into their `GameContext/GameState` anyway.
+  (including us) will re-export into their `GameContext/GameState` anyway.
 - `c.world()` -> `world()`. ECS world already lived in a single instance, it's
   now moved into a single global.
 - `c.commands()` -> `commands()`. Same as above.
