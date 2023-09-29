@@ -53,7 +53,7 @@ pub fn record_pngs(
         let data = buffer_slice.get_mapped_range();
 
         let path = std::env::current_exe().unwrap();
-        let example_name = path.file_name().unwrap().to_string_lossy();
+        let example_name = path.file_stem().unwrap().to_string_lossy();
 
         let images_dir = format!("target/images/{}", example_name);
 
