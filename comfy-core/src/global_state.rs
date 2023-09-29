@@ -2,13 +2,6 @@ use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 use crate::*;
 
-// static EGUI_CONTEXT: Lazy<AtomicRefCell<egui::Context>> =
-//     Lazy::new(|| AtomicRefCell::new(egui::Context::default()));
-//
-// pub fn egui() -> AtomicRef<'static, egui::Context> {
-//     EGUI_CONTEXT.borrow()
-// }
-
 static EGUI_CONTEXT: Lazy<egui::Context> =
     Lazy::new(|| egui::Context::default());
 
