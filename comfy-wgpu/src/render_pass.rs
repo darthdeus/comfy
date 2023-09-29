@@ -64,8 +64,28 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
 
                 let _span = span!("texture");
 
-                // TODO: no need to sort anymore
-                for draw in group.sorted_by_key(|draw| draw.mesh.z_index) {
+                // TODO: do we still need to sort here?
+                let mut sorted_by_z =
+                    group.sorted_by_key(|draw| draw.mesh.z_index).collect_vec();
+
+                if !sorted_by_z.is_empty() {
+                    if get_y_sort(sorted_by_z[0].mesh.z_index) {
+                        sorted_by_z.sort_by_cached_key(|draw| {
+                            OrderedFloat::<f32>(
+                                // TODO: This is completely disgusting, but it does work ...
+                                -draw
+                                    .mesh
+                                    .vertices
+                                    .iter()
+                                    .map(|v| v.position[1])
+                                    .sum::<f32>() /
+                                    draw.mesh.vertices.len() as f32,
+                            )
+                        });
+                    }
+                }
+
+                for draw in sorted_by_z {
                     result.push(RenderPassData {
                         z_index: draw.mesh.z_index,
                         blend_mode,
