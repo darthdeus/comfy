@@ -548,7 +548,6 @@ pub struct DrawParams<'a> {
 
     pub clear_color: Color,
     pub lights: Vec<Light>,
-    pub lighting: &'a mut GlobalLightingParams,
 
     pub config: &'a mut GameConfig,
 

@@ -266,6 +266,7 @@ impl WgpuRenderer {
         load_engine_tex!("error");
         load_engine_tex!("1px");
         load_engine_tex!("test-grid");
+        load_engine_tex!("_builtin-comfy");
 
         let mut camera_uniform = CameraUniform::new();
         camera_uniform.update_view_proj(&main_camera());
@@ -711,7 +712,6 @@ impl WgpuRenderer {
     pub fn render_post_processing(
         &mut self,
         screen_view: &wgpu::TextureView,
-        params: &GlobalLightingParams,
         game_config: &GameConfig,
     ) {
         let _span = span!("render_post_processing");
@@ -794,7 +794,7 @@ impl WgpuRenderer {
             self.bloom.blit_final(
                 &mut encoder,
                 &self.tonemapping_texture.view,
-                params,
+                &game_config.lighting,
             );
         }
 
@@ -1445,10 +1445,10 @@ impl WgpuRenderer {
 
         self.camera_uniform.update_view_proj(&main_camera());
 
-        params.lighting.time = get_time() as f32;
+        params.config.lighting.time = get_time() as f32;
         {
             let camera = main_camera();
-            params.lighting.chromatic_aberration =
+            params.config.lighting.chromatic_aberration =
                 (camera.shake_amount * 200.0 * camera.shake_timer)
                     .clamp(0.0, 200.0);
         }
@@ -1456,7 +1456,7 @@ impl WgpuRenderer {
         self.context.queue.write_buffer(
             &self.global_lighting_params_buffer,
             0,
-            bytemuck::cast_slice(&[*params.lighting]),
+            bytemuck::cast_slice(&[params.config.lighting]),
         );
 
         self.context.queue.write_buffer(
@@ -1612,11 +1612,7 @@ impl WgpuRenderer {
             }
         }
 
-        self.render_post_processing(
-            &surface_view,
-            params.lighting,
-            params.config,
-        );
+        self.render_post_processing(&surface_view, params.config);
         self.render_egui(&surface_view, &params);
 
         if params.config.dev.show_buffers {
