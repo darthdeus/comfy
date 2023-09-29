@@ -43,30 +43,20 @@ fn setup(c: &mut EngineContext) {
         Player,
         AnimatedSpriteBuilder::new()
             .z_index(10)
-            .add_animation(
-                "idle",
-                0.1,
-                true,
-                AnimationSource::Atlas {
-                    name: "player".into(),
-                    offset: ivec2(0, 0),
-                    step: ivec2(16, 0),
-                    size: isplat(16),
-                    frames: 1,
-                },
-            )
-            .add_animation(
-                "walk",
-                0.05,
-                true,
-                AnimationSource::Atlas {
-                    name: "player".into(),
-                    offset: ivec2(16, 0),
-                    step: ivec2(16, 0),
-                    size: isplat(16),
-                    frames: 6,
-                },
-            )
+            .add_animation("idle", 0.1, true, AnimationSource::Atlas {
+                name: "player".into(),
+                offset: ivec2(0, 0),
+                step: ivec2(16, 0),
+                size: isplat(16),
+                frames: 1,
+            })
+            .add_animation("walk", 0.05, true, AnimationSource::Atlas {
+                name: "player".into(),
+                offset: ivec2(16, 0),
+                step: ivec2(16, 0),
+                size: isplat(16),
+                frames: 6,
+            })
             .build(),
     ));
 }

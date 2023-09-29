@@ -23,7 +23,8 @@ EXAMPLE=physics
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-default: example
+# default: example
+default: test
 
 FLAGS=--features=blobs
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
@@ -33,9 +34,6 @@ bitmob:
 
 example:
 	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS)
-
-tests:
-	cargo test
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
@@ -50,3 +48,9 @@ publish-crates:
 	cargo publish -p comfy-core
 	cargo publish -p comfy-wgpu
 	cargo publish -p comfy
+
+test:
+	cargo fmt --check
+	cargo clippy
+	cargo test --all --features=blobs
+	./build-examples.sh

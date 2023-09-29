@@ -2,11 +2,10 @@ use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 use crate::*;
 
-static EGUI_CONTEXT: Lazy<egui::Context> =
-    Lazy::new(|| egui::Context::default());
+static EGUI_CONTEXT: Lazy<egui::Context> = Lazy::new(egui::Context::default);
 
 pub fn egui() -> &'static egui::Context {
-    &*EGUI_CONTEXT
+    &EGUI_CONTEXT
 }
 
 static FRAME_TIME: AtomicU32 =

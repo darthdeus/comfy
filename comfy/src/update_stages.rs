@@ -154,7 +154,7 @@ fn process_asset_queues(c: &mut EngineContext) {
     }
 }
 
-fn render_text(c: &mut EngineContext) {
+fn render_text(_c: &mut EngineContext) {
     let _span = span!("text");
 
     let painter = egui().layer_painter(egui::LayerId::new(
@@ -290,8 +290,7 @@ fn update_animated_sprites(c: &mut EngineContext) {
     let mut call_queue = vec![];
 
     if !*c.is_paused.borrow() {
-        for (entity, sprite) in world().query::<&mut AnimatedSprite>().iter()
-        {
+        for (entity, sprite) in world().query::<&mut AnimatedSprite>().iter() {
             if sprite.state.update_and_finished(c.delta) {
                 commands().despawn(entity);
 
@@ -549,9 +548,7 @@ fn update_perf_counters(c: &mut EngineContext) {
 
                 ui.separator();
                 if let Some(game_loop) = c.game_loop {
-                    game_loop
-                        .lock()
-                        .performance_metrics(&mut world_mut(), ui);
+                    game_loop.lock().performance_metrics(&mut world_mut(), ui);
                 }
 
                 ui.separator();
@@ -647,7 +644,7 @@ fn update_perf_counters(c: &mut EngineContext) {
     perf_counters_new_frame(c.delta as f64);
 }
 
-pub fn lighting_parameters_window(c: &EngineContext) {
+pub fn lighting_parameters_window(_c: &EngineContext) {
     if GlobalParams::flag("debug") {
         egui::Window::new("Parameters")
             .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(150.0, -80.0))
