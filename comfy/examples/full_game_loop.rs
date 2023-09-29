@@ -77,7 +77,7 @@ impl GameLoop for ComfyGame {
             });
 
             // And here again
-            run_late_update_stages(&mut c);
+            run_late_update_stages(&mut c, delta());
         }
     }
 

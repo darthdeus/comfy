@@ -28,7 +28,7 @@ fn setup(c: &mut EngineContext) {
         for y in 0..50 {
             let variant = random_i32(0, 2);
             // Tile the world with random variant of grass sprite
-            c.commands().spawn((
+            commands().spawn((
                 Sprite::new("grass".to_string(), vec2(1.0, 1.0), 0, WHITE)
                     .with_rect(32 * variant, 0, 32, 32),
                 Transform::position(vec2(x as f32, y as f32)),
@@ -38,25 +38,35 @@ fn setup(c: &mut EngineContext) {
     }
 
     // Spawn the player entity and make sure z-index is above the grass
-    c.commands().spawn((
+    commands().spawn((
         Transform::position(vec2(25.0, 25.0)),
         Player,
         AnimatedSpriteBuilder::new()
             .z_index(10)
-            .add_animation("idle", 0.1, true, AnimationSource::Atlas {
-                name: "player".into(),
-                offset: ivec2(0, 0),
-                step: ivec2(16, 0),
-                size: isplat(16),
-                frames: 1,
-            })
-            .add_animation("walk", 0.05, true, AnimationSource::Atlas {
-                name: "player".into(),
-                offset: ivec2(16, 0),
-                step: ivec2(16, 0),
-                size: isplat(16),
-                frames: 6,
-            })
+            .add_animation(
+                "idle",
+                0.1,
+                true,
+                AnimationSource::Atlas {
+                    name: "player".into(),
+                    offset: ivec2(0, 0),
+                    step: ivec2(16, 0),
+                    size: isplat(16),
+                    frames: 1,
+                },
+            )
+            .add_animation(
+                "walk",
+                0.05,
+                true,
+                AnimationSource::Atlas {
+                    name: "player".into(),
+                    offset: ivec2(16, 0),
+                    step: ivec2(16, 0),
+                    size: isplat(16),
+                    frames: 6,
+                },
+            )
             .build(),
     ));
 }
@@ -66,10 +76,8 @@ fn update(c: &mut EngineContext) {
 
     let dt = c.delta;
 
-    for (_, (_, animated_sprite, transform)) in c
-        .world()
-        .query::<(&Player, &mut AnimatedSprite, &mut Transform)>()
-        .iter()
+    for (_, (_, animated_sprite, transform)) in
+        world().query::<(&Player, &mut AnimatedSprite, &mut Transform)>().iter()
     {
         // Handle movement and animation
         let mut moved = false;
