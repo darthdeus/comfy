@@ -5,6 +5,7 @@ mod animated_sprite;
 mod animation;
 mod cached_image_loader;
 mod combat_text;
+mod comfy_hecs;
 mod context;
 mod cooldowns;
 mod debug;
@@ -25,6 +26,7 @@ pub use crate::animated_sprite::*;
 pub use crate::animation::*;
 pub use crate::cached_image_loader::*;
 pub use crate::combat_text::*;
+pub use crate::comfy_hecs::*;
 pub use crate::context::*;
 pub use crate::cooldowns::*;
 pub use crate::debug::*;
@@ -54,11 +56,10 @@ pub use std::{
 };
 
 pub use comfy_core;
+pub use comfy_core::*;
 pub use comfy_core::{Assets, *};
 
 pub use std::path::Path;
-
-pub use comfy_core::*;
 
 pub use comfy_wgpu;
 pub use comfy_wgpu::*;
@@ -151,7 +152,7 @@ pub fn image_button_ex(
     image_button_without_c(
         text,
         &mut c.cached_loader.borrow_mut(),
-        c.egui,
+        egui(),
         ui,
         texture,
         params,

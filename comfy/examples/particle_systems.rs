@@ -15,7 +15,7 @@ fn setup(c: &mut EngineContext) {
     // ParticleSystem's are based off the same principle as singular Particle's, except the
     // automatically handle the spawning.
 
-    c.commands().spawn((
+    commands().spawn((
         ParticleSystem::with_spawn_rate(500, 0.01, || {
             Particle {
                 texture: texture_id("comfy"),
@@ -35,7 +35,7 @@ fn setup(c: &mut EngineContext) {
         Transform::position(vec2(-8.0, 0.0)),
     ));
 
-    c.commands().spawn((
+    commands().spawn((
         ParticleSystem::with_spawn_on_death(300, || {
             Particle {
                 texture: texture_id("comfy"),
@@ -115,7 +115,7 @@ fn setup(c: &mut EngineContext) {
         Transform::position(Vec2::ZERO),
     ));
 
-    c.commands().spawn((
+    commands().spawn((
         ParticleSystem::with_spawn_on_death(300, || {
             Particle {
                 texture: texture_id("comfy"),

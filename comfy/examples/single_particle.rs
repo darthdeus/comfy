@@ -2,13 +2,13 @@ use comfy::*;
 
 simple_game!("Single Particle Example", update);
 
-fn update(c: &mut EngineContext) {
+fn update(_c: &mut EngineContext) {
     // We only want to spawn a particle once every 100ms.
     // Comfy provides a comfy way of doing ad-hoc timers with `Cooldowns`.
     //
     // A cooldown is identified by a string key and automatically ticked
     // by the engine.
-    if c.cooldowns.borrow_mut().can_use("spawn-particle", 0.1) {
+    if cooldowns().can_use("spawn-particle", 0.1) {
         // Particles are automatically simulated once they're spawned.
         spawn_particle(Particle {
             position: random_circle(5.0),

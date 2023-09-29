@@ -1,11 +1,13 @@
 use crate::*;
 
 pub fn run_early_update_stages(c: &mut EngineContext) {
+    let delta = delta();
+
     {
         let mut state = GLOBAL_STATE.borrow_mut();
 
-        state.fps = (1.0 / c.delta) as i32;
-        state.egui_scale_factor = c.egui.pixels_per_point();
+        state.fps = (1.0 / delta) as i32;
+        state.egui_scale_factor = egui().pixels_per_point();
     }
 
     dev_hotkeys(c);
@@ -16,7 +18,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
     process_asset_queues(c);
 
     if !*c.is_paused.borrow() {
-        set_unpaused_time(get_unpaused_time() + c.delta as f64);
+        set_unpaused_time(get_unpaused_time() + delta as f64);
     }
 
     render_text(c);
@@ -35,7 +37,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
     }
 
     lighting_parameters_window(c);
-    update_child_transforms(c);
+    update_child_transforms();
 
     run_mid_update_stages(c);
 }
@@ -44,7 +46,7 @@ fn run_mid_update_stages(c: &mut EngineContext) {
     timings_add_value("delta", delta());
 
     pause_system(c);
-    point_lights_system(c);
+    point_lights_system();
 
     if is_key_pressed(KeyCode::F6) {
         GlobalParams::toggle_flag("debug");
@@ -52,20 +54,20 @@ fn run_mid_update_stages(c: &mut EngineContext) {
 }
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
-pub fn run_late_update_stages(c: &mut EngineContext) {
+pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     update_animated_sprites(c);
     update_trails(c);
     update_drawables(c);
-    process_sprite_queue(c);
+    process_sprite_queue();
     process_temp_draws(c);
-    combat_text_system(c);
+    combat_text_system();
     process_notifications(c);
     show_errors(c);
     update_perf_counters(c);
     show_lighting_ui(c);
 
     c.draw.borrow_mut().marks.retain_mut(|mark| {
-        mark.lifetime -= c.delta;
+        mark.lifetime -= delta;
         mark.lifetime > 0.0
     });
 
@@ -82,18 +84,16 @@ pub fn run_late_update_stages(c: &mut EngineContext) {
         );
     }
 
-    player_follow_system(c);
-    animated_sprite_builder_check(c);
+    player_follow_system();
+    animated_sprite_builder_check();
     renderer_update(c);
 
     let is_paused =
         *c.is_paused.borrow() || c.flags.borrow_mut().contains(PAUSE_DESPAWN);
 
     if !is_paused {
-        for (entity, despawn) in
-            c.world.borrow_mut().query_mut::<&mut DespawnAfter>()
-        {
-            despawn.0 -= c.delta;
+        for (entity, despawn) in world_mut().query_mut::<&mut DespawnAfter>() {
+            despawn.0 -= delta;
 
             if despawn.0 <= 0.0 {
                 c.to_despawn.borrow_mut().push(entity);
@@ -101,9 +101,9 @@ pub fn run_late_update_stages(c: &mut EngineContext) {
         }
     }
 
-    main_camera_mut().update(c.delta);
-    c.commands().run_on(&mut c.world.borrow_mut());
-    c.world.borrow_mut().flush();
+    main_camera_mut().update(delta);
+    commands().run_on(&mut world_mut());
+    world_mut().flush();
 }
 
 fn dev_hotkeys(c: &EngineContext) {
@@ -154,10 +154,10 @@ fn process_asset_queues(c: &mut EngineContext) {
     }
 }
 
-fn render_text(c: &mut EngineContext) {
+fn render_text(_c: &mut EngineContext) {
     let _span = span!("text");
 
-    let painter = c.egui.layer_painter(egui::LayerId::new(
+    let painter = egui().layer_painter(egui::LayerId::new(
         egui::Order::Background,
         egui::Id::new("text-painter"),
     ));
@@ -236,14 +236,14 @@ fn update_camera(c: &mut EngineContext) {
     }
 }
 
-fn update_child_transforms(c: &mut EngineContext) {
+fn update_child_transforms() {
     let mut transforms = HashMap::new();
 
-    for (entity, transform) in c.world_mut().query_mut::<&Transform>() {
+    for (entity, transform) in world_mut().query_mut::<&Transform>() {
         transforms.insert(entity, *transform);
     }
 
-    for (_, transform) in c.world().query::<&mut Transform>().iter() {
+    for (_, transform) in world().query::<&mut Transform>().iter() {
         let parent = if let Some(parent) = transform.parent {
             transforms
                 .get(&parent)
@@ -265,7 +265,7 @@ fn update_trails(c: &mut EngineContext) {
     let _span = span!("trails");
 
     for (_, (trail, transform)) in
-        c.world_mut().query_mut::<(&mut Trail, &Transform)>()
+        world_mut().query_mut::<(&mut Trail, &Transform)>()
     {
         if !*c.is_paused.borrow() {
             trail.update(transform.position, c.delta);
@@ -274,9 +274,9 @@ fn update_trails(c: &mut EngineContext) {
     }
 }
 
-fn point_lights_system(c: &mut EngineContext) {
+fn point_lights_system() {
     for (_, (transform, light)) in
-        c.world_mut().query_mut::<(&Transform, &PointLight)>()
+        world_mut().query_mut::<(&Transform, &PointLight)>()
     {
         draw_light(Light::simple(
             transform.position,
@@ -290,10 +290,9 @@ fn update_animated_sprites(c: &mut EngineContext) {
     let mut call_queue = vec![];
 
     if !*c.is_paused.borrow() {
-        for (entity, sprite) in c.world().query::<&mut AnimatedSprite>().iter()
-        {
+        for (entity, sprite) in world().query::<&mut AnimatedSprite>().iter() {
             if sprite.state.update_and_finished(c.delta) {
-                c.commands().despawn(entity);
+                commands().despawn(entity);
 
                 // TODO: maybe not needed? replace with option
                 let mut temp: ContextFn = Box::new(|_| {});
@@ -326,7 +325,7 @@ fn pause_system(c: &mut EngineContext) {
     }
 
     if !*c.is_paused.borrow() && !c.flags.borrow().contains(PAUSE_PHYSICS) {
-        c.cooldowns.borrow_mut().tick(c.delta);
+        cooldowns().tick(c.delta);
         c.notifications.borrow_mut().tick(c.delta);
     }
 }
@@ -361,10 +360,10 @@ fn update_drawables(c: &mut EngineContext) {
     }
 }
 
-fn process_sprite_queue(c: &mut EngineContext) {
+fn process_sprite_queue() {
     let _span = span!("sprite_queue");
 
-    let world = c.world.borrow();
+    let world = world();
     let mut sprite_query = world.query::<(&Sprite, &Transform)>();
     let sprite_iter = sprite_query
         .iter()
@@ -449,7 +448,7 @@ fn process_notifications(c: &mut EngineContext) {
             .title_bar(false)
             .frame(egui::Frame::default())
             .collapsible(false)
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let _background_shape = ui.painter().add(egui::Shape::Noop);
                 ui.add_space(18.0);
 
@@ -479,7 +478,7 @@ fn process_notifications(c: &mut EngineContext) {
                 //         ui.min_size(),
                 //     ),
                 //     c.cached_loader,
-                //     c.egui,
+                //     egui(),
                 //     "panel-horizontal",
                 // );
 
@@ -497,7 +496,7 @@ fn show_errors(c: &mut EngineContext) {
         if !errors.data.is_empty() {
             egui::Window::new("Errors")
                 .anchor(egui::Align2::LEFT_TOP, egui::vec2(20.0, 20.0))
-                .show(c.egui, |ui| {
+                .show(egui(), |ui| {
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         for (_, value) in ERRORS.borrow().data.iter() {
                             ui.colored_label(RED.egui(), value.as_ref());
@@ -518,7 +517,7 @@ fn update_perf_counters(c: &mut EngineContext) {
         egui::Window::new("Performance")
             .anchor(egui::Align2::RIGHT_BOTTOM, egui::vec2(0.0, 0.0))
             .default_width(250.0)
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let real_fps = get_fps();
 
                 let fps_color = if real_fps < 55 { RED } else { WHITE };
@@ -549,9 +548,7 @@ fn update_perf_counters(c: &mut EngineContext) {
 
                 ui.separator();
                 if let Some(game_loop) = c.game_loop {
-                    game_loop
-                        .lock()
-                        .performance_metrics(&mut c.world.borrow_mut(), ui);
+                    game_loop.lock().performance_metrics(&mut world_mut(), ui);
                 }
 
                 ui.separator();
@@ -559,7 +556,7 @@ fn update_perf_counters(c: &mut EngineContext) {
                 let mut particles = 0;
 
                 for (_, particle_system) in
-                    c.world_mut().query_mut::<&ParticleSystem>()
+                    world_mut().query_mut::<&ParticleSystem>()
                 {
                     particles += particle_system.particles.len();
                 }
@@ -575,7 +572,7 @@ fn update_perf_counters(c: &mut EngineContext) {
 
                 ui.label(format!("Lights: {}", light_count()));
                 ui.label(format!("Particles: {}", particles));
-                ui.label(format!("Entities: {}", c.world().len()));
+                ui.label(format!("Entities: {}", world().len()));
                 // ui.label(format!("Collision Events: {}", collision_events));
 
                 ui.separator();
@@ -647,11 +644,11 @@ fn update_perf_counters(c: &mut EngineContext) {
     perf_counters_new_frame(c.delta as f64);
 }
 
-pub fn lighting_parameters_window(c: &EngineContext) {
+pub fn lighting_parameters_window(_c: &EngineContext) {
     if GlobalParams::flag("debug") {
         egui::Window::new("Parameters")
             .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(150.0, -80.0))
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 let mut params = GLOBAL_PARAMS.borrow_mut();
 
                 let floats = [
@@ -725,26 +722,23 @@ pub fn count_to_color(count: i32) -> Color {
     }
 }
 
-fn player_follow_system(c: &mut EngineContext) {
-    for (_, (player_t, _)) in
-        c.world.borrow().query::<(&Transform, &PlayerTag)>().iter()
+fn player_follow_system() {
+    for (_, (player_t, _)) in world().query::<(&Transform, &PlayerTag)>().iter()
     {
         // TODO; check that there is only one?
 
         for (_, (transform, _)) in
-            c.world.borrow().query::<(&mut Transform, &FollowPlayer)>().iter()
+            world().query::<(&mut Transform, &FollowPlayer)>().iter()
         {
             transform.position = player_t.position;
         }
     }
 }
 
-fn animated_sprite_builder_check(c: &mut EngineContext) {
+fn animated_sprite_builder_check() {
     #[cfg(not(feature = "ci-release"))]
-    for (entity, (_, transform)) in c
-        .world
-        .borrow_mut()
-        .query_mut::<(&AnimatedSpriteBuilder, Option<&Transform>)>()
+    for (entity, (_, transform)) in
+        world_mut().query_mut::<(&AnimatedSpriteBuilder, Option<&Transform>)>()
     {
         error!(
             "AnimatedSpriteBuilder found in ECS (entity = {:?}), make sure to \
@@ -776,7 +770,7 @@ fn renderer_update(c: &mut EngineContext) {
     let mut all_particles = Vec::new();
 
     for (_, (transform, particle_system)) in
-        c.world.borrow_mut().query_mut::<(&Transform, &mut ParticleSystem)>()
+        world_mut().query_mut::<(&Transform, &mut ParticleSystem)>()
     {
         particle_system.update(transform.position, delta);
 
@@ -828,7 +822,7 @@ fn renderer_update(c: &mut EngineContext) {
         // sprite_queue,
         mesh_queue,
         particle_queue,
-        egui: c.egui,
+        egui: egui(),
     };
 
     // TODO: cleanup unwraps and stuff :)
@@ -841,7 +835,7 @@ fn show_lighting_ui(c: &mut EngineContext) {
     if c.config.borrow().dev.show_lighting_config {
         egui::Window::new("Lighting")
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
-            .show(c.egui, |ui| {
+            .show(egui(), |ui| {
                 lighting_ui(c.lighting, ui);
             });
 

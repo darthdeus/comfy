@@ -96,7 +96,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                 {
                     span_with_timing!("frame");
                     let engine = game.engine();
-                    engine.renderer.as_mut().unwrap().begin_frame(&engine.egui);
+                    engine.renderer.as_mut().unwrap().begin_frame(egui());
 
                     game.engine().frame += 1;
                     game.update();

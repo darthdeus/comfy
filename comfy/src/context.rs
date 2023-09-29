@@ -30,9 +30,6 @@ pub struct EngineContext<'a> {
 
     pub draw: &'a RefCell<Draw>,
 
-    pub world: &'a mut Rc<RefCell<World>>,
-    pub commands: &'a mut RefCell<CommandBuffer>,
-
     pub delta: f32,
     pub frame: u64,
 
@@ -42,10 +39,6 @@ pub struct EngineContext<'a> {
 
     pub meta: &'a mut AnyMap,
 
-    pub egui: &'a egui::Context,
-    pub egui_wants_mouse: bool,
-
-    pub cooldowns: &'a mut RefCell<Cooldowns>,
     pub changes: &'a mut RefCell<ChangeTracker>,
     pub notifications: &'a mut RefCell<Notifications>,
 
@@ -67,7 +60,7 @@ impl<'a> EngineContext<'a> {
     pub fn reset_world_and_physics(&mut self) {
         main_camera_mut().center = Vec2::ZERO;
         *self.is_paused.borrow_mut() = false;
-        *self.world = Rc::new(RefCell::new(World::new()));
+        reset_world();
         blood_canvas_reset();
     }
 
@@ -122,11 +115,7 @@ impl<'a> EngineContext<'a> {
             );
         }
 
-        self.egui.set_fonts(font_defs);
-    }
-
-    pub fn commands(&self) -> core::cell::RefMut<CommandBuffer> {
-        self.commands.borrow_mut()
+        egui().set_fonts(font_defs);
     }
 
     pub fn mark(&self, pos: Vec2, color: Color, lifetime: f32) {
@@ -137,28 +126,12 @@ impl<'a> EngineContext<'a> {
         self.to_despawn.borrow_mut().push(entity);
     }
 
-    pub fn query() {
-        todo!();
-    }
-
-    pub fn world(&self) -> core::cell::Ref<World> {
-        self.world.borrow()
-    }
-
-    pub fn world_mut(&self) -> core::cell::RefMut<World> {
-        self.world.borrow_mut()
-    }
-
     pub fn config(&self) -> core::cell::Ref<GameConfig> {
         self.config.borrow()
     }
 
     pub fn config_mut(&self) -> core::cell::RefMut<GameConfig> {
         self.config.borrow_mut()
-    }
-
-    pub fn cooldowns(&self) -> core::cell::RefMut<Cooldowns> {
-        self.cooldowns.borrow_mut()
     }
 
     pub fn draw(&self) -> core::cell::Ref<Draw> {

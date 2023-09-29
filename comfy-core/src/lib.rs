@@ -1003,10 +1003,6 @@ impl UVec2Extensions for UVec2 {
     }
 }
 
-pub fn world(x: f32, y: f32) -> Position {
-    Vec2::new(x, y).as_world()
-}
-
 pub trait Vec2Extensions {
     fn normalize_or_right(self) -> Vec2;
     fn tuple(self) -> (f32, f32);

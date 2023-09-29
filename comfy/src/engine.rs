@@ -14,7 +14,6 @@ pub struct EngineState {
     pub cached_loader: RefCell<CachedImageLoader>,
 
     pub draw: RefCell<Draw>,
-    pub egui: egui::Context,
 
     pub frame: u64,
     pub flags: RefCell<HashSet<String>>,
@@ -29,12 +28,8 @@ pub struct EngineState {
 
     pub meta: AnyMap,
 
-    pub world: Rc<RefCell<World>>,
-    pub commands: RefCell<CommandBuffer>,
-
     pub config: RefCell<GameConfig>,
 
-    pub cooldowns: RefCell<Cooldowns>,
     pub changes: RefCell<ChangeTracker>,
     pub notifications: RefCell<Notifications>,
 
@@ -78,7 +73,6 @@ impl EngineState {
 
         Self {
             cached_loader: RefCell::new(CachedImageLoader::new()),
-            egui: egui::Context::default(),
 
             renderer: None,
             texture_creator: None,
@@ -95,12 +89,8 @@ impl EngineState {
 
             lighting: config.lighting,
 
-            world: Rc::new(RefCell::new(World::new())),
-            commands: RefCell::new(CommandBuffer::new()),
-
             config: RefCell::new(config),
 
-            cooldowns: RefCell::new(Cooldowns::new()),
             changes: RefCell::new(ChangeTracker::new()),
             notifications: RefCell::new(Notifications::new()),
 
@@ -115,7 +105,7 @@ impl EngineState {
     }
 
     pub fn on_event(&mut self, event: &WindowEvent) -> bool {
-        self.renderer.as_mut().unwrap().on_event(event, &self.egui)
+        self.renderer.as_mut().unwrap().on_event(event, egui())
     }
 
     // #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
@@ -142,12 +132,10 @@ impl EngineState {
             // textures: &renderer.textures,
             // surface_config: &renderer.config,
             // render_texture_format: renderer.render_texture_format,
-            egui_wants_mouse: self.egui.wants_pointer_input(),
             renderer,
 
             delta: delta(),
 
-            egui: &self.egui,
             draw: &mut self.draw,
             frame: self.frame,
 
@@ -161,13 +149,9 @@ impl EngineState {
 
             meta: &mut self.meta,
 
-            world: &mut self.world,
-            commands: &mut self.commands,
-
             config: &mut self.config,
             game_loop: &mut self.game_loop,
 
-            cooldowns: &mut self.cooldowns,
             changes: &mut self.changes,
             notifications: &mut self.notifications,
 
