@@ -69,6 +69,16 @@ pub fn draw_quad(
     });
 }
 
+pub fn draw_comfy(position: Vec2, tint: Color, z_index: i32, world_size: Vec2) {
+    draw_sprite(
+        texture_id("_builtin-comfy"),
+        position,
+        tint,
+        z_index,
+        world_size,
+    );
+}
+
 /// Draws a sprite on the screen.
 ///
 /// * `texture` - A handle to the texture to draw.
@@ -85,6 +95,7 @@ pub fn draw_sprite(
 ) {
     draw_sprite_rot(texture, position, tint, z_index, 0.0, world_size);
 }
+
 
 pub fn draw_sprite_ex(
     texture: TextureHandle,

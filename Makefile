@@ -1,7 +1,7 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
-EXAMPLE=blood_canvas
+# EXAMPLE=blood_canvas
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
@@ -19,17 +19,17 @@ EXAMPLE=blood_canvas
 # EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
-# EXAMPLE=y_sort
+EXAMPLE=y_sort
 
 # default: build-examples
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-# default: example
-default: test
+default: example
+# default: test
 
 FLAGS=--features=blobs
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)

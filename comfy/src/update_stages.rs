@@ -818,7 +818,6 @@ fn renderer_update(c: &mut EngineContext) {
         clear_color,
         frame: frame_params,
         lights: LightingState::take_lights(),
-        lighting: &mut game_config_mut().lighting,
         // sprite_queue,
         mesh_queue,
         particle_queue,

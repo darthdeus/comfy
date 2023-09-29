@@ -20,6 +20,7 @@ mod renderer;
 mod screenshot;
 mod texture;
 mod utils;
+mod y_sort;
 
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
@@ -31,6 +32,7 @@ pub use crate::render_pass::*;
 pub use crate::renderer::*;
 pub use crate::texture::*;
 pub use crate::utils::*;
+pub use crate::y_sort::*;
 
 pub use wgpu;
 pub use wgpu_types;
