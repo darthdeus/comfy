@@ -41,7 +41,6 @@ pub struct EngineContext<'a> {
     pub changes: &'a mut RefCell<ChangeTracker>,
     pub notifications: &'a mut RefCell<Notifications>,
 
-    pub config: &'a mut RefCell<GameConfig>,
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 
     pub mouse_world: Vec2,
@@ -123,14 +122,6 @@ impl<'a> EngineContext<'a> {
 
     pub fn despawn(&self, entity: Entity) {
         self.to_despawn.borrow_mut().push(entity);
-    }
-
-    pub fn config(&self) -> core::cell::Ref<GameConfig> {
-        self.config.borrow()
-    }
-
-    pub fn config_mut(&self) -> core::cell::RefMut<GameConfig> {
-        self.config.borrow_mut()
     }
 
     pub fn draw(&self) -> core::cell::Ref<Draw> {

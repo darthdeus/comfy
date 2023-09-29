@@ -32,7 +32,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
         is_key_down(KeyCode::LCtrl) &&
         is_key_down(KeyCode::LAlt)
     {
-        let mut config = c.config.borrow_mut();
+        let mut config = game_config_mut();
         config.dev.show_debug = !config.dev.show_debug;
     }
 
@@ -106,7 +106,7 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     world_mut().flush();
 }
 
-fn dev_hotkeys(c: &EngineContext) {
+fn dev_hotkeys(_c: &EngineContext) {
     // TODO: get rid of this & move it to nanovoid instead
     if is_key_pressed(KeyCode::F1) {
         let mut global_state = GLOBAL_STATE.borrow_mut();
@@ -119,14 +119,14 @@ fn dev_hotkeys(c: &EngineContext) {
     //     .set_cursor_visible(global_state.mouse_locked);
 
     if is_key_pressed(KeyCode::F7) {
-        let mut config = c.config.borrow_mut();
+        let mut config = game_config_mut();
 
         config.dev.show_lighting_config = !config.dev.show_lighting_config;
         config.dev.show_buffers = !config.dev.show_buffers;
     }
 
     if is_key_pressed(KeyCode::F8) {
-        let mut config = c.config.borrow_mut();
+        let mut config = game_config_mut();
 
         config.dev.show_fps = !config.dev.show_fps;
     }
@@ -487,9 +487,9 @@ fn process_notifications(c: &mut EngineContext) {
     }
 }
 
-fn show_errors(c: &mut EngineContext) {
+fn show_errors(_c: &mut EngineContext) {
     if cfg!(feature = "dev") &&
-        c.config().dev.recording_mode == RecordingMode::None
+        game_config().dev.recording_mode == RecordingMode::None
     {
         let errors = ERRORS.borrow();
 
@@ -508,7 +508,7 @@ fn show_errors(c: &mut EngineContext) {
 }
 
 fn update_perf_counters(c: &mut EngineContext) {
-    if cfg!(not(feature = "ci-release")) && c.config().dev.show_fps {
+    if cfg!(not(feature = "ci-release")) && game_config().dev.show_fps {
         let _span = span!("perf counters");
 
         let dt = c.dt_stats.next(frame_time());
@@ -812,13 +812,13 @@ fn renderer_update(c: &mut EngineContext) {
 
     let mut draw_params = DrawParams {
         aspect_ratio: aspect_ratio(),
-        config: &mut c.config.borrow_mut(),
+        config: &mut game_config_mut(),
         projection: main_camera().build_view_projection_matrix(),
         white_px: texture_path("1px"),
         clear_color,
         frame: frame_params,
         lights: LightingState::take_lights(),
-        lighting: c.lighting,
+        lighting: &mut game_config_mut().lighting,
         // sprite_queue,
         mesh_queue,
         particle_queue,
@@ -831,12 +831,12 @@ fn renderer_update(c: &mut EngineContext) {
     c.renderer.end_frame();
 }
 
-fn show_lighting_ui(c: &mut EngineContext) {
-    if c.config.borrow().dev.show_lighting_config {
+fn show_lighting_ui(_c: &mut EngineContext) {
+    if game_config().dev.show_lighting_config {
         egui::Window::new("Lighting")
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
             .show(egui(), |ui| {
-                lighting_ui(c.lighting, ui);
+                lighting_ui(&mut game_config_mut().lighting, ui);
             });
 
         // egui::Window::new("Post Processing").show(&self.egui(), |ui| {

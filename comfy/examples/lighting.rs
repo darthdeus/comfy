@@ -12,7 +12,7 @@ fn setup(c: &mut EngineContext) {
         )),
     );
 
-    c.lighting.ambient_light_intensity = 0.1;
+    game_config_mut().lighting.ambient_light_intensity = 0.1;
 }
 
 fn update(_c: &mut EngineContext) {

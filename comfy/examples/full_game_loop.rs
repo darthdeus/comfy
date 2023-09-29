@@ -117,12 +117,20 @@ fn update(c: &mut GameContext) {
 // on winit, which ends up blocking forever.
 // -------------------------------------------------------------------
 
+pub fn _comfy_default_config(config: GameConfig) -> GameConfig {
+    config
+}
+
 pub async fn run() {
     // comfy includes a `define_versions!()` macro that creates a `version_str()`
     // function that returns a version from cargo & git.
-    init_game_config("Full Game Loop Example".to_string(), "v0.0.1");
+    init_game_config(
+        "Full Game Loop Example".to_string(),
+        "v0.0.1",
+        _comfy_default_config,
+    );
 
-    let engine = EngineState::new(config);
+    let engine = EngineState::new();
     let game = ComfyGame::new(engine);
 
     run_comfy_main_async(game).await;

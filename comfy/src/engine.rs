@@ -140,7 +140,6 @@ impl EngineState {
 
             meta: &mut self.meta,
 
-            config: &mut self.config,
             game_loop: &mut self.game_loop,
 
             changes: &mut self.changes,
@@ -182,6 +181,6 @@ impl EngineState {
     // TODO: this really needs a cleanup
     pub fn title(&self) -> String {
         // TODO: make this configurable
-        format!("{} (COMFY ENGINE)", self.config.borrow().game_name)
+        format!("{} (COMFY ENGINE)", game_config().game_name)
     }
 }
