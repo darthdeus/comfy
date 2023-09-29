@@ -28,3 +28,8 @@ List of removed things and where to find them now:
   internally `Arc<Mutex<ContextImpl>>`, so this function is actually very
   cheap to call as it just returns a `&'static egui::Context` :)
 - `c.egui_wants_mouse` -> `egui().wants_pointer_input()`
+
+NOTE: Comfy still includes many APIs which are not currently documented but are
+still exposed. The current goal is to work through codebase and cleanup some odd bits
+and document them at the same time. If you find something that is not mentioned
+on the website or any examples, it's very likely to change in the future.

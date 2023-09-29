@@ -41,9 +41,6 @@ pub struct GameContext<'a, 'b: 'a> {
     // We'll continually spawn balls using a simple f32 timer.
     pub spawn_timer: &'a mut f32,
     pub ball_spawning_speed: &'a mut BallSpawningSpeed,
-    // We could just write c.engine.egui instead, but ... getting in the habit
-    // of re-exporting things into the `GameContext` usually ends up being nice.
-    pub egui: &'a egui::Context,
     pub physics: &'a mut Physics,
     pub engine: &'a mut EngineContext<'b>,
 }
@@ -56,7 +53,6 @@ fn make_context<'a, 'b: 'a>(
         spawn_timer: &mut state.spawn_timer,
         delta: engine.delta,
         ball_spawning_speed: &mut state.ball_spawning_speed,
-        egui: engine.egui,
         physics: &mut state.physics,
         engine,
     }
@@ -165,7 +161,7 @@ fn update(c: &mut GameContext) {
 
     egui::Window::new("More balls")
         .anchor(egui::Align2::LEFT_TOP, egui::vec2(10.0, 10.0))
-        .show(c.egui, |ui| {
+        .show(egui(), |ui| {
             match c.ball_spawning_speed {
                 BallSpawningSpeed::Comfy => {
                     if ui.button("Make it go faster").clicked() {
