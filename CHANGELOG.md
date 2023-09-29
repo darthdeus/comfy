@@ -1,9 +1,9 @@
 # v0.2.0
 
-The main change in this release is that `EngineContext` does not exist
-anymore. This should simplify a lot of the confusion, as the #1 question
-about Comfy from _many_ people was about `GameContext` and `EngineContext`
-and why are there two any why do we even need them.
+The main change in this release is that `EngineContext` is not necessary to
+pass around anymore. This should simplify a lot of the confusion, as the #1
+question about Comfy from _many_ people was about `GameContext` and
+`EngineContext` and why are there two any why do we even need them.
 
 Since Comfy already uses globals for many things, it makes sense to just
 embrace this fully and move the remaining things to globals as well. Many
