@@ -54,17 +54,10 @@ pub fn sound_id(id: &str) -> Sound {
     })
 }
 
-pub fn init_asset_source(
-    dir: &'static include_dir::Dir<'static>,
-    base_path: fn(&str) -> String,
-) {
-    ASSETS.borrow_mut().asset_source = Some(AssetSource { dir, base_path });
-}
-
 pub struct Assets {
     pub asset_loader: AssetLoader,
-    pub texture_send: Arc<Mutex<Sender<Vec<LoadRequest>>>>,
-    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadRequest>>>>,
+    pub texture_send: Arc<Mutex<Sender<Vec<LoadTextureRequest>>>>,
+    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
 
     pub textures: HashMap<String, TextureHandle>,
     // pub texture_load_bytes_queue: Vec<String>,
@@ -79,16 +72,14 @@ pub struct Assets {
     pub sound_groups: HashMap<String, Vec<Sound>>,
 
     pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
-    pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
-
-    pub asset_source: Option<AssetSource>,
 }
 
 // TODO: hash for name and path separately
 // TODO: check both for collisions
 impl Assets {
     pub fn new() -> Self {
-        let (send, recv) = std::sync::mpsc::channel::<Vec<LoadRequest>>();
+        let (send, recv) =
+            std::sync::mpsc::channel::<Vec<LoadTextureRequest>>();
 
         let image_map = Arc::new(Mutex::new(HashMap::new()));
 
@@ -110,20 +101,19 @@ impl Assets {
         //     })
         //     .collect_vec();
 
-        let (tx_sound, rx_sound) =
+        let (sound_send, sound_recv) =
             std::sync::mpsc::channel::<LoadSoundRequest>();
 
         let sounds = Arc::new(Mutex::new(HashMap::new()));
         // let sounds_inner = sounds.clone();
 
         Self {
-            asset_loader: AssetLoader::new(),
+            asset_loader: AssetLoader::new(sounds.clone(), sound_recv),
 
             texture_send: Arc::new(Mutex::new(send)),
             texture_recv: Arc::new(Mutex::new(recv)),
 
-            sound_send: Arc::new(Mutex::new(tx_sound)),
-            sound_recv: Arc::new(Mutex::new(rx_sound)),
+            sound_send: Arc::new(Mutex::new(sound_send)),
 
             textures: Default::default(),
             texture_image_map: image_map,
@@ -132,8 +122,6 @@ impl Assets {
             sounds,
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
-
-            asset_source: None,
         }
     }
 
@@ -157,6 +145,7 @@ impl Assets {
 
     pub fn process_load_queue(&mut self) {
         let _span = span!("process_load_queue");
+
         {
             while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
                 #[cfg(target_arch = "wasm32")]
@@ -206,43 +195,7 @@ impl Assets {
             }
         }
 
-        {
-            while let Ok(item) = self.sound_recv.lock().try_recv() {
-                let sounds = self.sounds.clone();
-
-                let sound_loop = move || {
-                    // TODO: do this properly
-                    let settings = if item.path.contains("music") {
-                        StaticSoundSettings::new().loop_region(..)
-                    } else {
-                        StaticSoundSettings::default()
-                    };
-
-                    match StaticSoundData::from_cursor(
-                        std::io::Cursor::new(item.bytes),
-                        settings,
-                    ) {
-                        Ok(sound) => {
-                            trace!("Sound {}", item.path);
-                            sounds.lock().insert(item.handle, sound);
-                            inc_assets_loaded(1);
-                        }
-                        Err(err) => {
-                            error!(
-                                "Failed to parse sound at {}: {:?}",
-                                item.path, err
-                            );
-                        }
-                    }
-                };
-
-                #[cfg(target_arch = "wasm32")]
-                sound_loop();
-
-                #[cfg(not(target_arch = "wasm32"))]
-                self.asset_loader.thread_pool.spawn(sound_loop);
-            }
-        }
+        self.asset_loader.sound_tick();
 
         let loaded_textures = self
             .texture_image_map
@@ -251,82 +204,11 @@ impl Assets {
             .cloned()
             .collect::<HashSet<_>>();
 
-        if let Some(asset_source) = self.asset_source.as_ref() {
-            let load_path_queue = self
-                .asset_loader
-                .texture_load_queue
-                .drain(..)
-                .filter(|(key, _relative_path)| {
-                    !loaded_textures.contains(&texture_id_unchecked(key))
-                })
-                .map(|(key, relative_path)| {
-                    let handle = texture_id_unchecked(&key);
-
-                    self.textures.insert(key, handle);
-
-                    if cfg!(any(feature = "ci-release", target_arch = "wasm32"))
-                    {
-                        info!("Embedded texture {}", relative_path);
-
-                        // let file = dir.get_file(&path);
-                        // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
-                        // let contents = std::fs::read(&relative_path);
-                        let file = asset_source
-                            .dir
-                            .get_file(&relative_path)
-                            .unwrap_or_else(|| {
-                                panic!("Failed to load {}", relative_path);
-                            });
-
-                        (relative_path, handle, Ok(file.contents().to_vec()))
-                    } else {
-                        let absolute_path =
-                            (asset_source.base_path)(&relative_path);
-
-                        info!(
-                            "File texture: {} ... {}",
-                            relative_path, absolute_path
-                        );
-
-                        let absolute_path =
-                            std::path::Path::new(&absolute_path)
-                                .canonicalize()
-                                .unwrap()
-                                .to_string_lossy()
-                                .to_string();
-
-                        trace!("Loading absolute path {}", absolute_path);
-
-                        let contents = std::fs::read(absolute_path);
-
-                        contents.as_ref().unwrap();
-
-                        (relative_path, handle, contents)
-                    }
-                })
-                .filter_map(|(relative_path, handle, data)| {
-                    if let Ok(data) = data {
-                        Some(LoadRequest {
-                            path: relative_path,
-                            handle,
-                            bytes: data,
-                        })
-                    } else {
-                        error!("Error loading {}", relative_path);
-                        None
-                    }
-                })
-                .collect_vec();
-
-            let texture_queue = load_path_queue;
-
-            self.texture_send.lock().send(texture_queue).log_err();
-        } else {
-            assert!(
-                self.asset_loader.texture_load_queue.is_empty(),
-                "AssetSource must be initialized before textures are loaded"
-            );
-        }
+        self.asset_loader.texture_tick(
+            loaded_textures,
+            &mut self.textures,
+            &self.texture_send.lock(),
+        );
     }
 
     pub fn process_sound_queue(&mut self) {
@@ -346,7 +228,7 @@ impl Assets {
         //     .map(|(path, bytes)| (path, Ok(bytes)))
         //     .collect_vec();
 
-        if let Some(asset_source) = self.asset_source.as_ref() {
+        if let Some(asset_source) = self.asset_loader.asset_source.as_ref() {
             for (key, relative_path) in
                 self.asset_loader.sound_load_queue.drain(..)
             {
