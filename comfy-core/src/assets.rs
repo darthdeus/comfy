@@ -238,10 +238,6 @@ impl Assets {
         }
 
         {
-            // TODO: don't start threadpool in process
-            #[cfg(not(target_arch = "wasm32"))]
-            let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
-
             while let Ok(item) = self.sound_recv.lock().try_recv() {
                 let sounds = self.sounds.clone();
 
@@ -274,7 +270,7 @@ impl Assets {
                 sound_loop();
 
                 #[cfg(not(target_arch = "wasm32"))]
-                pool.install(sound_loop);
+                self.thread_pool.install(sound_loop);
             }
         }
 
