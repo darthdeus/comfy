@@ -1,5 +1,16 @@
 use crate::*;
 
+static CACHED_LOADER: Lazy<AtomicRefCell<CachedImageLoader>> =
+    Lazy::new(|| AtomicRefCell::new(CachedImageLoader::new()));
+
+pub fn cached_loader() -> AtomicRef<'static, CachedImageLoader> {
+    CACHED_LOADER.borrow()
+}
+
+pub fn cached_loader_mut() -> AtomicRefMut<'static, CachedImageLoader> {
+    CACHED_LOADER.borrow_mut()
+}
+
 #[derive(Default)]
 pub struct CachedImageLoader {
     images: HashMap<String, (egui::TextureHandle, UVec2)>,

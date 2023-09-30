@@ -326,7 +326,7 @@ fn pause_system(c: &mut EngineContext) {
 
     if !*c.is_paused.borrow() && !c.flags.borrow().contains(PAUSE_PHYSICS) {
         cooldowns().tick(c.delta);
-        c.notifications.borrow_mut().tick(c.delta);
+        notifications().tick(c.delta);
     }
 }
 
@@ -440,8 +440,10 @@ fn process_temp_draws(c: &mut EngineContext) {
     }
 }
 
-fn process_notifications(c: &mut EngineContext) {
-    if !c.notifications.borrow_mut().notifications.is_empty() {
+fn process_notifications(_c: &mut EngineContext) {
+    let notifications = notifications();
+
+    if !notifications.notifications.is_empty() {
         egui::Window::new("Notifications")
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(20.0, 280.0))
             .resizable(false)
@@ -453,9 +455,7 @@ fn process_notifications(c: &mut EngineContext) {
                 ui.add_space(18.0);
 
                 ui.vertical_centered(|ui| {
-                    for notification in
-                        c.notifications.borrow_mut().notifications.iter()
-                    {
+                    for notification in notifications.notifications.iter() {
                         let font = egui::FontId::new(
                             16.0,
                             egui::FontFamily::Proportional,

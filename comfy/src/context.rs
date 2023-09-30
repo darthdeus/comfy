@@ -25,7 +25,6 @@ pub type ContextFn =
     Box<dyn FnOnce(&mut EngineContext) + Sync + Send + 'static>;
 
 pub struct EngineContext<'a> {
-    pub cached_loader: &'a RefCell<CachedImageLoader>,
     pub renderer: &'a mut WgpuRenderer,
 
     pub draw: &'a RefCell<Draw>,
@@ -37,9 +36,6 @@ pub struct EngineContext<'a> {
     pub fps_stats: &'a mut MovingStats,
 
     pub meta: &'a mut AnyMap,
-
-    pub changes: &'a mut RefCell<ChangeTracker>,
-    pub notifications: &'a mut RefCell<Notifications>,
 
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 

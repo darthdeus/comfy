@@ -2,6 +2,13 @@ use crate::*;
 
 use std::hash::Hash;
 
+static NOTIFICATIONS: Lazy<AtomicRefCell<Notifications>> =
+    Lazy::new(|| AtomicRefCell::new(Notifications::new()));
+
+pub fn notifications() -> AtomicRefMut<'static, Notifications> {
+    NOTIFICATIONS.borrow_mut()
+}
+
 pub struct Notification {
     pub text: String,
     pub timeout: Option<f32>,
@@ -36,7 +43,6 @@ impl Notifications {
         })
     }
 }
-
 
 pub struct ValueTracker {
     pub value: f32,
@@ -84,6 +90,12 @@ impl ValueTracker {
     }
 }
 
+static CHANGE_TRACKER: Lazy<AtomicRefCell<ChangeTracker>> =
+    Lazy::new(|| AtomicRefCell::new(ChangeTracker::new()));
+
+pub fn changes() -> AtomicRefMut<'static, ChangeTracker> {
+    CHANGE_TRACKER.borrow_mut()
+}
 
 pub struct ChangeTracker {
     pub ints: HashMap<&'static str, i32>,
@@ -134,9 +146,8 @@ impl ChangeTracker {
     }
 }
 
-pub static COOLDOWNS: Lazy<Arc<AtomicRefCell<Cooldowns>>> =
-    Lazy::new(|| Arc::new(AtomicRefCell::new(Cooldowns::new())));
-
+static COOLDOWNS: Lazy<AtomicRefCell<Cooldowns>> =
+    Lazy::new(|| AtomicRefCell::new(Cooldowns::new()));
 
 pub fn cooldowns() -> AtomicRefMut<'static, Cooldowns> {
     COOLDOWNS.borrow_mut()

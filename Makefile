@@ -18,8 +18,8 @@
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-# EXAMPLE=timed_draw
-EXAMPLE=y_sort
+EXAMPLE=timed_draw
+# EXAMPLE=y_sort
 
 # default: build-examples
 # default: wasm-build

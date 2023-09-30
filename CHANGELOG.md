@@ -29,12 +29,46 @@ List of removed things and where to find them now:
   internally `Arc<Mutex<ContextImpl>>`, so this function is actually very
   cheap to call as it just returns a `&'static egui::Context` :)
 - `c.egui_wants_mouse` -> `egui().wants_pointer_input()`
+- `c.cached_loader.borrow_mut()` -> `cached_loader_mut()` (for `&` just
+  omit `_mut`).
+- similarly `c.changes.borrow_mut()` -> `changes()` and `c.notifications.borrow_mut()` -> `notifications()`.
+  The last three were undocumented and are not really intended for public
+  use yet, but documenting them here anyway.
 
 NOTE: Comfy still includes many APIs which are not currently documented but are
 still exposed. The current goal is to work through codebase and cleanup some
 odd bits and document them at the same time. If you find something that is not
 mentioned on the website or any examples, it's very likely to change in the
 future.
+
+As a secondary note, it should be noted that comfy is still _very early_ on in
+its lifecycle. Comfy will do its best not to break existing games, but we may
+need to iterate on some ideas, and some of them might be controversial, such
+as the use of globals.
+
+Comfy is not a project ran by RFCs, and while we do appreciate feedback, some
+things have to be figured out by actually using the tool to build games,
+running benchmarks, and making decisions based on real world usage.
+
+In our usage of Comfy we've found many things that many in the Rust community
+would consider "bad ideas" to be incredible boosts in ergonomics and
+productivity. This is something that seems to happen more often than not, and
+as such we're not really afraid to make changes like the above where a large
+portion of the state is moved into globals. If you find the above change
+unacceptable and what we had before "good", maybe take a look at the source
+code and see how many globals we already had :)
+
+That being said, the #1 priority of Comfy is and always will be making real
+games. If any changes we make become problematic _in real world use cases_,
+please do report these. If you think something is slow, please submit a
+benchmark showing this. Comfy has enough examples using all of the systems, and
+a builtin integration with Tracy, so it should be easy to extend. We do care
+about reasonable games performing well on consumer hardware, but we do not care
+about being the fastest at rendering 500k particles.
+
+Our own games are not locked behind on an ancient version of Comfy, and we're
+doing our best to stay up to date with the latest changes, to make sure things
+are actually working smoothly.
 
 ## Bloom
 

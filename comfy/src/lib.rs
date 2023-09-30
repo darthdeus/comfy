@@ -144,14 +144,14 @@ pub fn image_button(
 // TODO: remove
 pub fn image_button_ex(
     text: &str,
-    c: &EngineContext,
+    _c: &EngineContext,
     ui: &mut egui::Ui,
     texture: &str,
     params: ImageButtonParams,
 ) -> egui::Response {
     image_button_without_c(
         text,
-        &mut c.cached_loader.borrow_mut(),
+        &mut cached_loader_mut(),
         egui(),
         ui,
         texture,

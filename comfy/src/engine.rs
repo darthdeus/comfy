@@ -11,8 +11,6 @@ pub trait GameLoop {
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
 
 pub struct EngineState {
-    pub cached_loader: RefCell<CachedImageLoader>,
-
     pub draw: RefCell<Draw>,
 
     pub frame: u64,
@@ -26,7 +24,6 @@ pub struct EngineState {
 
     pub meta: AnyMap,
 
-    pub changes: RefCell<ChangeTracker>,
     pub notifications: RefCell<Notifications>,
 
     pub game_loop: Option<Arc<Mutex<dyn GameLoop>>>,
@@ -68,8 +65,6 @@ impl EngineState {
         );
 
         Self {
-            cached_loader: RefCell::new(CachedImageLoader::new()),
-
             renderer: None,
             texture_creator: None,
 
@@ -83,7 +78,6 @@ impl EngineState {
 
             meta: AnyMap::new(),
 
-            changes: RefCell::new(ChangeTracker::new()),
             notifications: RefCell::new(Notifications::new()),
 
             game_loop: None,
@@ -115,15 +109,9 @@ impl EngineState {
 
     pub fn make_context(&mut self) -> EngineContext {
         let renderer = self.renderer.as_mut().unwrap();
-        // let egui = renderer.egui_ctx();
         let texture_creator = self.texture_creator.as_ref().unwrap();
 
         EngineContext {
-            cached_loader: &self.cached_loader,
-            // graphics_context: &renderer.context,
-            // textures: &renderer.textures,
-            // surface_config: &renderer.config,
-            // render_texture_format: renderer.render_texture_format,
             renderer,
 
             delta: delta(),
@@ -141,9 +129,6 @@ impl EngineState {
             meta: &mut self.meta,
 
             game_loop: &mut self.game_loop,
-
-            changes: &mut self.changes,
-            notifications: &mut self.notifications,
 
             // post_processing_effects: &renderer.post_processing_effects,
             // shaders: &renderer.shaders,
