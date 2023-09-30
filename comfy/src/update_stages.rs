@@ -148,7 +148,8 @@ fn process_asset_queues(c: &mut EngineContext) {
 
     AudioSystem::process_sounds();
 
-    if let Some(texture_queue) = ASSETS.borrow_mut().current_queue.lock().take()
+    if let Some(texture_queue) =
+        ASSETS.borrow_mut().asset_loader.current_queue.lock().take()
     {
         c.renderer.load_textures(texture_queue);
     }

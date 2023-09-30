@@ -81,6 +81,7 @@ pub fn init_asset_source(
 }
 
 pub struct Assets {
+    pub asset_loader: AssetLoader,
     pub texture_send: Arc<Mutex<Sender<Vec<LoadRequest>>>>,
     pub texture_recv: Arc<Mutex<Receiver<Vec<LoadRequest>>>>,
 
@@ -102,10 +103,6 @@ pub struct Assets {
     pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
     pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub thread_pool: rayon::ThreadPool,
-    pub current_queue: Arc<Mutex<Option<TextureLoadQueue>>>,
-
     pub asset_source: Option<AssetSource>,
 }
 
@@ -114,8 +111,6 @@ pub struct Assets {
 impl Assets {
     pub fn new() -> Self {
         let (send, recv) = std::sync::mpsc::channel::<Vec<LoadRequest>>();
-
-        let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
 
         let image_map = Arc::new(Mutex::new(HashMap::new()));
 
@@ -144,6 +139,8 @@ impl Assets {
         // let sounds_inner = sounds.clone();
 
         Self {
+            asset_loader: AssetLoader::new(),
+
             texture_send: Arc::new(Mutex::new(send)),
             texture_recv: Arc::new(Mutex::new(recv)),
 
@@ -158,11 +155,6 @@ impl Assets {
             sounds,
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
-
-            #[cfg(not(target_arch = "wasm32"))]
-            thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
-
-            current_queue,
 
             sound_load_queue: vec![],
 
@@ -198,7 +190,7 @@ impl Assets {
                 let iter = texture_queue.into_par_iter();
 
                 let image_map = self.texture_image_map.clone();
-                let current_queue = self.current_queue.clone();
+                let current_queue = self.asset_loader.current_queue.clone();
 
                 let texture_queue: Vec<_> = iter
                     .filter_map(|request| {
@@ -271,7 +263,7 @@ impl Assets {
                 sound_loop();
 
                 #[cfg(not(target_arch = "wasm32"))]
-                self.thread_pool.install(sound_loop);
+                self.asset_loader.thread_pool.install(sound_loop);
             }
         }
 
