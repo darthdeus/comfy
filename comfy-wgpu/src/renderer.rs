@@ -1557,7 +1557,6 @@ impl WgpuRenderer {
                     },
                 );
 
-
                 for ((blend_mode, texture), mesh_group) in &meshes
                     .into_iter()
                     .sorted_by_key(|x| x.texture)
@@ -1601,12 +1600,6 @@ impl WgpuRenderer {
                     perf_counter_inc("real_particle_draw", 1);
                     is_first = false;
                 }
-
-                // match pass_data.data {
-                //     DrawData::Mesh(_) => {}
-                //     DrawData::Particle(_) => {
-                //     }
-                // }
 
                 is_first = false;
             }
