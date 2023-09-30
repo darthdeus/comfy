@@ -190,16 +190,9 @@ impl AssetLoader {
             let sounds = self.sounds.clone();
 
             let sound_loop = move || {
-                // TODO: do this properly
-                let settings = if item.path.contains("music") {
-                    StaticSoundSettings::new().loop_region(..)
-                } else {
-                    StaticSoundSettings::default()
-                };
-
                 match StaticSoundData::from_cursor(
                     std::io::Cursor::new(item.bytes),
-                    settings,
+                    StaticSoundSettings::default(),
                 ) {
                     Ok(sound) => {
                         trace!("Sound {}", item.path);

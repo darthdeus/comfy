@@ -125,7 +125,7 @@ impl Assets {
         self.sounds.lock().insert(handle, data);
     }
 
-    pub fn process_load_queue(&mut self) {
+    pub fn process_asset_queues(&mut self) {
         let _span = span!("process_load_queue");
 
         self.asset_loader
@@ -140,11 +140,11 @@ impl Assets {
             .collect::<HashSet<_>>();
 
         self.asset_loader.texture_tick(loaded_textures, &mut self.textures);
+        self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
     }
 
-    pub fn process_sound_queue(&mut self) {
-        self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
-
+    // #[deprecated]
+    // pub fn process_sound_queue(&mut self) {
         // let sound_queue = self
         //     .sound_load_queue
         //     .drain(..)
@@ -200,7 +200,7 @@ impl Assets {
         //         }
         //     })
         //     .collect_vec();
-    }
+    // }
 
     pub fn handle_name(handle: TextureHandle) -> Option<String> {
         ASSETS.borrow().textures.iter().find_map(|(k, v)| {

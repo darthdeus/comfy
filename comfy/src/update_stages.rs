@@ -143,8 +143,7 @@ fn dev_hotkeys(_c: &EngineContext) {
 }
 
 fn process_asset_queues(c: &mut EngineContext) {
-    ASSETS.borrow_mut().process_load_queue();
-    ASSETS.borrow_mut().process_sound_queue();
+    ASSETS.borrow_mut().process_asset_queues();
 
     AudioSystem::process_sounds();
 
