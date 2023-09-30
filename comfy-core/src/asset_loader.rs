@@ -21,8 +21,8 @@ pub struct AssetLoader {
     pub sound_send: Arc<Mutex<Sender<SoundMemoryData>>>,
     pub sound_recv: Arc<Mutex<Receiver<SoundMemoryData>>>,
 
-    pub texture_send: Arc<Mutex<Sender<Vec<TextureMemoryData>>>>,
-    pub texture_recv: Arc<Mutex<Receiver<Vec<TextureMemoryData>>>>,
+    pub texture_data_send: Arc<Mutex<Sender<TextureMemoryData>>>,
+    pub texture_data_recv: Arc<Mutex<Receiver<TextureMemoryData>>>,
 
     pub asset_source: Option<AssetSource>,
 }
@@ -34,11 +34,11 @@ impl AssetLoader {
         let (sound_send, sound_recv) =
             std::sync::mpsc::channel::<SoundMemoryData>();
 
-        let (texture_send, texture_recv) =
-            std::sync::mpsc::channel::<Vec<TextureMemoryData>>();
+        let (texture_data_send, texture_data_recv) =
+            std::sync::mpsc::channel::<TextureMemoryData>();
 
-        let texture_send = Arc::new(Mutex::new(texture_send));
-        let texture_recv = Arc::new(Mutex::new(texture_recv));
+        let texture_data_send = Arc::new(Mutex::new(texture_data_send));
+        let texture_data_recv = Arc::new(Mutex::new(texture_data_recv));
 
         Self {
             current_queue,
@@ -52,8 +52,8 @@ impl AssetLoader {
             sound_send: Arc::new(Mutex::new(sound_send)),
             sound_recv: Arc::new(Mutex::new(sound_recv)),
 
-            texture_send,
-            texture_recv,
+            texture_data_send,
+            texture_data_recv,
 
             asset_source: None,
         }
@@ -73,7 +73,9 @@ impl AssetLoader {
         &mut self,
         texture_image_map: Arc<Mutex<HashMap<TextureHandle, DynamicImage>>>,
     ) {
-        while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
+        while let Ok(texture_queue) = self.texture_data_recv.lock().try_recv() {
+            let texture_queue = vec![texture_queue];
+
             #[cfg(target_arch = "wasm32")]
             let iter = texture_queue.into_iter();
             #[cfg(not(target_arch = "wasm32"))]
@@ -158,38 +160,30 @@ impl AssetLoader {
         textures: &mut HashMap<String, TextureHandle>,
     ) {
         if let Some(asset_source) = self.asset_source.as_ref() {
-            let load_requests = self
+            for (key, relative_path) in self
                 .texture_load_queue
                 .drain(..)
                 .filter(|(key, _relative_path)| {
                     !loaded_textures.contains(&texture_id_unchecked(key))
                 })
-                .map(|(key, relative_path)| {
-                    let handle = texture_id_unchecked(&key);
+            {
+                let handle = texture_id_unchecked(&key);
 
-                    textures.insert(key, handle);
+                textures.insert(key, handle);
 
-                    let bytes = asset_source.load_single_item(&relative_path);
+                if let Ok(bytes) = asset_source.load_single_item(&relative_path)
+                {
+                    let texture_data = TextureMemoryData {
+                        path: relative_path,
+                        handle,
+                        bytes,
+                    };
 
-                    (relative_path, handle, bytes)
-                })
-                .filter_map(|(relative_path, handle, data)| {
-                    if let Ok(data) = data {
-                        Some(TextureMemoryData {
-                            path: relative_path,
-                            handle,
-                            bytes: data,
-                        })
-                    } else {
-                        error!("Error loading {}", relative_path);
-                        None
-                    }
-                })
-                .collect_vec();
-
-            let texture_queue = load_requests;
-
-            self.texture_send.lock().send(texture_queue).log_err();
+                    self.texture_data_send.lock().send(texture_data).log_err();
+                } else {
+                    error!("Error loading {}", relative_path);
+                }
+            }
         } else {
             assert!(
                 self.texture_load_queue.is_empty(),
@@ -212,13 +206,16 @@ impl AssetLoader {
 
                 sound_ids.insert(key.to_string(), handle);
 
-                let bytes = asset_source.load_single_item(&relative_path);
-                let bytes = bytes.unwrap();
+                if let Ok(bytes) = asset_source.load_single_item(&relative_path)
+                {
+                    let item =
+                        SoundMemoryData { path: relative_path, handle, bytes };
 
-                let item =
-                    SoundMemoryData { path: relative_path, handle, bytes };
-
-                self.sound_send.lock().send(item).log_err();
+                    self.sound_send.lock().send(item).log_err();
+                } else {
+                    error!("Error loading {}", relative_path);
+                    continue;
+                }
             }
         } else {
             assert!(
