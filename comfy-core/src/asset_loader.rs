@@ -212,45 +212,11 @@ impl AssetLoader {
 
                 sound_ids.insert(key.to_string(), handle);
 
-                let item = if cfg!(any(
-                    feature = "ci-release",
-                    target_arch = "wasm32"
-                )) {
-                    info!("Embedded Sound {}", relative_path);
+                let bytes = asset_source.load_single_item(&relative_path);
+                let bytes = bytes.unwrap();
 
-                    let file = asset_source
-                        .dir
-                        .get_file(&relative_path)
-                        .unwrap_or_else(|| {
-                            panic!("Failed to load {}", relative_path);
-                        });
-
-                    SoundMemoryData {
-                        path: relative_path,
-                        handle,
-                        bytes: file.contents().to_vec(),
-                    }
-                } else {
-                    info!("File Sound: {}", relative_path);
-                    let absolute_path =
-                        (asset_source.base_path)(&relative_path);
-
-                    let absolute_path = std::path::Path::new(&absolute_path)
-                        .canonicalize()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string();
-
-                    trace!("Loading absolute path {}", absolute_path);
-
-                    let contents = std::fs::read(absolute_path).unwrap();
-
-                    SoundMemoryData {
-                        path: relative_path,
-                        handle,
-                        bytes: contents,
-                    }
-                };
+                let item =
+                    SoundMemoryData { path: relative_path, handle, bytes };
 
                 self.sound_send.lock().send(item).log_err();
             }

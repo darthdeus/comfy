@@ -20,7 +20,7 @@ impl AssetSource {
         relative_path: &str,
     ) -> std::io::Result<Vec<u8>> {
         if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
-            info!("Embedded texture {}", relative_path);
+            info!("Embedded {}", relative_path);
 
             // let file = dir.get_file(&path);
             // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
@@ -33,20 +33,16 @@ impl AssetSource {
         } else {
             let absolute_path = (self.base_path)(relative_path);
 
-            info!("File texture: {} ... {}", relative_path, absolute_path);
-
             let absolute_path = std::path::Path::new(&absolute_path)
                 .canonicalize()
                 .unwrap()
                 .to_string_lossy()
                 .to_string();
 
-            trace!("Loading absolute path {}", absolute_path);
+            info!("File {} ... {}", relative_path, absolute_path);
 
             let contents = std::fs::read(absolute_path);
-
             contents.as_ref().unwrap();
-
             contents
         }
     }
