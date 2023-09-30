@@ -1,5 +1,3 @@
-use std::sync::mpsc::Sender;
-
 use crate::*;
 
 type BasePathFn = fn(&str) -> String;
@@ -56,7 +54,6 @@ pub fn sound_id(id: &str) -> Sound {
 
 pub struct Assets {
     pub asset_loader: AssetLoader,
-    pub texture_send: Arc<Mutex<Sender<Vec<LoadTextureRequest>>>>,
 
     pub textures: HashMap<String, TextureHandle>,
     // pub texture_load_bytes_queue: Vec<String>,
@@ -75,9 +72,6 @@ pub struct Assets {
 // TODO: check both for collisions
 impl Assets {
     pub fn new() -> Self {
-        let (send, recv) =
-            std::sync::mpsc::channel::<Vec<LoadTextureRequest>>();
-
         let image_map = Arc::new(Mutex::new(HashMap::new()));
 
         // let texture_queue = texture_queue
@@ -99,14 +93,9 @@ impl Assets {
         //     .collect_vec();
 
         let sounds = Arc::new(Mutex::new(HashMap::new()));
-        // let sounds_inner = sounds.clone();
-
-        let texture_recv = Arc::new(Mutex::new(recv));
 
         Self {
-            asset_loader: AssetLoader::new(sounds.clone(), texture_recv),
-
-            texture_send: Arc::new(Mutex::new(send)),
+            asset_loader: AssetLoader::new(sounds.clone()),
 
             textures: Default::default(),
             texture_image_map: image_map,
@@ -150,30 +139,10 @@ impl Assets {
             .cloned()
             .collect::<HashSet<_>>();
 
-        self.asset_loader.texture_tick(
-            loaded_textures,
-            &mut self.textures,
-            &self.texture_send.lock(),
-        );
+        self.asset_loader.texture_tick(loaded_textures, &mut self.textures);
     }
 
     pub fn process_sound_queue(&mut self) {
-        // let load_path_queue = self
-        //     .sound_load_queue
-        //     .drain(..)
-        //     .filter(|path| !self.sounds.contains_key(&Sound::from_path(&path)))
-        //     // .map(|path| (path.clone(), std::fs::read(&path)))
-        //     .collect_vec();
-
-        // let load_byte_queue = self
-        //     .sound_load_bytes_queue
-        //     .drain(..)
-        //     .filter(|(path, _)| {
-        //         !self.sounds.contains_key(&Sound::from_path(&path))
-        //     })
-        //     .map(|(path, bytes)| (path, Ok(bytes)))
-        //     .collect_vec();
-
         self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
 
         // let sound_queue = self
@@ -231,30 +200,6 @@ impl Assets {
         //         }
         //     })
         //     .collect_vec();
-
-        // for item in sound_queue.into_iter() {
-        //     let settings = if item.path.contains("music") {
-        //         StaticSoundSettings::new()
-        //             .loop_behavior(Some(LoopBehavior { start_position: 0.0 }))
-        //     } else {
-        //         StaticSoundSettings::default()
-        //     };
-        //
-        //     info!("Loading sound {}", item.path);
-        //
-        //     match StaticSoundData::from_cursor(
-        //         std::io::Cursor::new(item.bytes),
-        //         settings,
-        //     ) {
-        //         Ok(sound) => {
-        //             info!("Loaded {}", item.path);
-        //             self.sounds.insert(item.handle, sound);
-        //         }
-        //         Err(err) => {
-        //             error!("Failed to parse sound at {}: {:?}", item.path, err);
-        //         }
-        //     }
-        // }
     }
 
     pub fn handle_name(handle: TextureHandle) -> Option<String> {

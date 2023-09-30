@@ -21,20 +21,24 @@ pub struct AssetLoader {
     pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
     pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
 
+    pub texture_send: Arc<Mutex<Sender<Vec<LoadTextureRequest>>>>,
     pub texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
 
     pub asset_source: Option<AssetSource>,
 }
 
 impl AssetLoader {
-    pub fn new(
-        sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
-        texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
-    ) -> Self {
+    pub fn new(sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>) -> Self {
         let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
 
         let (sound_send, sound_recv) =
             std::sync::mpsc::channel::<LoadSoundRequest>();
+
+        let (texture_send, texture_recv) =
+            std::sync::mpsc::channel::<Vec<LoadTextureRequest>>();
+
+        let texture_send = Arc::new(Mutex::new(texture_send));
+        let texture_recv = Arc::new(Mutex::new(texture_recv));
 
         Self {
             current_queue,
@@ -48,6 +52,7 @@ impl AssetLoader {
             sound_send: Arc::new(Mutex::new(sound_send)),
             sound_recv: Arc::new(Mutex::new(sound_recv)),
 
+            texture_send,
             texture_recv,
 
             asset_source: None,
@@ -222,7 +227,6 @@ impl AssetLoader {
         &mut self,
         loaded_textures: HashSet<TextureHandle>,
         textures: &mut HashMap<String, TextureHandle>,
-        texture_send: &Sender<Vec<LoadTextureRequest>>,
     ) {
         if let Some(asset_source) = self.asset_source.as_ref() {
             let load_requests = self
@@ -292,7 +296,7 @@ impl AssetLoader {
 
             let texture_queue = load_requests;
 
-            texture_send.send(texture_queue).log_err();
+            self.texture_send.lock().send(texture_queue).log_err();
         } else {
             assert!(
                 self.texture_load_queue.is_empty(),
