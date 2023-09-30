@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
 use crate::*;
 
@@ -21,6 +21,34 @@ static TIME: AtomicU64 = AtomicU64::new(unsafe { std::mem::transmute(0.0f64) });
 
 static UNPAUSED_TIME: AtomicU64 =
     AtomicU64::new(unsafe { std::mem::transmute(0.0f64) });
+
+static ASSETS_QUEUED: AtomicUsize = AtomicUsize::new(0);
+static ASSETS_LOADED: AtomicUsize = AtomicUsize::new(0);
+
+/// Returns the total number of assets queued for loading
+/// by the parallel asset loader.
+///
+/// This is _not_ the number of assets in the queue, but
+/// the total amount that were ever pushed into the loading
+/// queue.
+pub fn assets_queued_total() -> usize {
+    ASSETS_QUEUED.load(Ordering::SeqCst)
+}
+
+pub fn inc_assets_queued(inc_amount: usize) {
+    ASSETS_QUEUED.fetch_add(inc_amount, Ordering::SeqCst);
+}
+
+/// Returns the total number of assets loaded by the parallel
+/// asset loader.
+pub fn assets_loaded() -> usize {
+    ASSETS_LOADED.load(Ordering::SeqCst)
+}
+
+pub fn inc_assets_loaded(newly_loaded_count: usize) {
+    ASSETS_LOADED.fetch_add(newly_loaded_count, Ordering::SeqCst);
+}
+
 
 pub fn frame_time() -> f32 {
     f32::from_bits(FRAME_TIME.load(Ordering::SeqCst))

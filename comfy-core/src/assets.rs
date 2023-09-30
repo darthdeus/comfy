@@ -256,6 +256,7 @@ impl Assets {
                         Ok(sound) => {
                             trace!("Sound {}", item.path);
                             sounds.lock().insert(item.handle, sound);
+                            inc_assets_loaded(1);
                         }
                         Err(err) => {
                             error!(
@@ -615,9 +616,11 @@ impl Assets {
 }
 
 pub fn load_multiple_sounds(pairs: Vec<(String, String)>) {
+    inc_assets_queued(pairs.len());
     ASSETS.borrow_mut().sound_load_queue.extend(pairs)
 }
 
 pub fn load_multiple_textures(pairs: Vec<(String, String)>) {
+    inc_assets_queued(pairs.len());
     ASSETS.borrow_mut().texture_load_queue.extend(pairs)
 }
