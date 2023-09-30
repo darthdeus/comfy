@@ -69,8 +69,6 @@ pub struct Assets {
     pub sound_handles: HashMap<Sound, StaticSoundHandle>,
 
     pub sound_groups: HashMap<String, Vec<Sound>>,
-
-    pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
 }
 
 // TODO: hash for name and path separately
@@ -100,24 +98,15 @@ impl Assets {
         //     })
         //     .collect_vec();
 
-        let (sound_send, sound_recv) =
-            std::sync::mpsc::channel::<LoadSoundRequest>();
-
         let sounds = Arc::new(Mutex::new(HashMap::new()));
         // let sounds_inner = sounds.clone();
 
         let texture_recv = Arc::new(Mutex::new(recv));
 
         Self {
-            asset_loader: AssetLoader::new(
-                sounds.clone(),
-                sound_recv,
-                texture_recv,
-            ),
+            asset_loader: AssetLoader::new(sounds.clone(), texture_recv),
 
             texture_send: Arc::new(Mutex::new(send)),
-
-            sound_send: Arc::new(Mutex::new(sound_send)),
 
             textures: Default::default(),
             texture_image_map: image_map,
@@ -185,66 +174,7 @@ impl Assets {
         //     .map(|(path, bytes)| (path, Ok(bytes)))
         //     .collect_vec();
 
-        if let Some(asset_source) = self.asset_loader.asset_source.as_ref() {
-            for (key, relative_path) in
-                self.asset_loader.sound_load_queue.drain(..)
-            {
-                let handle = Sound::from_path(&key);
-
-                if self.sounds.lock().contains_key(&handle) {
-                    continue;
-                }
-
-                self.sound_ids.insert(key.to_string(), handle);
-
-                let item = if cfg!(any(
-                    feature = "ci-release",
-                    target_arch = "wasm32"
-                )) {
-                    info!("Embedded Sound {}", relative_path);
-
-                    let file = asset_source
-                        .dir
-                        .get_file(&relative_path)
-                        .unwrap_or_else(|| {
-                            panic!("Failed to load {}", relative_path);
-                        });
-
-                    LoadSoundRequest {
-                        path: relative_path,
-                        handle,
-                        bytes: file.contents().to_vec(),
-                    }
-                } else {
-                    info!("File Sound: {}", relative_path);
-                    let absolute_path =
-                        (asset_source.base_path)(&relative_path);
-
-                    let absolute_path = std::path::Path::new(&absolute_path)
-                        .canonicalize()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string();
-
-                    trace!("Loading absolute path {}", absolute_path);
-
-                    let contents = std::fs::read(absolute_path).unwrap();
-
-                    LoadSoundRequest {
-                        path: relative_path,
-                        handle,
-                        bytes: contents,
-                    }
-                };
-
-                self.sound_send.lock().send(item).log_err();
-            }
-        } else {
-            assert!(
-                self.asset_loader.sound_load_queue.is_empty(),
-                "AssetSource must be initialized before sounds are loaded"
-            );
-        }
+        self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
 
         // let sound_queue = self
         //     .sound_load_queue
