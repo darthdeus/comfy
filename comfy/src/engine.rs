@@ -122,8 +122,6 @@ impl EngineState {
             dt_stats: &mut self.dt_stats,
             fps_stats: &mut self.fps_stats,
 
-            mouse_world: mouse_world(),
-
             flags: &mut self.flags,
 
             meta: &mut self.meta,

@@ -39,7 +39,6 @@ pub struct EngineContext<'a> {
 
     pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
 
-    pub mouse_world: Vec2,
     pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 

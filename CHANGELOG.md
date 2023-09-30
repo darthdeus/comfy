@@ -24,6 +24,8 @@ List of removed things and where to find them now:
 - `c.cooldowns()` -> `cooldowns()`. This might be worth re-exporting into
   `GameContext` if accessed frequently, but in either way there's no extra
   overhead compared to before.
+- `c.mouse_world` -> `mouse_world()`. This already existed before, and may
+  also be worth re-exporting anyway.
 - `c.egui` -> `egui()`. Note that before this was a field, now it's a
   global function. Though in this case `egui::Context` is already
   internally `Arc<Mutex<ContextImpl>>`, so this function is actually very
