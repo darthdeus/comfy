@@ -18,13 +18,15 @@ pub struct AssetLoader {
     pub sound_load_queue: Vec<(String, String)>,
 
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
-    pub sound_send: Arc<Mutex<Sender<SoundMemoryData>>>,
-    pub sound_recv: Arc<Mutex<Receiver<SoundMemoryData>>>,
+    pub sound_send: Arc<Mutex<Sender<SoundAssetData>>>,
+    pub sound_recv: Arc<Mutex<Receiver<SoundAssetData>>>,
 
-    pub texture_data_send: Arc<Mutex<Sender<TextureMemoryData>>>,
-    pub texture_data_recv: Arc<Mutex<Receiver<TextureMemoryData>>>,
+    pub texture_data_send: Arc<Mutex<Sender<TextureAssetData>>>,
+    pub texture_data_recv: Arc<Mutex<Receiver<TextureAssetData>>>,
 
     pub asset_source: Option<AssetSource>,
+
+    pub data_load_queue: Vec<AssetData>,
 }
 
 impl AssetLoader {
@@ -32,10 +34,10 @@ impl AssetLoader {
         let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
 
         let (sound_send, sound_recv) =
-            std::sync::mpsc::channel::<SoundMemoryData>();
+            std::sync::mpsc::channel::<SoundAssetData>();
 
         let (texture_data_send, texture_data_recv) =
-            std::sync::mpsc::channel::<TextureMemoryData>();
+            std::sync::mpsc::channel::<TextureAssetData>();
 
         let texture_data_send = Arc::new(Mutex::new(texture_data_send));
         let texture_data_recv = Arc::new(Mutex::new(texture_data_recv));
@@ -56,6 +58,8 @@ impl AssetLoader {
             texture_data_recv,
 
             asset_source: None,
+
+            data_load_queue: Vec::new(),
         }
     }
 
@@ -73,53 +77,30 @@ impl AssetLoader {
         &mut self,
         texture_image_map: Arc<Mutex<HashMap<TextureHandle, DynamicImage>>>,
     ) {
-        while let Ok(texture_queue) = self.texture_data_recv.lock().try_recv() {
-            let texture_queue = vec![texture_queue];
-
-            #[cfg(target_arch = "wasm32")]
-            let iter = texture_queue.into_iter();
-            #[cfg(not(target_arch = "wasm32"))]
-            let iter = texture_queue.into_par_iter();
-
+        while let Ok(request) = self.texture_data_recv.lock().try_recv() {
             let image_map = texture_image_map.clone();
             let current_queue = self.current_queue.clone();
+            let image = image::load_from_memory(&request.bytes);
 
-            let texture_queue: Vec<_> = iter
-                .filter_map(|request| {
-                    let image = image::load_from_memory(&request.bytes);
+            let item = match image {
+                Ok(image) => {
+                    image_map.lock().insert(request.handle, image.clone());
 
-                    match image {
-                        Ok(image) => {
-                            image_map
-                                .lock()
-                                .insert(request.handle, image.clone());
+                    inc_assets_loaded(1);
 
-                            inc_assets_loaded(1);
-
-                            Some(LoadedImage {
-                                path: request.path,
-                                handle: request.handle,
-                                image,
-                            })
-                        }
-                        Err(err) => {
-                            error!(
-                                "Failed to load {} ... {}",
-                                request.path, err
-                            );
-                            None
-                        }
+                    LoadedImage {
+                        path: request.path,
+                        handle: request.handle,
+                        image,
                     }
-                })
-                .collect();
+                }
+                Err(err) => {
+                    error!("Failed to load {} ... {}", request.path, err);
+                    continue;
+                }
+            };
 
-            let mut queue = current_queue.lock();
-
-            if let Some(queue) = queue.as_mut() {
-                queue.extend(texture_queue);
-            } else {
-                *queue = Some(texture_queue);
-            }
+            current_queue.lock().get_or_insert_with(Vec::new).push(item);
         }
     }
 
@@ -173,11 +154,8 @@ impl AssetLoader {
 
                 if let Ok(bytes) = asset_source.load_single_item(&relative_path)
                 {
-                    let texture_data = TextureMemoryData {
-                        path: relative_path,
-                        handle,
-                        bytes,
-                    };
+                    let texture_data =
+                        TextureAssetData { path: relative_path, handle, bytes };
 
                     self.texture_data_send.lock().send(texture_data).log_err();
                 } else {
@@ -209,7 +187,7 @@ impl AssetLoader {
                 if let Ok(bytes) = asset_source.load_single_item(&relative_path)
                 {
                     let item =
-                        SoundMemoryData { path: relative_path, handle, bytes };
+                        SoundAssetData { path: relative_path, handle, bytes };
 
                     self.sound_send.lock().send(item).log_err();
                 } else {
@@ -226,18 +204,18 @@ impl AssetLoader {
     }
 }
 
-pub enum AssetMemoryData {
-    Sound(SoundMemoryData),
-    Texture(TextureMemoryData),
+pub enum AssetData {
+    Sound(SoundAssetData),
+    Texture(TextureAssetData),
 }
 
-pub struct SoundMemoryData {
+pub struct SoundAssetData {
     pub path: String,
     pub handle: Sound,
     pub bytes: Vec<u8>,
 }
 
-pub struct TextureMemoryData {
+pub struct TextureAssetData {
     pub path: String,
     pub handle: TextureHandle,
     pub bytes: Vec<u8>,
