@@ -14,6 +14,44 @@ pub struct AssetSource {
     pub base_path: BasePathFn,
 }
 
+impl AssetSource {
+    pub fn load_single_item(
+        &self,
+        relative_path: &str,
+    ) -> std::io::Result<Vec<u8>> {
+        if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
+            info!("Embedded texture {}", relative_path);
+
+            // let file = dir.get_file(&path);
+            // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
+            // let contents = std::fs::read(&relative_path);
+            let file = self.dir.get_file(relative_path).unwrap_or_else(|| {
+                panic!("Failed to load {}", relative_path);
+            });
+
+            Ok(file.contents().to_vec())
+        } else {
+            let absolute_path = (self.base_path)(relative_path);
+
+            info!("File texture: {} ... {}", relative_path, absolute_path);
+
+            let absolute_path = std::path::Path::new(&absolute_path)
+                .canonicalize()
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
+
+            trace!("Loading absolute path {}", absolute_path);
+
+            let contents = std::fs::read(absolute_path);
+
+            contents.as_ref().unwrap();
+
+            contents
+        }
+    }
+}
+
 pub fn texture_id_unchecked(id: &str) -> TextureHandle {
     TextureHandle::key_unchecked(id)
 }
@@ -73,25 +111,6 @@ pub struct Assets {
 impl Assets {
     pub fn new() -> Self {
         let image_map = Arc::new(Mutex::new(HashMap::new()));
-
-        // let texture_queue = texture_queue
-        //     .into_iter()
-        //     .filter_map(|(path, handle, image)| {
-        //         if let Some(image) = image {
-        //             if image.width() == 0 || image.height() == 0 {
-        //                 error!("Image {} has 0 width or height", path);
-        //                 None
-        //             } else {
-        //                 image_map_inner
-        //                     .lock()
-        //                     .insert(handle, image.clone());
-        //                 Some((path, handle, image.clone()))
-        //             }
-        //         } else {
-        //         }
-        //     })
-        //     .collect_vec();
-
         let sounds = Arc::new(Mutex::new(HashMap::new()));
 
         Self {
@@ -139,67 +158,68 @@ impl Assets {
             .cloned()
             .collect::<HashSet<_>>();
 
-        self.asset_loader.texture_tick(loaded_textures, &mut self.textures);
+        self.asset_loader
+            .load_textures_to_memory(loaded_textures, &mut self.textures);
         self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
     }
 
     // #[deprecated]
     // pub fn process_sound_queue(&mut self) {
-        // let sound_queue = self
-        //     .sound_load_queue
-        //     .drain(..)
-        //     .filter(|(key, _relative_path)| {
-        //         !self.sounds.contains_key(&Sound::from_path(key))
-        //     })
-        //     .map(|(key, relative_path)| {
-        //         let handle = Sound::from_path(&key);
-        //
-        //         self.sound_ids.insert(key.to_string(), handle);
-        //
-        //         if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
-        //             info!("Embedded Sound {}", relative_path);
-        //
-        //             let file = asset_source
-        //                 .dir
-        //                 .get_file(&relative_path)
-        //                 .unwrap_or_else(|| {
-        //                     panic!("Failed to load {}", relative_path);
-        //                 });
-        //
-        //             (relative_path, handle, Ok(file.contents().to_vec()))
-        //         } else {
-        //             info!("File Sound: {}", relative_path);
-        //             let absolute_path =
-        //                 (asset_source.base_path)(&relative_path);
-        //
-        //             let absolute_path = std::path::Path::new(&absolute_path)
-        //                 .canonicalize()
-        //                 .unwrap()
-        //                 .to_string_lossy()
-        //                 .to_string();
-        //
-        //             trace!("Loading absolute path {}", absolute_path);
-        //
-        //             let contents = std::fs::read(absolute_path);
-        //
-        //             contents.as_ref().unwrap();
-        //
-        //             (relative_path, handle, contents)
-        //         }
-        //     })
-        //     .filter_map(|(relative_path, handle, data)| {
-        //         if let Ok(data) = data {
-        //             Some(LoadSoundRequest {
-        //                 path: relative_path,
-        //                 handle,
-        //                 bytes: data,
-        //             })
-        //         } else {
-        //             error!("Error loading {}", relative_path);
-        //             None
-        //         }
-        //     })
-        //     .collect_vec();
+    // let sound_queue = self
+    //     .sound_load_queue
+    //     .drain(..)
+    //     .filter(|(key, _relative_path)| {
+    //         !self.sounds.contains_key(&Sound::from_path(key))
+    //     })
+    //     .map(|(key, relative_path)| {
+    //         let handle = Sound::from_path(&key);
+    //
+    //         self.sound_ids.insert(key.to_string(), handle);
+    //
+    //         if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
+    //             info!("Embedded Sound {}", relative_path);
+    //
+    //             let file = asset_source
+    //                 .dir
+    //                 .get_file(&relative_path)
+    //                 .unwrap_or_else(|| {
+    //                     panic!("Failed to load {}", relative_path);
+    //                 });
+    //
+    //             (relative_path, handle, Ok(file.contents().to_vec()))
+    //         } else {
+    //             info!("File Sound: {}", relative_path);
+    //             let absolute_path =
+    //                 (asset_source.base_path)(&relative_path);
+    //
+    //             let absolute_path = std::path::Path::new(&absolute_path)
+    //                 .canonicalize()
+    //                 .unwrap()
+    //                 .to_string_lossy()
+    //                 .to_string();
+    //
+    //             trace!("Loading absolute path {}", absolute_path);
+    //
+    //             let contents = std::fs::read(absolute_path);
+    //
+    //             contents.as_ref().unwrap();
+    //
+    //             (relative_path, handle, contents)
+    //         }
+    //     })
+    //     .filter_map(|(relative_path, handle, data)| {
+    //         if let Ok(data) = data {
+    //             Some(LoadSoundRequest {
+    //                 path: relative_path,
+    //                 handle,
+    //                 bytes: data,
+    //             })
+    //         } else {
+    //             error!("Error loading {}", relative_path);
+    //             None
+    //         }
+    //     })
+    //     .collect_vec();
     // }
 
     pub fn handle_name(handle: TextureHandle) -> Option<String> {

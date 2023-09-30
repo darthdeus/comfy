@@ -150,6 +150,8 @@ fn process_asset_queues(c: &mut EngineContext) {
 
     AudioSystem::process_sounds();
 
+    // TODO: this is ugly but would otherwise need an extra channel since
+    //       AssetLoader doesn't have access to WgpuRenderer
     if let Some(texture_queue) =
         ASSETS.borrow_mut().asset_loader.current_queue.lock().take()
     {
