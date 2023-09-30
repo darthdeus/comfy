@@ -11,24 +11,6 @@ pub fn texture_id_safe(id: &str) -> Option<TextureHandle> {
     ASSETS.borrow().textures.get(id).copied()
 }
 
-pub struct LoadSoundRequest {
-    pub path: String,
-    pub handle: Sound,
-    pub bytes: Vec<u8>,
-}
-
-pub struct LoadRequest {
-    pub path: String,
-    pub handle: TextureHandle,
-    pub bytes: Vec<u8>,
-}
-
-pub struct LoadedImage {
-    pub path: String,
-    pub handle: TextureHandle,
-    pub image: image::DynamicImage,
-}
-
 pub struct AssetSource {
     pub dir: &'static include_dir::Dir<'static>,
     pub base_path: BasePathFn,
@@ -38,7 +20,6 @@ pub fn texture_id_unchecked(id: &str) -> TextureHandle {
     TextureHandle::key_unchecked(id)
 }
 
-// TODO: impl Into<Cow<'static, str>>
 pub fn texture_id(id: &str) -> TextureHandle {
     if id == "1px" {
         texture_id_safe("1px").expect("1px must be loaded")
@@ -86,13 +67,10 @@ pub struct Assets {
     pub texture_recv: Arc<Mutex<Receiver<Vec<LoadRequest>>>>,
 
     pub textures: HashMap<String, TextureHandle>,
-    pub texture_load_queue: Vec<(String, String)>,
     // pub texture_load_bytes_queue: Vec<String>,
     // TODO: private & fix?
     pub texture_image_map:
         Arc<Mutex<HashMap<TextureHandle, image::DynamicImage>>>,
-
-    pub sound_load_queue: Vec<(String, String)>,
 
     pub sound_ids: HashMap<String, Sound>,
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
@@ -148,15 +126,12 @@ impl Assets {
             sound_recv: Arc::new(Mutex::new(rx_sound)),
 
             textures: Default::default(),
-            texture_load_queue: Default::default(),
             texture_image_map: image_map,
 
             sound_ids: HashMap::default(),
             sounds,
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
-
-            sound_load_queue: vec![],
 
             asset_source: None,
         }
@@ -201,6 +176,8 @@ impl Assets {
                                 image_map
                                     .lock()
                                     .insert(request.handle, image.clone());
+
+                                inc_assets_loaded(1);
 
                                 Some(LoadedImage {
                                     path: request.path,
@@ -263,7 +240,7 @@ impl Assets {
                 sound_loop();
 
                 #[cfg(not(target_arch = "wasm32"))]
-                self.asset_loader.thread_pool.install(sound_loop);
+                self.asset_loader.thread_pool.spawn(sound_loop);
             }
         }
 
@@ -276,6 +253,7 @@ impl Assets {
 
         if let Some(asset_source) = self.asset_source.as_ref() {
             let load_path_queue = self
+                .asset_loader
                 .texture_load_queue
                 .drain(..)
                 .filter(|(key, _relative_path)| {
@@ -345,7 +323,7 @@ impl Assets {
             self.texture_send.lock().send(texture_queue).log_err();
         } else {
             assert!(
-                self.texture_load_queue.is_empty(),
+                self.asset_loader.texture_load_queue.is_empty(),
                 "AssetSource must be initialized before textures are loaded"
             );
         }
@@ -369,7 +347,9 @@ impl Assets {
         //     .collect_vec();
 
         if let Some(asset_source) = self.asset_source.as_ref() {
-            for (key, relative_path) in self.sound_load_queue.drain(..) {
+            for (key, relative_path) in
+                self.asset_loader.sound_load_queue.drain(..)
+            {
                 let handle = Sound::from_path(&key);
 
                 if self.sounds.lock().contains_key(&handle) {
@@ -422,7 +402,7 @@ impl Assets {
             }
         } else {
             assert!(
-                self.sound_load_queue.is_empty(),
+                self.asset_loader.sound_load_queue.is_empty(),
                 "AssetSource must be initialized before sounds are loaded"
             );
         }
@@ -608,11 +588,9 @@ impl Assets {
 }
 
 pub fn load_multiple_sounds(pairs: Vec<(String, String)>) {
-    inc_assets_queued(pairs.len());
-    ASSETS.borrow_mut().sound_load_queue.extend(pairs)
+    ASSETS.borrow_mut().asset_loader.queue_load_sounds(pairs);
 }
 
 pub fn load_multiple_textures(pairs: Vec<(String, String)>) {
-    inc_assets_queued(pairs.len());
-    ASSETS.borrow_mut().texture_load_queue.extend(pairs)
+    ASSETS.borrow_mut().asset_loader.queue_load_textures(pairs);
 }
