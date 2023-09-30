@@ -130,8 +130,11 @@ fn dev_hotkeys(_c: &EngineContext) {
 
         config.dev.show_fps = !config.dev.show_fps;
     }
+
     #[cfg(feature = "exit-after-startup")]
-    std::process::exit(0);
+    if get_time() > 1.2 {
+        std::process::exit(0);
+    }
 
     let _span = span!("game-state update");
 
