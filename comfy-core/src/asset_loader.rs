@@ -17,16 +17,19 @@ pub struct AssetLoader {
     pub texture_load_queue: Vec<(String, String)>,
     pub sound_load_queue: Vec<(String, String)>,
 
-    pub asset_source: Option<AssetSource>,
-
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
     pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
+
+    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
+
+    pub asset_source: Option<AssetSource>,
 }
 
 impl AssetLoader {
     pub fn new(
         sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
         sound_recv: Receiver<LoadSoundRequest>,
+        texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
     ) -> Self {
         let sound_recv = Arc::new(Mutex::new(sound_recv));
         let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
@@ -42,6 +45,8 @@ impl AssetLoader {
             sounds,
             sound_recv,
 
+            texture_recv,
+
             asset_source: None,
         }
     }
@@ -54,6 +59,58 @@ impl AssetLoader {
     pub fn queue_load_textures(&mut self, textures: Vec<(String, String)>) {
         inc_assets_queued(textures.len());
         self.texture_load_queue.extend(textures)
+    }
+
+    pub fn parse_texture_byte_queue(
+        &mut self,
+        texture_image_map: Arc<Mutex<HashMap<TextureHandle, DynamicImage>>>,
+    ) {
+        while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
+            #[cfg(target_arch = "wasm32")]
+            let iter = texture_queue.into_iter();
+            #[cfg(not(target_arch = "wasm32"))]
+            let iter = texture_queue.into_par_iter();
+
+            let image_map = texture_image_map.clone();
+            let current_queue = self.current_queue.clone();
+
+            let texture_queue: Vec<_> = iter
+                .filter_map(|request| {
+                    let image = image::load_from_memory(&request.bytes);
+
+                    match image {
+                        Ok(image) => {
+                            image_map
+                                .lock()
+                                .insert(request.handle, image.clone());
+
+                            inc_assets_loaded(1);
+
+                            Some(LoadedImage {
+                                path: request.path,
+                                handle: request.handle,
+                                image,
+                            })
+                        }
+                        Err(err) => {
+                            error!(
+                                "Failed to load {} ... {}",
+                                request.path, err
+                            );
+                            None
+                        }
+                    }
+                })
+                .collect();
+
+            let mut queue = current_queue.lock();
+
+            if let Some(queue) = queue.as_mut() {
+                queue.extend(texture_queue);
+            } else {
+                *queue = Some(texture_queue);
+            }
+        }
     }
 
     pub fn sound_tick(&mut self) {

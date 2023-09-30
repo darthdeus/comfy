@@ -1,4 +1,4 @@
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc::Sender;
 
 use crate::*;
 
@@ -57,7 +57,6 @@ pub fn sound_id(id: &str) -> Sound {
 pub struct Assets {
     pub asset_loader: AssetLoader,
     pub texture_send: Arc<Mutex<Sender<Vec<LoadTextureRequest>>>>,
-    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadTextureRequest>>>>,
 
     pub textures: HashMap<String, TextureHandle>,
     // pub texture_load_bytes_queue: Vec<String>,
@@ -107,11 +106,16 @@ impl Assets {
         let sounds = Arc::new(Mutex::new(HashMap::new()));
         // let sounds_inner = sounds.clone();
 
+        let texture_recv = Arc::new(Mutex::new(recv));
+
         Self {
-            asset_loader: AssetLoader::new(sounds.clone(), sound_recv),
+            asset_loader: AssetLoader::new(
+                sounds.clone(),
+                sound_recv,
+                texture_recv,
+            ),
 
             texture_send: Arc::new(Mutex::new(send)),
-            texture_recv: Arc::new(Mutex::new(recv)),
 
             sound_send: Arc::new(Mutex::new(sound_send)),
 
@@ -146,55 +150,8 @@ impl Assets {
     pub fn process_load_queue(&mut self) {
         let _span = span!("process_load_queue");
 
-        {
-            while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
-                #[cfg(target_arch = "wasm32")]
-                let iter = texture_queue.into_iter();
-                #[cfg(not(target_arch = "wasm32"))]
-                let iter = texture_queue.into_par_iter();
-
-                let image_map = self.texture_image_map.clone();
-                let current_queue = self.asset_loader.current_queue.clone();
-
-                let texture_queue: Vec<_> = iter
-                    .filter_map(|request| {
-                        let image = image::load_from_memory(&request.bytes);
-
-                        match image {
-                            Ok(image) => {
-                                image_map
-                                    .lock()
-                                    .insert(request.handle, image.clone());
-
-                                inc_assets_loaded(1);
-
-                                Some(LoadedImage {
-                                    path: request.path,
-                                    handle: request.handle,
-                                    image,
-                                })
-                            }
-                            Err(err) => {
-                                error!(
-                                    "Failed to load {} ... {}",
-                                    request.path, err
-                                );
-                                None
-                            }
-                        }
-                    })
-                    .collect();
-
-                let mut queue = current_queue.lock();
-
-                if let Some(queue) = queue.as_mut() {
-                    queue.extend(texture_queue);
-                } else {
-                    *queue = Some(texture_queue);
-                }
-            }
-        }
-
+        self.asset_loader
+            .parse_texture_byte_queue(self.texture_image_map.clone());
         self.asset_loader.sound_tick();
 
         let loaded_textures = self
