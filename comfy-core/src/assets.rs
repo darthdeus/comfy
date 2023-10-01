@@ -141,21 +141,43 @@ impl Assets {
     }
 
     pub fn process_asset_queues(&mut self) {
-        let _span = span!("process_load_queue");
+        let _span = span!("process_asset_queues");
 
         self.asset_loader
             .parse_texture_byte_queue(self.texture_image_map.clone());
+
         self.asset_loader.sound_tick();
 
-        let loaded_textures = self
-            .texture_image_map
-            .lock()
-            .keys()
-            .cloned()
-            .collect::<HashSet<_>>();
+        {
+            let _span = span!("start_loading_to_memory");
 
-        self.asset_loader
-            .load_textures_to_memory(loaded_textures, &mut self.textures);
+            const TRY_LOCK: bool = true;
+
+            if TRY_LOCK {
+                if let Some(guard) = self.texture_image_map.try_lock() {
+                    let loaded_textures =
+                        guard.keys().cloned().collect::<HashSet<_>>();
+
+                    self.asset_loader.load_textures_to_memory(
+                        loaded_textures,
+                        &mut self.textures,
+                    );
+                }
+            } else {
+                let loaded_textures = self
+                    .texture_image_map
+                    .lock()
+                    .keys()
+                    .cloned()
+                    .collect::<HashSet<_>>();
+
+                self.asset_loader.load_textures_to_memory(
+                    loaded_textures,
+                    &mut self.textures,
+                );
+            }
+        }
+
         self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
     }
 

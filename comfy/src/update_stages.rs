@@ -152,11 +152,23 @@ fn process_asset_queues(c: &mut EngineContext) {
 
     // TODO: this is ugly but would otherwise need an extra channel since
     //       AssetLoader doesn't have access to WgpuRenderer
-    if let Some(texture_queue) =
-        ASSETS.borrow_mut().asset_loader.current_queue.lock().take()
+    if let Some(mut guard) =
+        ASSETS.borrow_mut().asset_loader.wgpu_load_queue.try_lock()
     {
-        c.renderer.load_textures(texture_queue);
+        if let Some(batch) = guard.take() {
+            for item in batch.into_iter() {
+                c.renderer.loaded_image_send.send(item).log_err();
+            }
+        }
     }
+
+    // if let Some(texture_queue) =
+    //     ASSETS.borrow_mut().asset_loader.wgpu_load_queue.lock().take()
+    // {
+    //     for item in texture_queue.into_iter() {
+    //         c.renderer.loaded_image_send.send(item).log_err();
+    //     }
+    // }
 }
 
 fn render_text(_c: &mut EngineContext) {

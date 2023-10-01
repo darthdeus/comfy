@@ -12,7 +12,7 @@ pub fn init_asset_source(
 pub struct AssetLoader {
     #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
-    pub current_queue: Arc<Mutex<Option<TextureLoadQueue>>>,
+    pub wgpu_load_queue: Arc<Mutex<Option<TextureLoadQueue>>>,
 
     pub texture_load_queue: Vec<(String, String)>,
     pub sound_load_queue: Vec<(String, String)>,
@@ -43,7 +43,7 @@ impl AssetLoader {
         let texture_data_recv = Arc::new(Mutex::new(texture_data_recv));
 
         Self {
-            current_queue,
+            wgpu_load_queue: current_queue,
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
@@ -77,34 +77,47 @@ impl AssetLoader {
         &mut self,
         texture_image_map: Arc<Mutex<HashMap<TextureHandle, DynamicImage>>>,
     ) {
+        let _span = span!("parse_texture_byte_queue");
+
         while let Ok(request) = self.texture_data_recv.lock().try_recv() {
             let image_map = texture_image_map.clone();
-            let current_queue = self.current_queue.clone();
-            let image = image::load_from_memory(&request.bytes);
+            let wgpu_load_queue = self.wgpu_load_queue.clone();
 
-            let item = match image {
-                Ok(image) => {
-                    image_map.lock().insert(request.handle, image.clone());
+            let process_image = move || {
+                let image = image::load_from_memory(&request.bytes);
 
-                    inc_assets_loaded(1);
+                let item = match image {
+                    Ok(image) => {
+                        image_map.lock().insert(request.handle, image.clone());
 
-                    LoadedImage {
-                        path: request.path,
-                        handle: request.handle,
-                        image,
+                        inc_assets_loaded(1);
+
+                        LoadedImage {
+                            path: request.path,
+                            handle: request.handle,
+                            image,
+                        }
                     }
-                }
-                Err(err) => {
-                    error!("Failed to load {} ... {}", request.path, err);
-                    continue;
-                }
+                    Err(err) => {
+                        error!("Failed to load {} ... {}", request.path, err);
+                        return;
+                    }
+                };
+
+                wgpu_load_queue.lock().get_or_insert_with(Vec::new).push(item);
             };
 
-            current_queue.lock().get_or_insert_with(Vec::new).push(item);
+            #[cfg(target_arch = "wasm32")]
+            process_image();
+
+            #[cfg(not(target_arch = "wasm32"))]
+            self.thread_pool.spawn(process_image);
         }
     }
 
     pub fn sound_tick(&mut self) {
+        let _span = span!("sound_tick");
+
         while let Ok(item) = self.sound_recv.lock().try_recv() {
             let sounds = self.sounds.clone();
 
@@ -140,6 +153,8 @@ impl AssetLoader {
         loaded_textures: HashSet<TextureHandle>,
         textures: &mut HashMap<String, TextureHandle>,
     ) {
+        let _span = span!("load_textures_to_memory");
+
         if let Some(asset_source) = self.asset_source.as_ref() {
             for (key, relative_path) in self
                 .texture_load_queue
@@ -174,6 +189,8 @@ impl AssetLoader {
         &mut self,
         sound_ids: &mut HashMap<String, Sound>,
     ) {
+        let _span = span!("load_sounds_to_memory");
+
         if let Some(asset_source) = self.asset_source.as_ref() {
             for (key, relative_path) in self.sound_load_queue.drain(..) {
                 let handle = Sound::from_path(&key);

@@ -101,10 +101,11 @@ pub struct WgpuRenderer {
 
     pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
 
+    // TODO: ???
     #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
-    pub rx_texture: Receiver<LoadedImage>,
-    pub tx_texture: Sender<LoadedImage>,
+    pub loaded_image_recv: Receiver<LoadedImage>,
+    pub loaded_image_send: Sender<LoadedImage>,
 
     pub textures: Arc<Mutex<TextureMap>>,
 }
@@ -643,8 +644,8 @@ impl WgpuRenderer {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
-            rx_texture,
-            tx_texture,
+            loaded_image_recv: rx_texture,
+            loaded_image_send: tx_texture,
 
             depth_texture: Arc::new(depth_texture),
 
@@ -1361,19 +1362,16 @@ impl WgpuRenderer {
             changed_recording_mode = true;
         }
 
-
         // Load textures
         {
-            while let Ok(loaded_image) = self.rx_texture.try_recv() {
+            let _span = span!("wgpu texture load");
+
+            while let Ok(loaded_image) = self.loaded_image_recv.try_recv() {
                 let context = self.context.clone();
                 let textures = self.textures.clone();
                 let tbgl = self.texture_layout.clone();
 
-                // let context_inner = context.clone();
-                // let tbgl = texture_bind_group_layout.clone();
-                // let textures_inner = textures.clone();
-
-                let texture_loop = || {
+                let texture_loop = move || {
                     let texture = Texture::from_image(
                         &context.device,
                         &context.queue,
@@ -1398,7 +1396,7 @@ impl WgpuRenderer {
                 texture_loop();
 
                 #[cfg(not(target_arch = "wasm32"))]
-                self.thread_pool.install(texture_loop);
+                self.thread_pool.spawn(texture_loop);
             }
         }
 
@@ -1647,46 +1645,6 @@ impl WgpuRenderer {
         );
 
         self.egui_winit.set_pixels_per_point(scale_factor);
-    }
-
-    pub fn load_textures(&mut self, texture_queue: TextureLoadQueue) {
-        for item in texture_queue {
-            self.tx_texture.send(item).log_err();
-        }
-
-        // let _span = span!("load_textures");
-        // // #[cfg(not(target_arch = "wasm32"))]
-        // // let iter = texture_queue.into_par_iter();
-        // // #[cfg(target_arch = "wasm32")]
-        // // let iter = texture_queue.into_iter();
-        // let iter = texture_queue.into_par_iter();
-        //
-        // let results: Vec<_> = iter
-        //     .filter_map(|item| {
-        //         info!("Loading image: {}", item.path);
-        //
-        //         let texture = Texture::from_image(
-        //             &self.device,
-        //             &self.queue,
-        //             &item.image,
-        //             Some(&item.path),
-        //             false,
-        //         )
-        //         .ok()?;
-        //
-        //         let bind_group = self.device.simple_bind_group(
-        //             &format!("{}_bind_group", item.path),
-        //             &texture,
-        //             &self.texture_bind_group_layout,
-        //         );
-        //
-        //         Some((item.handle, texture, bind_group))
-        //     })
-        //     .collect();
-        //
-        // for (handle, texture, bind_group) in results.into_iter() {
-        //     self.textures.lock().insert(handle, (bind_group, texture));
-        // }
     }
 
     pub fn width(&self) -> f32 {
