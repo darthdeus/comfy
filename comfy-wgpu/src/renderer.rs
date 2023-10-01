@@ -1392,7 +1392,7 @@ impl WgpuRenderer {
                 };
 
                 #[cfg(target_arch = "wasm32")]
-                texture_loop();
+                load_image_texture();
 
                 #[cfg(not(target_arch = "wasm32"))]
                 self.thread_pool.spawn(load_image_texture);
