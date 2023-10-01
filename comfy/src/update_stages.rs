@@ -655,6 +655,25 @@ fn update_perf_counters(c: &mut EngineContext) {
                         resident / (1024 * 1024)
                     ));
                 }
+
+                egui::Grid::new("timings-grid").show(ui, |ui| {
+                    for (name, entry) in timings()
+                        .data
+                        .iter()
+                        .sorted_by_key(|(_, entry)| entry.time)
+                    {
+                        let mean = if !entry.history.is_empty() {
+                            entry.history.sum() / entry.history.len() as f32
+                        } else {
+                            0.0
+                        };
+
+                        ui.label(*name);
+                        ui.label(format!("{:.03} ms", mean * 1000.0));
+
+                        ui.end_row();
+                    }
+                });
             });
     }
 
