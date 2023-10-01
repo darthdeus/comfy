@@ -23,6 +23,7 @@ mod math;
 mod perf_counters;
 mod quad;
 pub mod random;
+pub mod spatial_hash;
 mod task_timer;
 mod text;
 mod timer;
@@ -81,6 +82,7 @@ pub use rand::seq::SliceRandom;
 pub use smallvec::{self, SmallVec};
 
 pub use bimap::BiHashMap;
+pub use fxhash;
 pub use num_traits;
 
 #[cfg(target_arch = "wasm32")]
