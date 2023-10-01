@@ -101,7 +101,6 @@ pub struct WgpuRenderer {
 
     pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
 
-    // TODO: ???
     #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
     pub loaded_image_recv: Receiver<LoadedImage>,
@@ -1371,7 +1370,7 @@ impl WgpuRenderer {
                 let textures = self.textures.clone();
                 let tbgl = self.texture_layout.clone();
 
-                let texture_loop = move || {
+                let load_image_texture = move || {
                     let texture = Texture::from_image(
                         &context.device,
                         &context.queue,
@@ -1396,7 +1395,7 @@ impl WgpuRenderer {
                 texture_loop();
 
                 #[cfg(not(target_arch = "wasm32"))]
-                self.thread_pool.spawn(texture_loop);
+                self.thread_pool.spawn(load_image_texture);
             }
         }
 
