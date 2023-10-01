@@ -1,6 +1,7 @@
 #![allow(clippy::uninlined_format_args)]
 #![allow(clippy::new_without_default)]
 
+mod asset_loader;
 mod assets;
 mod audio;
 mod blood_canvas;
@@ -27,7 +28,7 @@ mod text;
 mod timer;
 mod tween;
 
-
+pub use crate::asset_loader::*;
 pub use crate::assets::*;
 pub use crate::audio::*;
 pub use crate::blood_canvas::*;

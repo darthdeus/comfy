@@ -130,8 +130,11 @@ fn dev_hotkeys(_c: &EngineContext) {
 
         config.dev.show_fps = !config.dev.show_fps;
     }
+
     #[cfg(feature = "exit-after-startup")]
-    std::process::exit(0);
+    if get_time() > 1.2 {
+        std::process::exit(0);
+    }
 
     let _span = span!("game-state update");
 
@@ -143,15 +146,29 @@ fn dev_hotkeys(_c: &EngineContext) {
 }
 
 fn process_asset_queues(c: &mut EngineContext) {
-    ASSETS.borrow_mut().process_load_queue();
-    ASSETS.borrow_mut().process_sound_queue();
+    ASSETS.borrow_mut().process_asset_queues();
 
     AudioSystem::process_sounds();
 
-    if let Some(texture_queue) = ASSETS.borrow_mut().current_queue.lock().take()
+    // TODO: this is ugly but would otherwise need an extra channel since
+    //       AssetLoader doesn't have access to WgpuRenderer
+    if let Some(mut guard) =
+        ASSETS.borrow_mut().asset_loader.wgpu_load_queue.try_lock()
     {
-        c.renderer.load_textures(texture_queue);
+        if let Some(batch) = guard.take() {
+            for item in batch.into_iter() {
+                c.renderer.loaded_image_send.send(item).log_err();
+            }
+        }
     }
+
+    // if let Some(texture_queue) =
+    //     ASSETS.borrow_mut().asset_loader.wgpu_load_queue.lock().take()
+    // {
+    //     for item in texture_queue.into_iter() {
+    //         c.renderer.loaded_image_send.send(item).log_err();
+    //     }
+    // }
 }
 
 fn render_text(_c: &mut EngineContext) {

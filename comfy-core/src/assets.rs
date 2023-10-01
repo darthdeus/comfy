@@ -1,5 +1,3 @@
-use std::sync::mpsc::{Receiver, Sender};
-
 use crate::*;
 
 type BasePathFn = fn(&str) -> String;
@@ -11,34 +9,49 @@ pub fn texture_id_safe(id: &str) -> Option<TextureHandle> {
     ASSETS.borrow().textures.get(id).copied()
 }
 
-pub struct LoadSoundRequest {
-    pub path: String,
-    pub handle: Sound,
-    pub bytes: Vec<u8>,
-}
-
-pub struct LoadRequest {
-    pub path: String,
-    pub handle: TextureHandle,
-    pub bytes: Vec<u8>,
-}
-
-pub struct LoadedImage {
-    pub path: String,
-    pub handle: TextureHandle,
-    pub image: image::DynamicImage,
-}
-
 pub struct AssetSource {
     pub dir: &'static include_dir::Dir<'static>,
     pub base_path: BasePathFn,
+}
+
+impl AssetSource {
+    pub fn load_single_item(
+        &self,
+        relative_path: &str,
+    ) -> std::io::Result<Vec<u8>> {
+        if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
+            info!("Embedded {}", relative_path);
+
+            // let file = dir.get_file(&path);
+            // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
+            // let contents = std::fs::read(&relative_path);
+            let file = self.dir.get_file(relative_path).unwrap_or_else(|| {
+                panic!("Failed to load {}", relative_path);
+            });
+
+            Ok(file.contents().to_vec())
+        } else {
+            let absolute_path = (self.base_path)(relative_path);
+
+            let absolute_path = std::path::Path::new(&absolute_path)
+                .canonicalize()
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
+
+            info!("File {} ... {}", relative_path, absolute_path);
+
+            let contents = std::fs::read(absolute_path);
+            contents.as_ref().unwrap();
+            contents
+        }
+    }
 }
 
 pub fn texture_id_unchecked(id: &str) -> TextureHandle {
     TextureHandle::key_unchecked(id)
 }
 
-// TODO: impl Into<Cow<'static, str>>
 pub fn texture_id(id: &str) -> TextureHandle {
     if id == "1px" {
         texture_id_safe("1px").expect("1px must be loaded")
@@ -73,100 +86,39 @@ pub fn sound_id(id: &str) -> Sound {
     })
 }
 
-pub fn init_asset_source(
-    dir: &'static include_dir::Dir<'static>,
-    base_path: fn(&str) -> String,
-) {
-    ASSETS.borrow_mut().asset_source = Some(AssetSource { dir, base_path });
-}
-
 pub struct Assets {
-    pub texture_send: Arc<Mutex<Sender<Vec<LoadRequest>>>>,
-    pub texture_recv: Arc<Mutex<Receiver<Vec<LoadRequest>>>>,
+    pub asset_loader: AssetLoader,
 
     pub textures: HashMap<String, TextureHandle>,
-    pub texture_load_queue: Vec<(String, String)>,
     // pub texture_load_bytes_queue: Vec<String>,
     // TODO: private & fix?
     pub texture_image_map:
         Arc<Mutex<HashMap<TextureHandle, image::DynamicImage>>>,
-
-    pub sound_load_queue: Vec<(String, String)>,
 
     pub sound_ids: HashMap<String, Sound>,
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
     pub sound_handles: HashMap<Sound, StaticSoundHandle>,
 
     pub sound_groups: HashMap<String, Vec<Sound>>,
-
-    pub sound_send: Arc<Mutex<Sender<LoadSoundRequest>>>,
-    pub sound_recv: Arc<Mutex<Receiver<LoadSoundRequest>>>,
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub thread_pool: rayon::ThreadPool,
-    pub current_queue: Arc<Mutex<Option<TextureLoadQueue>>>,
-
-    pub asset_source: Option<AssetSource>,
 }
 
 // TODO: hash for name and path separately
 // TODO: check both for collisions
 impl Assets {
     pub fn new() -> Self {
-        let (send, recv) = std::sync::mpsc::channel::<Vec<LoadRequest>>();
-
-        let current_queue = Arc::new(Mutex::new(None::<TextureLoadQueue>));
-
         let image_map = Arc::new(Mutex::new(HashMap::new()));
-
-        // let texture_queue = texture_queue
-        //     .into_iter()
-        //     .filter_map(|(path, handle, image)| {
-        //         if let Some(image) = image {
-        //             if image.width() == 0 || image.height() == 0 {
-        //                 error!("Image {} has 0 width or height", path);
-        //                 None
-        //             } else {
-        //                 image_map_inner
-        //                     .lock()
-        //                     .insert(handle, image.clone());
-        //                 Some((path, handle, image.clone()))
-        //             }
-        //         } else {
-        //         }
-        //     })
-        //     .collect_vec();
-
-        let (tx_sound, rx_sound) =
-            std::sync::mpsc::channel::<LoadSoundRequest>();
-
         let sounds = Arc::new(Mutex::new(HashMap::new()));
-        // let sounds_inner = sounds.clone();
 
         Self {
-            texture_send: Arc::new(Mutex::new(send)),
-            texture_recv: Arc::new(Mutex::new(recv)),
-
-            sound_send: Arc::new(Mutex::new(tx_sound)),
-            sound_recv: Arc::new(Mutex::new(rx_sound)),
+            asset_loader: AssetLoader::new(sounds.clone()),
 
             textures: Default::default(),
-            texture_load_queue: Default::default(),
             texture_image_map: image_map,
 
             sound_ids: HashMap::default(),
             sounds,
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
-
-            #[cfg(not(target_arch = "wasm32"))]
-            thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
-
-            current_queue,
-
-            sound_load_queue: vec![],
-
-            asset_source: None,
         }
     }
 
@@ -188,333 +140,105 @@ impl Assets {
         self.sounds.lock().insert(handle, data);
     }
 
-    pub fn process_load_queue(&mut self) {
-        let _span = span!("process_load_queue");
-        {
-            while let Ok(texture_queue) = self.texture_recv.lock().try_recv() {
-                #[cfg(target_arch = "wasm32")]
-                let iter = texture_queue.into_iter();
-                #[cfg(not(target_arch = "wasm32"))]
-                let iter = texture_queue.into_par_iter();
+    pub fn process_asset_queues(&mut self) {
+        let _span = span!("process_asset_queues");
 
-                let image_map = self.texture_image_map.clone();
-                let current_queue = self.current_queue.clone();
+        self.asset_loader
+            .parse_texture_byte_queue(self.texture_image_map.clone());
 
-                let texture_queue: Vec<_> = iter
-                    .filter_map(|request| {
-                        let image = image::load_from_memory(&request.bytes);
-
-                        match image {
-                            Ok(image) => {
-                                image_map
-                                    .lock()
-                                    .insert(request.handle, image.clone());
-
-                                Some(LoadedImage {
-                                    path: request.path,
-                                    handle: request.handle,
-                                    image,
-                                })
-                            }
-                            Err(err) => {
-                                error!(
-                                    "Failed to load {} ... {}",
-                                    request.path, err
-                                );
-                                None
-                            }
-                        }
-                    })
-                    .collect();
-
-                let mut queue = current_queue.lock();
-
-                if let Some(queue) = queue.as_mut() {
-                    queue.extend(texture_queue);
-                } else {
-                    *queue = Some(texture_queue);
-                }
-            }
-        }
+        self.asset_loader.sound_tick();
 
         {
-            while let Ok(item) = self.sound_recv.lock().try_recv() {
-                let sounds = self.sounds.clone();
+            let _span = span!("start_loading_to_memory");
 
-                let sound_loop = move || {
-                    // TODO: do this properly
-                    let settings = if item.path.contains("music") {
-                        StaticSoundSettings::new().loop_region(..)
-                    } else {
-                        StaticSoundSettings::default()
-                    };
+            const TRY_LOCK: bool = true;
 
-                    match StaticSoundData::from_cursor(
-                        std::io::Cursor::new(item.bytes),
-                        settings,
-                    ) {
-                        Ok(sound) => {
-                            trace!("Sound {}", item.path);
-                            sounds.lock().insert(item.handle, sound);
-                            inc_assets_loaded(1);
-                        }
-                        Err(err) => {
-                            error!(
-                                "Failed to parse sound at {}: {:?}",
-                                item.path, err
-                            );
-                        }
-                    }
-                };
+            if TRY_LOCK {
+                if let Some(guard) = self.texture_image_map.try_lock() {
+                    let loaded_textures =
+                        guard.keys().cloned().collect::<HashSet<_>>();
 
-                #[cfg(target_arch = "wasm32")]
-                sound_loop();
-
-                #[cfg(not(target_arch = "wasm32"))]
-                self.thread_pool.install(sound_loop);
-            }
-        }
-
-        let loaded_textures = self
-            .texture_image_map
-            .lock()
-            .keys()
-            .cloned()
-            .collect::<HashSet<_>>();
-
-        if let Some(asset_source) = self.asset_source.as_ref() {
-            let load_path_queue = self
-                .texture_load_queue
-                .drain(..)
-                .filter(|(key, _relative_path)| {
-                    !loaded_textures.contains(&texture_id_unchecked(key))
-                })
-                .map(|(key, relative_path)| {
-                    let handle = texture_id_unchecked(&key);
-
-                    self.textures.insert(key, handle);
-
-                    if cfg!(any(feature = "ci-release", target_arch = "wasm32"))
-                    {
-                        info!("Embedded texture {}", relative_path);
-
-                        // let file = dir.get_file(&path);
-                        // queue_load_texture_from_bytes(&path, file.contents()).unwrap()
-                        // let contents = std::fs::read(&relative_path);
-                        let file = asset_source
-                            .dir
-                            .get_file(&relative_path)
-                            .unwrap_or_else(|| {
-                                panic!("Failed to load {}", relative_path);
-                            });
-
-                        (relative_path, handle, Ok(file.contents().to_vec()))
-                    } else {
-                        let absolute_path =
-                            (asset_source.base_path)(&relative_path);
-
-                        info!(
-                            "File texture: {} ... {}",
-                            relative_path, absolute_path
-                        );
-
-                        let absolute_path =
-                            std::path::Path::new(&absolute_path)
-                                .canonicalize()
-                                .unwrap()
-                                .to_string_lossy()
-                                .to_string();
-
-                        trace!("Loading absolute path {}", absolute_path);
-
-                        let contents = std::fs::read(absolute_path);
-
-                        contents.as_ref().unwrap();
-
-                        (relative_path, handle, contents)
-                    }
-                })
-                .filter_map(|(relative_path, handle, data)| {
-                    if let Ok(data) = data {
-                        Some(LoadRequest {
-                            path: relative_path,
-                            handle,
-                            bytes: data,
-                        })
-                    } else {
-                        error!("Error loading {}", relative_path);
-                        None
-                    }
-                })
-                .collect_vec();
-
-            let texture_queue = load_path_queue;
-
-            self.texture_send.lock().send(texture_queue).log_err();
-        } else {
-            assert!(
-                self.texture_load_queue.is_empty(),
-                "AssetSource must be initialized before textures are loaded"
-            );
-        }
-    }
-
-    pub fn process_sound_queue(&mut self) {
-        // let load_path_queue = self
-        //     .sound_load_queue
-        //     .drain(..)
-        //     .filter(|path| !self.sounds.contains_key(&Sound::from_path(&path)))
-        //     // .map(|path| (path.clone(), std::fs::read(&path)))
-        //     .collect_vec();
-
-        // let load_byte_queue = self
-        //     .sound_load_bytes_queue
-        //     .drain(..)
-        //     .filter(|(path, _)| {
-        //         !self.sounds.contains_key(&Sound::from_path(&path))
-        //     })
-        //     .map(|(path, bytes)| (path, Ok(bytes)))
-        //     .collect_vec();
-
-        if let Some(asset_source) = self.asset_source.as_ref() {
-            for (key, relative_path) in self.sound_load_queue.drain(..) {
-                let handle = Sound::from_path(&key);
-
-                if self.sounds.lock().contains_key(&handle) {
-                    continue;
+                    self.asset_loader.load_textures_to_memory(
+                        loaded_textures,
+                        &mut self.textures,
+                    );
                 }
+            } else {
+                let loaded_textures = self
+                    .texture_image_map
+                    .lock()
+                    .keys()
+                    .cloned()
+                    .collect::<HashSet<_>>();
 
-                self.sound_ids.insert(key.to_string(), handle);
-
-                let item = if cfg!(any(
-                    feature = "ci-release",
-                    target_arch = "wasm32"
-                )) {
-                    info!("Embedded Sound {}", relative_path);
-
-                    let file = asset_source
-                        .dir
-                        .get_file(&relative_path)
-                        .unwrap_or_else(|| {
-                            panic!("Failed to load {}", relative_path);
-                        });
-
-                    LoadSoundRequest {
-                        path: relative_path,
-                        handle,
-                        bytes: file.contents().to_vec(),
-                    }
-                } else {
-                    info!("File Sound: {}", relative_path);
-                    let absolute_path =
-                        (asset_source.base_path)(&relative_path);
-
-                    let absolute_path = std::path::Path::new(&absolute_path)
-                        .canonicalize()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string();
-
-                    trace!("Loading absolute path {}", absolute_path);
-
-                    let contents = std::fs::read(absolute_path).unwrap();
-
-                    LoadSoundRequest {
-                        path: relative_path,
-                        handle,
-                        bytes: contents,
-                    }
-                };
-
-                self.sound_send.lock().send(item).log_err();
+                self.asset_loader.load_textures_to_memory(
+                    loaded_textures,
+                    &mut self.textures,
+                );
             }
-        } else {
-            assert!(
-                self.sound_load_queue.is_empty(),
-                "AssetSource must be initialized before sounds are loaded"
-            );
         }
 
-        // let sound_queue = self
-        //     .sound_load_queue
-        //     .drain(..)
-        //     .filter(|(key, _relative_path)| {
-        //         !self.sounds.contains_key(&Sound::from_path(key))
-        //     })
-        //     .map(|(key, relative_path)| {
-        //         let handle = Sound::from_path(&key);
-        //
-        //         self.sound_ids.insert(key.to_string(), handle);
-        //
-        //         if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
-        //             info!("Embedded Sound {}", relative_path);
-        //
-        //             let file = asset_source
-        //                 .dir
-        //                 .get_file(&relative_path)
-        //                 .unwrap_or_else(|| {
-        //                     panic!("Failed to load {}", relative_path);
-        //                 });
-        //
-        //             (relative_path, handle, Ok(file.contents().to_vec()))
-        //         } else {
-        //             info!("File Sound: {}", relative_path);
-        //             let absolute_path =
-        //                 (asset_source.base_path)(&relative_path);
-        //
-        //             let absolute_path = std::path::Path::new(&absolute_path)
-        //                 .canonicalize()
-        //                 .unwrap()
-        //                 .to_string_lossy()
-        //                 .to_string();
-        //
-        //             trace!("Loading absolute path {}", absolute_path);
-        //
-        //             let contents = std::fs::read(absolute_path);
-        //
-        //             contents.as_ref().unwrap();
-        //
-        //             (relative_path, handle, contents)
-        //         }
-        //     })
-        //     .filter_map(|(relative_path, handle, data)| {
-        //         if let Ok(data) = data {
-        //             Some(LoadSoundRequest {
-        //                 path: relative_path,
-        //                 handle,
-        //                 bytes: data,
-        //             })
-        //         } else {
-        //             error!("Error loading {}", relative_path);
-        //             None
-        //         }
-        //     })
-        //     .collect_vec();
-
-        // for item in sound_queue.into_iter() {
-        //     let settings = if item.path.contains("music") {
-        //         StaticSoundSettings::new()
-        //             .loop_behavior(Some(LoopBehavior { start_position: 0.0 }))
-        //     } else {
-        //         StaticSoundSettings::default()
-        //     };
-        //
-        //     info!("Loading sound {}", item.path);
-        //
-        //     match StaticSoundData::from_cursor(
-        //         std::io::Cursor::new(item.bytes),
-        //         settings,
-        //     ) {
-        //         Ok(sound) => {
-        //             info!("Loaded {}", item.path);
-        //             self.sounds.insert(item.handle, sound);
-        //         }
-        //         Err(err) => {
-        //             error!("Failed to parse sound at {}: {:?}", item.path, err);
-        //         }
-        //     }
-        // }
+        self.asset_loader.load_sounds_to_memory(&mut self.sound_ids);
     }
+
+    // #[deprecated]
+    // pub fn process_sound_queue(&mut self) {
+    // let sound_queue = self
+    //     .sound_load_queue
+    //     .drain(..)
+    //     .filter(|(key, _relative_path)| {
+    //         !self.sounds.contains_key(&Sound::from_path(key))
+    //     })
+    //     .map(|(key, relative_path)| {
+    //         let handle = Sound::from_path(&key);
+    //
+    //         self.sound_ids.insert(key.to_string(), handle);
+    //
+    //         if cfg!(any(feature = "ci-release", target_arch = "wasm32")) {
+    //             info!("Embedded Sound {}", relative_path);
+    //
+    //             let file = asset_source
+    //                 .dir
+    //                 .get_file(&relative_path)
+    //                 .unwrap_or_else(|| {
+    //                     panic!("Failed to load {}", relative_path);
+    //                 });
+    //
+    //             (relative_path, handle, Ok(file.contents().to_vec()))
+    //         } else {
+    //             info!("File Sound: {}", relative_path);
+    //             let absolute_path =
+    //                 (asset_source.base_path)(&relative_path);
+    //
+    //             let absolute_path = std::path::Path::new(&absolute_path)
+    //                 .canonicalize()
+    //                 .unwrap()
+    //                 .to_string_lossy()
+    //                 .to_string();
+    //
+    //             trace!("Loading absolute path {}", absolute_path);
+    //
+    //             let contents = std::fs::read(absolute_path);
+    //
+    //             contents.as_ref().unwrap();
+    //
+    //             (relative_path, handle, contents)
+    //         }
+    //     })
+    //     .filter_map(|(relative_path, handle, data)| {
+    //         if let Ok(data) = data {
+    //             Some(LoadSoundRequest {
+    //                 path: relative_path,
+    //                 handle,
+    //                 bytes: data,
+    //             })
+    //         } else {
+    //             error!("Error loading {}", relative_path);
+    //             None
+    //         }
+    //     })
+    //     .collect_vec();
+    // }
 
     pub fn handle_name(handle: TextureHandle) -> Option<String> {
         ASSETS.borrow().textures.iter().find_map(|(k, v)| {
@@ -616,11 +340,9 @@ impl Assets {
 }
 
 pub fn load_multiple_sounds(pairs: Vec<(String, String)>) {
-    inc_assets_queued(pairs.len());
-    ASSETS.borrow_mut().sound_load_queue.extend(pairs)
+    ASSETS.borrow_mut().asset_loader.queue_load_sounds(pairs);
 }
 
 pub fn load_multiple_textures(pairs: Vec<(String, String)>) {
-    inc_assets_queued(pairs.len());
-    ASSETS.borrow_mut().texture_load_queue.extend(pairs)
+    ASSETS.borrow_mut().asset_loader.queue_load_textures(pairs);
 }
