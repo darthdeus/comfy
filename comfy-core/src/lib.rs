@@ -1215,7 +1215,7 @@ impl Transform {
 pub fn initialize_logger() {
     #[cfg(feature = "file_logger")]
     {
-        pub fn initialize_log4rs(log_root: &std::path::Path) -> Result<()> {
+        pub fn initialize_log4rs(log_root: &std::path::Path) -> Result<(), Box<dyn Error>> {
             use chrono::Timelike;
             use log4rs::{append::file::*, config::*, Config};
 
