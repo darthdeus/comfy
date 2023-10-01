@@ -22,7 +22,7 @@ demo = []
 dev = []
 embedded-assets = []
 quick-exit = []
-ci-release = []
+ci-release = ["comfy-core/ci-release", "comfy-wgpu/ci-release"]
 
 tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
 # tracy = ["comfy-core/tracy", "blobs/tracy", "comfy-wgpu/tracy"]
