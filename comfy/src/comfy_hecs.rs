@@ -22,3 +22,11 @@ pub fn commands() -> AtomicRefMut<'static, CommandBuffer> {
 pub fn reset_world() {
     *world_mut() = World::new();
 }
+
+// pub fn query<Q: hecs::Query>() -> hecs::QueryBorrow<'_, Q> {
+//     world().query::<Q>()
+// }
+//
+// pub fn query_mut<Q: hecs::Query>() -> hecs::QueryBorrow<'_, Q> {
+//     world_mut().query_mut::<Q>()
+// }
