@@ -810,13 +810,27 @@ fn renderer_update(c: &mut EngineContext) {
     {
         particle_system.update(transform.position, delta);
 
-        all_particles.extend(
-            particle_system
-                .particles
-                .iter()
-                .filter(|p| p.lifetime_current > 0.0)
-                .cloned(),
-        );
+        let err_texture = texture_id("error");
+
+        if particle_system.start_when_texture_loaded {
+            all_particles.extend(
+                particle_system
+                    .particles
+                    .iter()
+                    .filter(|p| {
+                        p.lifetime_current > 0.0 && p.texture != err_texture
+                    })
+                    .cloned(),
+            )
+        } else {
+            all_particles.extend(
+                particle_system
+                    .particles
+                    .iter()
+                    .filter(|p| p.lifetime_current > 0.0)
+                    .cloned(),
+            )
+        }
     }
 
     let particle_queue = SINGLE_PARTICLES

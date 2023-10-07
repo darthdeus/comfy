@@ -9,6 +9,10 @@ pub fn texture_id_safe(id: &str) -> Option<TextureHandle> {
     ASSETS.borrow().textures.get(id).copied()
 }
 
+pub fn is_texture_loaded(id: &str) -> bool {
+    ASSETS.borrow().textures.contains_key(id)
+}
+
 pub struct AssetSource {
     pub dir: &'static include_dir::Dir<'static>,
     pub base_path: BasePathFn,

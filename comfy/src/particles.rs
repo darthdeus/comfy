@@ -20,6 +20,7 @@ pub struct ParticleSystem {
     pub max_particles: usize,
     pub spawn_rate: Option<f32>,
     pub is_enabled: bool,
+    pub start_when_texture_loaded: bool,
 
     spawn_timer: f32,
     next_particle: usize,
@@ -46,6 +47,7 @@ impl ParticleSystem {
             particle_builder,
             spawn_on_death: false,
             is_enabled: true,
+            start_when_texture_loaded: false,
         }
     }
 
@@ -69,6 +71,7 @@ impl ParticleSystem {
             particle_builder: Box::new(particle_builder),
             spawn_on_death: true,
             is_enabled: true,
+            start_when_texture_loaded: false,
         }
     }
 
@@ -81,6 +84,11 @@ impl ParticleSystem {
         }
 
         system
+    }
+
+    pub fn start_when_texture_loaded(mut self, value: bool) -> Self {
+        self.start_when_texture_loaded = value;
+        self
     }
 
     fn make_particles(

@@ -378,7 +378,7 @@ server](https://discord.gg/M8hySjuG48).
 
 # License
 
-comfy is free and open source and dual licensed under MIT and Apache 2.0 licenses.
+Comfy is free and open source and dual licensed under MIT and Apache 2.0 licenses.
 
 # Games using comfy
 
