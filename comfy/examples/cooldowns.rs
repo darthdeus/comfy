@@ -32,7 +32,7 @@ struct SmallGlobalState {
 // decide you don't want a global state, you can safely move it elsewhere.
 //
 // That being said, _don't be ashamed to focus on your game first_, even if
-// it means having a few global varaibles :)
+// it means having a few global variables :)
 static STATE: Lazy<AtomicRefCell<SmallGlobalState>> = Lazy::new(|| {
     AtomicRefCell::new(SmallGlobalState { color: WHITE, revert_timer: 0.0 })
 });

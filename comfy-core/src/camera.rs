@@ -405,7 +405,7 @@ impl ScreenVal {
     }
 }
 
-// TODO: get rid fo this
+// TODO: get rid of this
 #[derive(Copy, Clone, Debug)]
 pub enum Value {
     World(f32),

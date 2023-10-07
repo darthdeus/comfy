@@ -241,7 +241,7 @@ Bevy is another contender for the "big Rust game engine" spot. In terms of its
 support and modularity, but this is something where comfy is not even attempting
 to compete. comfy is designed to be opinionated, simple and pragmatic, while
 Bevy's goal is to be modular, extensible and build on top of its
-all-encompasing ECS.
+all-encompassing ECS.
 
 Due to its modularity Bevy offers many more features through community asset
 crates which greatly extend it, but also has a rather distributed and unstable

@@ -15,7 +15,7 @@ use comfy::*;
 //
 // The actual "canvas" is not just a single texture, but a grid of textures
 // that only get allocated on a need-to basis. Basically, once a pixel is written to
-// a texture 1024x1024 in that grid area gets allocated (and later resused).
+// a texture 1024x1024 in that grid area gets allocated (and later reused).
 //
 // The implementation is relatively simple right now, but it is something we
 // want to expand on, as "permanent debris" is something we enjoy in games,
