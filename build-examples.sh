@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euxo pipefail
 
-for example in $(ls comfy/examples | grep -e "\.rs$" | sed "s/\.rs//"); do
-  cargo build --example "$example" --features blobs
+for example in comfy/examples/*.rs; do
+  cargo build --example "$(basename -s .rs "${example}")" --features blobs
 done
