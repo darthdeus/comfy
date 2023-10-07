@@ -23,10 +23,10 @@ pub fn reset_world() {
     *world_mut() = World::new();
 }
 
-// pub fn query<Q: hecs::Query>() -> hecs::QueryBorrow<'_, Q> {
+// pub fn query<Q: hecs::Query>() -> hecs::QueryBorrow<'static, Q> {
 //     world().query::<Q>()
 // }
-//
-// pub fn query_mut<Q: hecs::Query>() -> hecs::QueryBorrow<'_, Q> {
+
+// pub fn query_mut<'a, Q: hecs::Query>() -> hecs::QueryMut<'a, Q> {
 //     world_mut().query_mut::<Q>()
 // }

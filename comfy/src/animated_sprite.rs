@@ -246,6 +246,16 @@ impl AnimatedSpriteBuilder {
         self
     }
 
+    pub fn flip_x(mut self, flip_x: bool) -> Self {
+        self.flip_x = flip_x;
+        self
+    }
+
+    pub fn flip_y(mut self, flip_y: bool) -> Self {
+        self.flip_y = flip_y;
+        self
+    }
+
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = blend_mode;
         self
