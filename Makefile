@@ -29,7 +29,7 @@ default: example
 # default: test
 
 FLAGS=--features=blobs
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
+ENV_VARS=RUST_LOG=info,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
