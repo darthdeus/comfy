@@ -15,8 +15,8 @@ rustflags = ["-C", "link-arg=-fuse-ld=/usr/local/bin/zld", "-Zshare-generics=y"]
 
 [target.aarch64-apple-darwin]
 rustflags = [
-  "-C",
-  "link-arg=-fuse-ld=/opt/homebrew/bin/zld",
+  # "-C",
+  # "link-arg=-fuse-ld=/opt/homebrew/bin/zld",
   "-Zshare-generics=y",
 ]
 
