@@ -16,7 +16,7 @@ macro_rules! define_main {
         $crate::define_versions!();
 
         pub async fn run() {
-            init_game_config($name.to_string(), version_str(), $config);
+            $crate::init_game_config($name.to_string(), version_str(), $config);
 
             let engine = $crate::EngineState::new();
             let game = $game::new(engine);
@@ -26,7 +26,7 @@ macro_rules! define_main {
 
         fn main() {
             #[cfg(feature = "color-backtrace")]
-            color_backtrace::install();
+            $crate::color_backtrace::install();
 
             #[cfg(not(target_arch = "wasm32"))]
             {
@@ -189,7 +189,7 @@ macro_rules! comfy_game {
 
                 $update(&mut game_c);
 
-                $crate::run_late_update_stages(&mut c, delta());
+                $crate::run_late_update_stages(&mut c, $crate::delta());
             }
 
             #[inline]
