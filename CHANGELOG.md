@@ -31,6 +31,7 @@ List of removed things and where to find them now:
   internally `Arc<Mutex<ContextImpl>>`, so this function is actually very
   cheap to call as it just returns a `&'static egui::Context` :)
 - `c.egui_wants_mouse` -> `egui().wants_pointer_input()`
+- `c.config` -> `game_config()` and `game_config_mut()`.
 - `c.cached_loader.borrow_mut()` -> `cached_loader_mut()` (for `&` just
   omit `_mut`).
 - similarly `c.changes.borrow_mut()` -> `changes()` and `c.notifications.borrow_mut()` -> `notifications()`.
@@ -78,19 +79,10 @@ Comfy `v0.1.0` had bloom turned on by default. This turned out to be quite
 problematic on older integrated GPUs as some users reported, as the builtin
 bloom does 20 blur passes :)
 
-In `v0.2.0` bloom is now turned off by default. You can still enable it by calling
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
-TODO
+In `v0.2.0` bloom is now turned off by default. You can still enable it by
+calling `game_config_mut().bloom_enabled = true;`. There's also a [new
+example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/bloom.rs)
+that showcases bloom and how it can be configured.
 
 ## Chromatic aberration
 
