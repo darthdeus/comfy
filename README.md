@@ -9,7 +9,8 @@
 # What is `comfy`?
 
 **If you're new here, check out the [comfy announcement on our
-blog](https://comfyengine.org/blog/first/).**
+blog](https://comfyengine.org/blog/first/) and the [v0.2 release
+announcement](https://comfyengine.org/blog/release-v0-2/).**
 
 _**NOTE: The `master` branch now has breaking changes, and a `v0.2.0` release
 will happen relatively soon. In order to not delay this too much more things
