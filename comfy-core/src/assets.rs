@@ -39,14 +39,18 @@ impl AssetSource {
 
             let absolute_path = std::path::Path::new(&absolute_path)
                 .canonicalize()
-                .unwrap()
+                .unwrap_or_else(|err| {
+                    panic!("Failed to load {} ... {:?}", absolute_path, err)
+                })
                 .to_string_lossy()
                 .to_string();
 
             info!("File {} ... {}", relative_path, absolute_path);
 
-            let contents = std::fs::read(absolute_path);
-            contents.as_ref().unwrap();
+            let contents = std::fs::read(&absolute_path);
+            contents.as_ref().unwrap_or_else(|err| {
+                panic!("Failed to load {} ... {:?}", absolute_path, err)
+            });
             contents
         }
     }
