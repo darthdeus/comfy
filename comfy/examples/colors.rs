@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use comfy::*;
 
 simple_game!("Colors", setup, update);
@@ -21,7 +23,9 @@ fn setup(c: &mut EngineContext) {
 }
 
 static COMFY_LOOK: AtomicRefCell<bool> = AtomicRefCell::new(false);
-
+static HOT_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
+static COOL_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
+static ICY_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
 fn update(_c: &mut EngineContext) {
     clear_background(DARKGRAY);
 
@@ -29,6 +33,9 @@ fn update(_c: &mut EngineContext) {
         .anchor(egui::Align2::CENTER_TOP, egui::vec2(0.0, 60.0))
         .show(egui(), |ui| {
             ui.checkbox(&mut COMFY_LOOK.borrow_mut(), "Comfy look");
+            ui.checkbox(&mut HOT_COLORS.borrow_mut(), "Hot colors");
+            ui.checkbox(&mut COOL_COLORS.borrow_mut(), "Cool colors");
+            ui.checkbox(&mut ICY_COLORS.borrow_mut(), "Icy colors");
         });
 
     pub const RGB_RED: Color = Color::new(1.0, 0.0, 0.0, 1.0);
@@ -36,8 +43,29 @@ fn update(_c: &mut EngineContext) {
     pub const RGB_BLUE: Color = Color::new(0.0, 0.0, 1.0, 1.0);
     pub const RGB_YELLOW: Color = Color::new(1.0, 1.0, 0.0, 1.0);
 
+    pub const HOT_RED: Color = Color::new(0.0, 0.0, 0.0, 1.0);
+    pub const HOT_GREEN: Color = Color::new(0.82, 0.07, 0.02, 1.0);
+    pub const HOT_BLUE: Color = Color::new(0.97, 0.87, 0.14, 1.0);
+    pub const HOT_YELLOW: Color = Color::new(0.44, 0.02, 0.0, 1.0);
+
+    pub const COOL_RED: Color = Color::new(0.49, 0.0, 0.69, 1.0);
+    pub const COOL_GREEN: Color = Color::new(0.35, 0.42, 0.91, 1.0);
+    pub const COOL_BLUE: Color = Color::new(0.16, 0.99, 0.14, 1.0);
+    pub const COOL_YELLOW: Color = Color::new(0.44, 0.02, 0.87, 1.0);
+
+    pub const ICY_RED: Color = Color::new(0.22, 0.0, 1.0, 1.0);
+    pub const ICY_GREEN: Color = Color::new(0.18, 0.26, 0.83, 1.0);
+    pub const ICY_BLUE: Color = Color::new(0.21, 0.67, 0.69, 1.0);
+    pub const ICY_YELLOW: Color = Color::new(0.20, 0.0, 0.93, 1.0);
+
     let colors = if *COMFY_LOOK.borrow() {
         [RED, GREEN, BLUE, YELLOW]
+    } else if *HOT_COLORS.borrow() {
+        [HOT_RED, HOT_GREEN, HOT_BLUE, HOT_YELLOW]
+    } else if *COOL_COLORS.borrow() {
+        [COOL_RED, COOL_GREEN, COOL_BLUE, COOL_YELLOW]
+    } else if *ICY_COLORS.borrow() {
+        [ICY_RED, ICY_GREEN, ICY_BLUE, ICY_YELLOW]
     } else {
         [RGB_RED, RGB_GREEN, RGB_BLUE, RGB_YELLOW]
     };
