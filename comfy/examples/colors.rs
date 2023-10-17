@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use comfy::*;
 
 simple_game!("Colors", setup, update);
@@ -20,22 +18,43 @@ fn setup(c: &mut EngineContext) {
             "/../assets/gray-50percent.png"
         )),
     );
+
+    c.load_texture_from_bytes(
+        "dot",
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/dot.png"
+        )),
+    );
 }
 
-static COMFY_LOOK: AtomicRefCell<bool> = AtomicRefCell::new(false);
-static HOT_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
-static COOL_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
-static ICY_COLORS: AtomicRefCell<bool> = AtomicRefCell::new(false);
+#[derive(PartialEq)]
+enum ColorPalette {
+    Rgb,
+    Comfy,
+    Hot,
+    Cool,
+    Icy,
+}
+
+static COLOR_PALETTE: AtomicRefCell<ColorPalette> =
+    AtomicRefCell::new(ColorPalette::Comfy);
+
 fn update(_c: &mut EngineContext) {
     clear_background(DARKGRAY);
 
     egui::Window::new("Color palette")
-        .anchor(egui::Align2::CENTER_TOP, egui::vec2(0.0, 60.0))
+        .anchor(egui::Align2::RIGHT_TOP, egui::vec2(-60.0, 60.0))
         .show(egui(), |ui| {
-            ui.checkbox(&mut COMFY_LOOK.borrow_mut(), "Comfy look");
-            ui.checkbox(&mut HOT_COLORS.borrow_mut(), "Hot colors");
-            ui.checkbox(&mut COOL_COLORS.borrow_mut(), "Cool colors");
-            ui.checkbox(&mut ICY_COLORS.borrow_mut(), "Icy colors");
+            let mut color_palette = COLOR_PALETTE.borrow_mut();
+
+            use ColorPalette::*;
+
+            ui.radio_value(&mut *color_palette, Rgb, "RGB");
+            ui.radio_value(&mut *color_palette, Comfy, "Comfy");
+            ui.radio_value(&mut *color_palette, Hot, "Hot");
+            ui.radio_value(&mut *color_palette, Cool, "Cool");
+            ui.radio_value(&mut *color_palette, Icy, "Icy");
         });
 
     pub const RGB_RED: Color = Color::new(1.0, 0.0, 0.0, 1.0);
@@ -58,16 +77,12 @@ fn update(_c: &mut EngineContext) {
     pub const ICY_BLUE: Color = Color::new(0.21, 0.67, 0.69, 1.0);
     pub const ICY_YELLOW: Color = Color::new(0.20, 0.0, 0.93, 1.0);
 
-    let colors = if *COMFY_LOOK.borrow() {
-        [RED, GREEN, BLUE, YELLOW]
-    } else if *HOT_COLORS.borrow() {
-        [HOT_RED, HOT_GREEN, HOT_BLUE, HOT_YELLOW]
-    } else if *COOL_COLORS.borrow() {
-        [COOL_RED, COOL_GREEN, COOL_BLUE, COOL_YELLOW]
-    } else if *ICY_COLORS.borrow() {
-        [ICY_RED, ICY_GREEN, ICY_BLUE, ICY_YELLOW]
-    } else {
-        [RGB_RED, RGB_GREEN, RGB_BLUE, RGB_YELLOW]
+    let colors = match *COLOR_PALETTE.borrow() {
+        ColorPalette::Rgb => [RGB_RED, RGB_GREEN, RGB_BLUE, RGB_YELLOW],
+        ColorPalette::Comfy => [RED, GREEN, BLUE, YELLOW],
+        ColorPalette::Hot => [HOT_RED, HOT_GREEN, HOT_BLUE, HOT_YELLOW],
+        ColorPalette::Cool => [COOL_RED, COOL_GREEN, COOL_BLUE, COOL_YELLOW],
+        ColorPalette::Icy => [ICY_RED, ICY_GREEN, ICY_BLUE, ICY_YELLOW],
     };
 
     let off = vec2(0.0, 1.0);
@@ -85,6 +100,9 @@ fn update(_c: &mut EngineContext) {
         1,
         vec2(10.0, 5.0),
     );
+
+    draw_sprite(texture_id("dot"), vec2(8.0, 1.5), WHITE, 0, splat(1.0));
+    draw_text("Gradient Dot", vec2(10.0, 1.5), BLACK, TextAlign::Center);
 
     draw_rect(vec2(8.0, 0.5), splat(1.0), Color::rgb(0.5, 0.5, 0.5), 0);
     draw_text("Rectangle", vec2(10.0, 0.5), BLACK, TextAlign::Center);
