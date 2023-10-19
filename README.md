@@ -4,7 +4,7 @@
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/darthdeus/comfy#license)
 [![Crates.io](https://img.shields.io/crates/d/comfy.svg)](https://crates.io/crates/comfy)
 [![Rust](https://github.com/darthdeus/comfy/workflows/CI/badge.svg)](https://github.com/darthdeus/comfy/actions)
-[![Discord](https://img.shields.io/discord/720719762031771680.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/M8hySjuG48)
+[![Discord](https://img.shields.io/discord/720719762031771680.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/6NGGGTUz7x)
 
 # What is `comfy`?
 
