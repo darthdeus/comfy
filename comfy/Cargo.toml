@@ -30,6 +30,8 @@ tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
 jemalloc = ["comfy-core/jemalloc"]
 lua = ["comfy-core/lua"]
 
+wayland = ["comfy-core/wayland"]
+
 [dependencies]
 comfy-wgpu = { path = "../comfy-wgpu", version = "0.2.0" }
 comfy-core = { path = "../comfy-core", version = "0.2.0" }
