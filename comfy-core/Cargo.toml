@@ -20,6 +20,8 @@ memprof = ["tracy"]
 lua = ["mlua"]
 blobs = ["dep:blobs"]
 
+wayland = ["winit/wayland"]
+
 [dependencies]
 smallvec = "1.10.0"
 

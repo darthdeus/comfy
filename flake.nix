@@ -46,11 +46,14 @@
             vulkan-loader
             vulkan-validation-layers
 
-            # wayland
+            # X
             xorg.libX11
             xorg.libXcursor
             xorg.libXi
             xorg.libXrandr
+
+            # wayland
+            wayland
 
             # extra tooling
             tracy # profiler, call with ~Tracy~
@@ -66,6 +69,8 @@
               vulkan-loader
 
               # wayland
+              wayland
+
               # xstuff
               xorg.libX11
               xorg.libXcursor

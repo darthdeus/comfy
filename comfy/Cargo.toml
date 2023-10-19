@@ -22,13 +22,15 @@ demo = []
 dev = []
 embedded-assets = []
 quick-exit = []
-ci-release = ["comfy-core/ci-release", "comfy-wgpu/ci-release"]
+ci-release = ["comfy-core/ci-release", "comfy-wgpu/ci-release", "wayland"]
 
 tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
 # tracy = ["comfy-core/tracy", "blobs/tracy", "comfy-wgpu/tracy"]
 
 jemalloc = ["comfy-core/jemalloc"]
 lua = ["comfy-core/lua"]
+
+wayland = ["comfy-core/wayland"]
 
 [dependencies]
 comfy-wgpu = { path = "../comfy-wgpu", version = "0.2.0" }
