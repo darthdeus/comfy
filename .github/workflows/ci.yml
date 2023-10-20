@@ -47,7 +47,7 @@ jobs:
       - name: Build all examples
         run: ./build-examples.sh
 
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
