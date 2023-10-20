@@ -287,9 +287,8 @@ impl MainCamera {
     }
 
     pub fn screen_to_world(&self, position: Vec2) -> Vec2 {
-        let camera = main_camera();
-        let viewport = camera.world_viewport();
-        let camera_center = camera.center;
+        let viewport = self.world_viewport();
+        let camera_center = self.center;
 
         let state = GLOBAL_STATE.borrow();
 
@@ -302,10 +301,9 @@ impl MainCamera {
     }
 
     pub fn world_to_screen(&self, position: Vec2) -> Vec2 {
-        let camera = main_camera();
-        let viewport = camera.world_viewport();
+        let viewport = self.world_viewport();
 
-        let position = position - camera.center;
+        let position = position - self.center;
 
         let state = GLOBAL_STATE.borrow();
 
