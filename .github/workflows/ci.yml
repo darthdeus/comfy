@@ -14,8 +14,8 @@ jobs:
   build:
     strategy:
       matrix:
-        # os: [windows-latest, ubuntu-latest, macos-latest]
-        os: [ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        # os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -33,7 +33,7 @@ jobs:
         uses: Swatinem/rust-cache@v2.7.0
         with:
           cache-on-failure: true
-          shared-key: ubuntu-build
+          shared-key: ${{matrix.os}}-build
 
       - name: Build tests
         run: cargo test --features blobs --no-run
