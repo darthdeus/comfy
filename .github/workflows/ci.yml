@@ -24,8 +24,6 @@ jobs:
         run: rm -f .cargo/config.toml
 
       - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: clippy, rustfmt
 
       - name: Install alsa and udev
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
@@ -69,6 +67,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
+
+      - name: Cache rust modules
+        uses: Swatinem/rust-cache@v2.7.0
+        with:
+          cache-on-failure: true
+          shared-key: ubuntu-build
 
       - run: cargo clippy --all-features -- -D warnings
 
