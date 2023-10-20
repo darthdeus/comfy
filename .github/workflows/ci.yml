@@ -53,7 +53,7 @@ jobs:
       - name: Remove cargo config for incremental builds
         run: rm -f .cargo/config.toml
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
 
@@ -66,7 +66,7 @@ jobs:
       - name: Remove cargo config for incremental builds
         run: rm -f .cargo/config.toml
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
 
@@ -79,7 +79,7 @@ jobs:
       - name: Remove cargo config for incremental builds
         run: rm -f .cargo/config.toml
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
 
       - name: doc
         run: cargo doc --no-deps --all-features
