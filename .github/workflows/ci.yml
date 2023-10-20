@@ -20,8 +20,14 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v3
-      - name: Remove cargo config for incremental builds
+
+      - name: Remove cargo config for incremental builds (Linux & macOS)
         run: rm -f .cargo/config.toml
+        if: runner.os != 'windows'
+
+      - name: Remove cargo config for incremental builds (Windows)
+        run: Remove-Item .cargo\config.toml -Force -ErrorAction SilentlyContinue
+        if: runner.os == 'windows'
 
       - uses: dtolnay/rust-toolchain@nightly
 
