@@ -26,7 +26,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
         if: runner.os == 'linux'
 
       - name: Cache rust modules
@@ -74,6 +74,10 @@ jobs:
           cache-on-failure: true
           shared-key: ubuntu-build
 
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+        if: runner.os == 'linux'
+
       - run: cargo clippy --all-features -- -D warnings
 
   doc:
@@ -84,6 +88,10 @@ jobs:
         run: rm -f .cargo/config.toml
 
       - uses: dtolnay/rust-toolchain@nightly
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+        if: runner.os == 'linux'
 
       - name: doc
         run: cargo doc --no-deps --all-features
