@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v3
-
       - name: Remove cargo config for incremental builds
         run: rm -f .cargo/config.toml
 
@@ -51,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -62,6 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -73,6 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
 
       - uses: dtolnay/rust-toolchain@stable
 
