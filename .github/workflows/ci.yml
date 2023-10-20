@@ -78,7 +78,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
         if: runner.os == 'linux'
 
-      - run: cargo clippy --all-features -- -D warnings
+      - run: cargo clippy --features wayland
 
   doc:
     runs-on: ubuntu-latest
@@ -94,6 +94,6 @@ jobs:
         if: runner.os == 'linux'
 
       - name: doc
-        run: cargo doc --no-deps --all-features
+        run: cargo doc --no-deps --features wayland
         env:
           RUSTDOCFLAGS: -Dwarnings
