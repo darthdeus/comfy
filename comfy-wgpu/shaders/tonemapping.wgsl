@@ -33,8 +33,8 @@ fn tonemap_curve3(v: vec3<f32>) -> vec3<f32> {
     return vec3(tonemap_curve(v.r), tonemap_curve(v.g), tonemap_curve(v.b));
 }
 
-fn somewhat_boring_display_transform(col: vec3<f32>) -> vec3<f32> {
-    var col = col;
+fn somewhat_boring_display_transform(in_col: vec3<f32>) -> vec3<f32> {
+    var col = in_col;
     let ycbcr = rgb_to_ycbcr(col);
 
     let bt = tonemap_curve(length(ycbcr.yz) * 2.4);
@@ -90,8 +90,8 @@ fn RRTAndODTFit(v: vec3<f32>) -> vec3<f32> {
     return a / b;
 }
 
-fn ACESFitted(color: vec3<f32>) -> vec3<f32> {    
-    var color = color;
+fn ACESFitted(in_color: vec3<f32>) -> vec3<f32> {    
+    var color = in_color;
 
     // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
     let rgb_to_rrt = mat3x3<f32>(
@@ -148,11 +148,11 @@ fn saturation(color: vec3<f32>, saturationAmount: f32) -> vec3<f32> {
     Similar to OCIO lg2 AllocationTransform.
     ref[0]
 */
-fn convertOpenDomainToNormalizedLog2(color: vec3<f32>, minimum_ev: f32, maximum_ev: f32) -> vec3<f32> {
+fn convertOpenDomainToNormalizedLog2(in_color: vec3<f32>, minimum_ev: f32, maximum_ev: f32) -> vec3<f32> {
     let in_midgrey = 0.18;
 
     // remove negative before log transform
-    var color = max(vec3(0.0), color);
+    var color = max(vec3(0.0), in_color);
     // avoid infinite issue with log -- ref[1]
     color = select(color, 0.00001525878 + color, color  < 0.00003051757);
     color = clamp(
@@ -166,8 +166,8 @@ fn convertOpenDomainToNormalizedLog2(color: vec3<f32>, minimum_ev: f32, maximum_
 }
 
 // Inverse of above
-fn convertNormalizedLog2ToOpenDomain(color: vec3<f32>, minimum_ev: f32, maximum_ev: f32) -> vec3<f32> {
-    var color = color;
+fn convertNormalizedLog2ToOpenDomain(in_color: vec3<f32>, minimum_ev: f32, maximum_ev: f32) -> vec3<f32> {
+    var color = in_color;
     let in_midgrey = 0.18;
     let total_exposure = maximum_ev - minimum_ev;
 
@@ -184,8 +184,8 @@ fn convertNormalizedLog2ToOpenDomain(color: vec3<f32>, minimum_ev: f32, maximum_
 =================*/
 
 // Prepare the data for display encoding. Converted to log domain.
-fn applyAgXLog(Image: vec3<f32>) -> vec3<f32> {
-    var Image = max(vec3(0.0), Image); // clamp negatives
+fn applyAgXLog(in_Image: vec3<f32>) -> vec3<f32> {
+    var Image = max(vec3(0.0), in_Image); // clamp negatives
     let r = dot(Image, vec3(0.84247906, 0.0784336, 0.07922375));
     let g = dot(Image, vec3(0.04232824, 0.87846864, 0.07916613));
     let b = dot(Image, vec3(0.04237565, 0.0784336, 0.87914297));

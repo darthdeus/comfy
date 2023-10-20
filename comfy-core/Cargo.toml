@@ -43,9 +43,9 @@ comfy-git-version = "0.4.0"
 comfy_include_dir = "0.7.3"
 
 glam = { version = "0.24.1" }
-egui = "0.22.0"
-epaint = "0.22.0"
-egui-winit = { version = "0.22.0", default-features = false, features = [] }
+egui = "0.23.0"
+epaint = "0.23.0"
+egui-winit = { version = "0.23.0", default-features = false, features = [] }
 
 num-traits = "0.2.16"
 
