@@ -104,8 +104,6 @@ impl Timer {
 
     /// Sets the elapsed time of the timer without any other considerations.
     ///
-    /// See also [`Stopwatch::set`](Stopwatch::set).
-    ///
     /// #
     /// ```
     /// # use comfy_core::{Timer, Stopwatch};

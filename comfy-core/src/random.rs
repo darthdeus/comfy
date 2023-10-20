@@ -153,7 +153,7 @@ impl<T> ChooseRandom<T> for Vec<T> {
 }
 
 /// Implementation of Fisher-Yates algorithm.
-/// This is modified version of https://github.com/adambudziak/shuffle/blob/master/src/fy.rs
+/// This is modified version of <https://github.com/adambudziak/shuffle/blob/master/src/fy.rs>
 #[derive(Debug, Default)]
 pub struct FisherYates {
     buffer: [u8; std::mem::size_of::<usize>()],
