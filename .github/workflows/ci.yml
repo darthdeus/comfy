@@ -103,3 +103,17 @@ jobs:
         run: cargo doc --no-deps --features wayland
         env:
           RUSTDOCFLAGS: -Dwarnings
+
+  cargo-machete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Install cargo-machete"
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: cargo-machete
+          version: "0.6.0"
+
+      - name: "Use machete to cut down dependencies"
+        run: cargo machete
