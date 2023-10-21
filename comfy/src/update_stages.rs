@@ -6,7 +6,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
     {
         let mut state = GLOBAL_STATE.borrow_mut();
 
-        state.fps = (1.0 / delta) as i32;
+        state.fps = (1.0 / delta).round() as i32;
         state.egui_scale_factor = egui().pixels_per_point();
     }
 
