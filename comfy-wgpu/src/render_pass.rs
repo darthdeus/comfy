@@ -12,6 +12,7 @@ pub struct ParticleDrawData {
     pub data: Vec<ParticleDraw>,
 }
 
+#[derive(Debug)]
 pub struct RenderPassData {
     pub z_index: i32,
     pub blend_mode: BlendMode,
@@ -32,6 +33,7 @@ pub struct RenderPassData {
 
 // TODO: enum has a large difference between member sizes
 #[allow(clippy::large_enum_variant)]
+#[derive(Debug)]
 pub enum DrawData {
     Meshes(smallvec::SmallVec<[MeshDraw; 1]>),
     Particles(Vec<ParticleDraw>),
@@ -119,7 +121,16 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         }
     }
 
-    result
+    if result.is_empty() {
+        vec![RenderPassData {
+            z_index: 0,
+            blend_mode: BlendMode::Alpha,
+            texture: white_px,
+            data: DrawData::Meshes(SmallVec::new()),
+        }]
+    } else {
+        result
+    }
 }
 
 // pub fn render_meshes(

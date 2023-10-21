@@ -7,7 +7,7 @@
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
-EXAMPLE=colors
+# EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
@@ -21,7 +21,7 @@ EXAMPLE=colors
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-# EXAMPLE=timed_draw
+EXAMPLE=timed_draw
 # EXAMPLE=y_sort
 
 # default: build-examples
@@ -32,7 +32,7 @@ default: example
 # default: test
 
 FLAGS=--features=blobs
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
+ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
