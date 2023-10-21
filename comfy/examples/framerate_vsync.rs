@@ -26,9 +26,6 @@ fn setup(_state: &mut GameState, _c: &mut EngineContext) {
 }
 
 fn update(_state: &mut GameState, _c: &mut EngineContext) {
-    // Note the color is multiplied by 5.0 to make it brighter
-    // and glow with the bloom effect. This is possible because
-    // Comfy supports HDR.
     draw_circle(vec2(0.0, 0.0), 0.5, RED, 0);
 
     let config = game_config();
