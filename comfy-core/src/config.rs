@@ -80,6 +80,9 @@ pub struct GameConfig {
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
 
+    pub target_framerate: u32,
+    pub vsync_enabled: bool,
+
     pub bloom_enabled: bool,
     pub lighting: GlobalLightingParams,
     pub lighting_enabled: bool,
@@ -114,6 +117,9 @@ impl Default for GameConfig {
 
             resolution,
             min_resolution,
+
+            target_framerate: 60,
+            vsync_enabled: true,
 
             bloom_enabled: false,
             lighting: GlobalLightingParams::default(),

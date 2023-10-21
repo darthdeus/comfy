@@ -193,12 +193,25 @@ impl WgpuRenderer {
         #[cfg(not(feature = "record-pngs"))]
         let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
 
+        let desired_present_mode = if game_config().vsync_enabled {
+            wgpu::PresentMode::AutoVsync
+        } else {
+            wgpu::PresentMode::AutoNoVsync
+        };
+
+        let present_mode = if caps.present_modes.contains(&desired_present_mode)
+        {
+            desired_present_mode
+        } else {
+            caps.present_modes[0]
+        };
+
         let config = wgpu::SurfaceConfiguration {
             usage: surface_usage,
             format: monitor_surface_format,
             width: size.width,
             height: size.height,
-            present_mode: caps.present_modes[0],
+            present_mode,
             alpha_mode: caps.alpha_modes[0],
             view_formats: vec![],
         };

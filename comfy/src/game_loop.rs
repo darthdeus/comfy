@@ -6,7 +6,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     let _tracy = maybe_setup_tracy();
 
     #[cfg(not(target_arch = "wasm32"))]
-    let target_framerate = 60;
+    let target_framerate = game_config().target_framerate;
 
     #[cfg(not(target_arch = "wasm32"))]
     let mut loop_helper = spin_sleep::LoopHelper::builder()
@@ -117,7 +117,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                 #[cfg(not(target_arch = "wasm32"))]
                 loop_helper.loop_sleep();
                 delta = frame_start.elapsed().as_secs_f32();
-                delta = delta.clamp(1.0 / 300.0, 1.0 / 15.0);
+                delta = delta.clamp(1.0 / 5000.0, 1.0 / 10.0);
 
                 #[cfg(feature = "tracy")]
                 tracy_client::frame_mark();

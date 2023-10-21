@@ -11,6 +11,7 @@
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
+EXAMPLE=framerate_vsync
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
@@ -21,7 +22,7 @@
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-EXAMPLE=timed_draw
+# EXAMPLE=timed_draw
 # EXAMPLE=y_sort
 
 # default: build-examples
