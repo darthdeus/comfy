@@ -17,7 +17,6 @@ file_logger = ["log4rs", "chrono"]
 tracy = ["tracy-client"]
 jemalloc = ["jemalloc-ctl", "jemallocator"]
 memprof = ["tracy"]
-lua = ["mlua"]
 blobs = ["dep:blobs"]
 
 wayland = ["winit/wayland"]
@@ -34,7 +33,6 @@ chrono = { version = "0.4.23", optional = true }
 
 blobs = { version = "0.2.1", optional = true }
 
-mlua = { version = "0.8.9", features = ["lua54", "vendored"], optional = true }
 backtrace = "0.3"
 
 # Few forks with minor tweaks. Crates.io doesn't allow git deps, so these have to be republished.

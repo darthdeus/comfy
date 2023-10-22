@@ -17,8 +17,6 @@ mod global_state;
 mod hot_reload;
 mod input;
 mod lighting;
-#[cfg(feature = "lua")]
-mod lua_export;
 mod math;
 mod perf_counters;
 mod quad;
@@ -45,8 +43,6 @@ pub use crate::global_state::*;
 pub use crate::hot_reload::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
-#[cfg(feature = "lua")]
-pub use crate::lua_export::*;
 pub use crate::math::*;
 pub use crate::perf_counters::*;
 pub use crate::quad::*;
@@ -1015,9 +1011,6 @@ pub trait Vec2Extensions {
     fn as_transform(&self) -> Transform;
     fn egui(&self) -> egui::Vec2;
     fn egui_pos(&self) -> egui::Pos2;
-
-    #[cfg(feature = "lua")]
-    fn lua(&self) -> LuaVec2;
 }
 
 impl Vec2Extensions for Vec2 {
@@ -1057,11 +1050,6 @@ impl Vec2Extensions for Vec2 {
 
     fn egui_pos(&self) -> egui::Pos2 {
         egui::pos2(self.x, self.y)
-    }
-
-    #[cfg(feature = "lua")]
-    fn lua(&self) -> LuaVec2 {
-        LuaVec2(*self)
     }
 }
 
