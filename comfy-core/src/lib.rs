@@ -189,6 +189,7 @@ pub use lazy_static::lazy_static;
 pub use ordered_float::OrderedFloat;
 
 pub use comfy_color_backtrace as color_backtrace;
+#[cfg(feature = "git-version")]
 pub use comfy_git_version as git_version;
 pub use comfy_include_dir as include_dir;
 
@@ -1078,7 +1079,8 @@ impl std::fmt::Display for SemanticVer {
 #[macro_export]
 macro_rules! define_versions {
     () => {
-        // pub const GIT_VERSION: &str = git_version::git_version!();
+        #[cfg(feature = "git-version")]
+        pub const GIT_VERSION: &str = git_version::git_version!();
 
         $crate::lazy_static! {
             pub static ref VERSION: $crate::SemanticVer = $crate::SemanticVer {
@@ -1088,6 +1090,7 @@ macro_rules! define_versions {
             };
         }
 
+        #[cfg(not(feature = "git-version"))]
         pub fn version_str() -> &'static str {
             concat!(
                 "v",
@@ -1096,9 +1099,21 @@ macro_rules! define_versions {
                 env!("CARGO_PKG_VERSION_MINOR"),
                 ".",
                 env!("CARGO_PKG_VERSION_PATCH"),
-                // "(",
-                // git_version::git_version!(),
-                // ")"
+            )
+        }
+
+        #[cfg(feature = "git-version")]
+        pub fn version_str() -> &'static str {
+            concat!(
+                "v",
+                env!("CARGO_PKG_VERSION_MAJOR"),
+                ".",
+                env!("CARGO_PKG_VERSION_MINOR"),
+                ".",
+                env!("CARGO_PKG_VERSION_PATCH"),
+                " (",
+                git_version::git_version!(),
+                ")"
             )
         }
     };

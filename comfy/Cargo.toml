@@ -18,6 +18,8 @@ memory-stats = ["comfy-core/memory-stats"]
 color-backtrace = []
 exit-after-startup = []
 
+git-version = ["comfy-core/git-version"]
+
 demo = []
 dev = []
 embedded-assets = []

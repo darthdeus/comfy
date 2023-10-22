@@ -1,3 +1,16 @@
+# v0.3.0
+
+- Added `--feature git-version` that embeds the current git commit hash
+  into the binary at build time. Note that this will make compilation fail
+  if `cargo build` is run without there being any git history. See [the
+  version
+  example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/version.rs)
+  for details.
+- Removed `--feature lua` and `mlua` integration. This was mainly a remnant of NANOVOID
+  but was never implemented properly and missed a lot of bindings. If we do end up wanting
+  to have official `mlua` bindings I'd rather that be done in a more principled approach
+  where we make sure things are exported in a consistent way.
+
 # v0.2.0
 
 The main change in this release is that `EngineContext` is not necessary to

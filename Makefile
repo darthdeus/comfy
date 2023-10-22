@@ -11,7 +11,7 @@
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
-EXAMPLE=framerate_vsync
+# EXAMPLE=framerate_vsync
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
@@ -23,6 +23,7 @@ EXAMPLE=framerate_vsync
 # EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
+EXAMPLE=version
 # EXAMPLE=y_sort
 
 # default: build-examples
@@ -32,7 +33,7 @@ EXAMPLE=framerate_vsync
 default: example
 # default: test
 
-FLAGS=--features=blobs
+FLAGS=--features=blobs,git-version
 ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
