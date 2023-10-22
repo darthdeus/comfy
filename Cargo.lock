@@ -511,6 +511,7 @@ dependencies = [
  "crossbeam",
  "egui",
  "egui-winit",
+ "egui_plot",
  "env_logger",
  "epaint",
  "fxhash",
@@ -827,7 +828,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
- "libloading 0.7.4",
+ "libloading 0.8.0",
 ]
 
 [[package]]
@@ -882,6 +883,15 @@ dependencies = [
  "raw-window-handle",
  "web-time",
  "winit",
+]
+
+[[package]]
+name = "egui_plot"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f33a00fe8eb1ba56535b3dbacdecc7a1365a328908a97c5f3c81bb466be72b"
+dependencies = [
+ "egui",
 ]
 
 [[package]]

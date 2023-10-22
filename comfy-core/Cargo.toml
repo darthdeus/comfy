@@ -44,6 +44,7 @@ comfy_include_dir = "0.7.3"
 
 glam = { version = "0.24.1" }
 egui = "0.23.0"
+egui_plot = "0.23.0"
 epaint = "0.23.0"
 egui-winit = { version = "0.23.0", default-features = false, features = [] }
 

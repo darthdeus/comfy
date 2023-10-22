@@ -107,6 +107,7 @@ pub use bytemuck;
 pub use cfg_if::cfg_if;
 pub use egui;
 pub use egui_winit;
+pub use egui_plot;
 pub use env_logger;
 pub use epaint;
 pub use glam::{
