@@ -76,7 +76,6 @@ pub fn game_config_mut() -> AtomicRefMut<'static, GameConfig> {
 pub struct GameConfig {
     pub game_name: String,
     pub version: &'static str,
-    pub comfy_in_title: bool,
 
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
@@ -115,7 +114,6 @@ impl Default for GameConfig {
         Self {
             game_name: "TODO_GAME_NAME".to_string(),
             version: "TODO_VERSION",
-            comfy_in_title: true,
 
             resolution,
             min_resolution,

@@ -162,12 +162,12 @@ impl EngineState {
     }
 
     pub fn title(&self) -> String {
-        let config = game_config();
-
-        if config.comfy_in_title {
-            format!("{} (COMFY ENGINE)", game_config().game_name)
-        } else {
-            config.game_name.clone()
+        cfg_if! {
+            if #[cfg(feature = "dev")] {
+                format!("{} (Comfy Engine DEV BUILD)", game_config().game_name)
+            } else {
+                config.game_name.clone()
+            }
         }
     }
 }

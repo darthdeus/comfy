@@ -10,6 +10,8 @@ repository = "https://github.com/darthdeus/comfy"
 
 [features]
 default = []
+
+dev = []
 ci-release = ["file_logger"]
 
 file_logger = ["log4rs", "chrono"]

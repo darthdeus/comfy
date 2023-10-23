@@ -12,6 +12,7 @@ repository = "https://github.com/darthdeus/comfy"
 [features]
 default = ["color-backtrace", "quick-exit"]
 
+dev = ["comfy-core/dev"]
 blobs = []
 
 memory-stats = ["comfy-core/memory-stats"]
@@ -21,7 +22,6 @@ exit-after-startup = []
 git-version = ["comfy-core/git-version"]
 
 demo = []
-dev = []
 embedded-assets = []
 quick-exit = []
 ci-release = ["comfy-core/ci-release", "comfy-wgpu/ci-release", "wayland"]

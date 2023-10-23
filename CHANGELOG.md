@@ -1,10 +1,9 @@
 # v0.3.0
 
-- Added `game_config().comfy_in_title` which controls whether the window title
-  contains `(COMFY ENGINE)` suffix. As a small sidenote, one might want to keep
-  this enabled to allow e.g. tiling window manager rules like `for_window
-[title=".*COMFY ENGINE.*"] floating enable` in e.g. i3 and only disable it in
-  release builds. Or just disable it altogether :)
+- Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
+  where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
+  window managers like i3 to automatically float windows with this title, e.g.
+  `for_window [title=".*Comfy Engine DEV BUIL:D.*"] floating enable`.
 - Notable upgrades: `wgpu 0.16.3 -> 0.17.1`, `egui 0.22.0 -> 0.23.0`. The
   `egui` upgrade is somewhat important, as `egui::plot` got moved into a
   separate `egui_plot` crate that Comfy now re-exports.

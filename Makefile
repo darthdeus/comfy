@@ -1,12 +1,12 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
-# EXAMPLE=animated_sprites
+EXAMPLE=animated_sprites
 # EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
-EXAMPLE=circle
+# EXAMPLE=circle
 # EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
@@ -33,7 +33,7 @@ EXAMPLE=circle
 default: example
 # default: test
 
-FLAGS=--features=blobs,git-version
+FLAGS=--features=blobs,git-version,dev
 ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
