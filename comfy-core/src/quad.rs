@@ -142,6 +142,150 @@ pub fn draw_sprite_ex(
     });
 }
 
+pub enum SpriteAlign {
+    TopLeft,
+    TopCenter,
+    TopRight,
+    CenterLeft,
+    Center,
+    CenterRight,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
+}
+
+pub struct DrawTextureProParams {
+    /// The source rectangle in the texture to draw, uses pixel coordinates. If
+    /// `None`, the entire texture is drawn.
+    pub source_rect: Option<IRect>,
+    /// The alignment of the sprite. The sprite's origin (its position) will be
+    /// aligned according to this value. E.g. if `align` is `BottomRight`, at
+    /// the draw position the bottom right corner of the sprite will be drawn.
+    pub align: SpriteAlign,
+    /// Defined as an offset from the sprite position. The point around which
+    /// the sprite rotates. None means the pivot is the sprite's position.
+    pub pivot: Option<Vec2>,
+    /// The desired size of the sprite in world units.
+    pub size: Vec2,
+    /// The rotation to apply to the sprite, in radians.
+    pub rotation: f32,
+    /// Whether to flip the sprite horizontally.
+    pub flip_x: bool,
+    /// Whether to flip the sprite vertically.
+    pub flip_y: bool,
+    /// The blend mode to use when drawing the sprite.
+    pub blend_mode: BlendMode,
+}
+
+pub fn draw_sprite_pro(
+    texture: TextureHandle,
+    position: Vec2,
+    tint: Color,
+    z_index: i32,
+    params: DrawTextureProParams,
+) {
+    let _span = span!("draw_sprite_pro");
+
+    fn rotate_point_around_pivot(point: Vec2, pivot: Vec2, angle: f32) -> Vec2 {
+        let s = angle.sin();
+        let c = angle.cos();
+        let point = point - pivot;
+        let xnew = point.x * c - point.y * s;
+        let ynew = point.x * s + point.y * c;
+        Vec2::new(xnew, ynew) + pivot
+    }
+
+    // Compute origin based on alignment
+    let origin = match params.align {
+        SpriteAlign::TopLeft => Vec2::new(0.0, params.size.y),
+        SpriteAlign::TopCenter => Vec2::new(params.size.x / 2.0, params.size.y),
+        SpriteAlign::TopRight => Vec2::new(params.size.x, params.size.y),
+        SpriteAlign::CenterLeft => Vec2::new(0.0, params.size.y / 2.0),
+        SpriteAlign::Center => {
+            Vec2::new(params.size.x / 2.0, params.size.y / 2.0)
+        }
+        SpriteAlign::CenterRight => {
+            Vec2::new(params.size.x, params.size.y / 2.0)
+        }
+        SpriteAlign::BottomLeft => Vec2::ZERO,
+        SpriteAlign::BottomCenter => Vec2::new(params.size.x / 2.0, 0.0),
+        SpriteAlign::BottomRight => Vec2::new(params.size.x, 0.0),
+    };
+
+    let corners = [
+        Vec2::ZERO,
+        Vec2::new(params.size.x, 0.0),
+        params.size,
+        Vec2::new(0.0, params.size.y),
+    ];
+
+    let pivot = params.pivot.unwrap_or(Vec2::ZERO);
+    let rotated_corners = corners.map(|corner| {
+        rotate_point_around_pivot(
+            position - origin + corner,
+            position + pivot,
+            params.rotation,
+        )
+    });
+
+
+    let texture_size = Assets::image_size(texture).unwrap_or(UVec2::ONE);
+    let source_rect = params.source_rect.unwrap_or(IRect {
+        offset: IVec2::new(0, 0),
+        size: IVec2::new(texture_size.x as i32, texture_size.y as i32),
+    });
+
+
+    let tex_0_x = source_rect.offset.x as f32 / texture_size.x as f32;
+    let tex_0_y = source_rect.offset.y as f32 / texture_size.y as f32;
+    let tex_1_x = (source_rect.offset.x + source_rect.size.x) as f32 /
+        texture_size.x as f32;
+    let tex_1_y = (source_rect.offset.y + source_rect.size.y) as f32 /
+        texture_size.y as f32;
+    let mut tex_coords = [
+        Vec2::new(tex_0_x, tex_0_y),
+        Vec2::new(tex_1_x, tex_0_y),
+        Vec2::new(tex_1_x, tex_1_y),
+        Vec2::new(tex_0_x, tex_1_y),
+    ];
+
+    if params.flip_x {
+        for coord in tex_coords.iter_mut() {
+            coord.x = tex_1_x - coord.x;
+        }
+    }
+    if params.flip_y {
+        for coord in tex_coords.iter_mut() {
+            coord.y = tex_1_y - coord.y;
+        }
+    }
+
+    let vertices = [0, 1, 2, 3].map(|i| {
+        SpriteVertex::new(
+            rotated_corners[i].extend(z_index as f32),
+            tex_coords[i],
+            tint,
+        )
+    });
+
+
+    const QUAD_INDICES_U32: &[u32] = &[0, 2, 1, 0, 3, 2];
+
+    let mesh = Mesh {
+        vertices: SmallVec::from_slice(&vertices),
+        indices: QUAD_INDICES_U32.into(),
+        z_index,
+        texture: Some(texture),
+    };
+
+    draw_mesh_ex(mesh, TextureParams {
+        // TODO: shader
+        shader: None,
+        blend_mode: params.blend_mode,
+    });
+}
+
+
 pub fn draw_rectangle_z_tex(
     position: Position,
     w: f32,
