@@ -6,7 +6,7 @@
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
-# EXAMPLE=circle
+EXAMPLE=circle
 # EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
@@ -23,7 +23,7 @@
 # EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
-EXAMPLE=version
+# EXAMPLE=version
 # EXAMPLE=y_sort
 
 # default: build-examples

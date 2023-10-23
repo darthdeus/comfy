@@ -161,9 +161,13 @@ impl EngineState {
         self.quit_flag
     }
 
-    // TODO: this really needs a cleanup
     pub fn title(&self) -> String {
-        // TODO: make this configurable
-        format!("{} (COMFY ENGINE)", game_config().game_name)
+        let config = game_config();
+
+        if config.comfy_in_title {
+            format!("{} (COMFY ENGINE)", game_config().game_name)
+        } else {
+            config.game_name.clone()
+        }
     }
 }
