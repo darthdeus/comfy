@@ -22,6 +22,7 @@ tracy = ["tracy-client"]
 jemalloc = ["jemalloc-ctl", "jemallocator"]
 memprof = ["tracy"]
 blobs = ["dep:blobs"]
+use-glow = []
 
 wayland = ["winit/wayland"]
 
