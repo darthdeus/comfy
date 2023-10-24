@@ -56,7 +56,9 @@ impl TextureCreator for GlowTextureCreator {
     }
 
     fn update_texture(&self, image: &DynamicImage, handle: TextureHandle) {
-        let TextureHandle::Raw(id) = handle else { panic!("Expected TextureHandle::Raw, got {:?}", handle); };
+        let TextureHandle::Raw(id) = handle else {
+            panic!("Expected TextureHandle::Raw, got {:?}", handle);
+        };
 
         unsafe {
             self.gl.bind_texture(

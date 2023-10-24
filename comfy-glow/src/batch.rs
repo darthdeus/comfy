@@ -24,9 +24,7 @@ impl StaticBatch {
         let vbo = gl.create_buffer().expect("failed to create vbo");
         let ebo = gl.create_buffer().expect("failed to create ebo");
 
-        let vao = gl
-            .create_vertex_array()
-            .expect("Cannot create vertex array");
+        let vao = gl.create_vertex_array().expect("Cannot create vertex array");
 
         gl.bind_vertex_array(Some(vao));
         gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
@@ -73,8 +71,7 @@ impl StaticBatch {
     pub unsafe fn bind(&self) {
         self.gl.bind_vertex_array(Some(self.vao));
         self.gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
-        self.gl
-            .bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.ebo));
+        self.gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.ebo));
     }
 
     pub unsafe fn upload(&self, vertices: &[f32], indices: &[u32]) {

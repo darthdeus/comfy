@@ -39,20 +39,11 @@ impl Shader {
             Self::try_compile_shader(name, &gl, &vertex.data, &fragment.data)
                 .expect("Initial shader compilation failed");
 
-        Self {
-            name: name.to_string(),
-            gl,
-            program,
-            vertex,
-            fragment,
-        }
+        Self { name: name.to_string(), gl, program, vertex, fragment }
     }
 
     pub fn hot_reload(&mut self) {
-        info!(
-            "hot reloading {:?} {:?}",
-            self.vertex.path, self.fragment.path
-        );
+        info!("hot reloading {:?} {:?}", self.vertex.path, self.fragment.path);
 
         let result = (|| -> Result<glow::Program> {
             let prefix = std::path::Path::new("engine/src/shaders");
@@ -61,9 +52,7 @@ impl Shader {
                 &std::path::Path::new(&self.vertex.path).file_name().unwrap(),
             );
             let fp = prefix.join(
-                &std::path::Path::new(&self.fragment.path)
-                    .file_name()
-                    .unwrap(),
+                &std::path::Path::new(&self.fragment.path).file_name().unwrap(),
             );
 
             let vp = std::fs::canonicalize(vp)?;
@@ -100,10 +89,8 @@ impl Shader {
         vertex: &str,
         fragment: &str,
     ) -> Result<glow::Program> {
-        let shader_sources = [
-            (glow::VERTEX_SHADER, vertex),
-            (glow::FRAGMENT_SHADER, fragment),
-        ];
+        let shader_sources =
+            [(glow::VERTEX_SHADER, vertex), (glow::FRAGMENT_SHADER, fragment)];
 
         let shader_version = "#version 330 core";
 
