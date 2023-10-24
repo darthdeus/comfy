@@ -48,6 +48,10 @@ profile-startup:
 build-examples:
 	./build-examples.sh
 
+lint:
+	cargo fmt --all -- --check
+	cargo clippy
+
 serve:
 	simple-http-server target/generated -c wasm,html,js -i
 
