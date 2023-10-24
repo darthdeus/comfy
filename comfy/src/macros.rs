@@ -154,14 +154,14 @@ macro_rules! simple_game {
 #[macro_export]
 macro_rules! comfy_game {
     ($name:literal, $context:ident, $state:ident, $make_context:ident, $config:ident, $setup:ident, $update:ident $(,)?) => {
-        $crate::define_main!($name, ComfyGame, $config);
+        $crate::define_main!($name, __ComfyGame, $config);
 
-        pub struct ComfyGame {
+        pub struct __ComfyGame {
             pub engine: $crate::EngineState,
             pub state: Option<$state>,
         }
 
-        impl ComfyGame {
+        impl __ComfyGame {
             #[inline]
             #[must_use]
             pub fn new(engine: $crate::EngineState) -> Self {
@@ -169,7 +169,7 @@ macro_rules! comfy_game {
             }
         }
 
-        impl $crate::GameLoop for ComfyGame {
+        impl $crate::GameLoop for __ComfyGame {
             fn update(&mut self) {
                 let mut c = self.engine.make_context();
 
