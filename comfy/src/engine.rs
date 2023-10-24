@@ -166,7 +166,7 @@ impl EngineState {
             if #[cfg(feature = "dev")] {
                 format!("{} (Comfy Engine DEV BUILD)", game_config().game_name)
             } else {
-                config.game_name.clone()
+                game_config().game_name.clone()
             }
         }
     }
