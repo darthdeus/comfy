@@ -236,29 +236,26 @@ pub fn draw_sprite_pro(
     });
 
 
-    let tex_0_x = source_rect.offset.x as f32 / texture_size.x as f32;
-    let tex_0_y = source_rect.offset.y as f32 / texture_size.y as f32;
-    let tex_1_x = (source_rect.offset.x + source_rect.size.x) as f32 /
+    let mut tex_0_x = source_rect.offset.x as f32 / texture_size.x as f32;
+    let mut tex_0_y = source_rect.offset.y as f32 / texture_size.y as f32;
+    let mut tex_1_x = (source_rect.offset.x + source_rect.size.x) as f32 /
         texture_size.x as f32;
-    let tex_1_y = (source_rect.offset.y + source_rect.size.y) as f32 /
+    let mut tex_1_y = (source_rect.offset.y + source_rect.size.y) as f32 /
         texture_size.y as f32;
-    let mut tex_coords = [
+    
+    if params.flip_x {
+        std::mem::swap(&mut tex_0_x, &mut tex_1_x);
+    }
+    if params.flip_y {
+        std::mem::swap(&mut tex_0_y, &mut tex_1_y);
+    }
+    
+    let tex_coords = [
         Vec2::new(tex_0_x, tex_0_y),
         Vec2::new(tex_1_x, tex_0_y),
         Vec2::new(tex_1_x, tex_1_y),
         Vec2::new(tex_0_x, tex_1_y),
     ];
-
-    if params.flip_x {
-        for coord in tex_coords.iter_mut() {
-            coord.x = tex_1_x - coord.x;
-        }
-    }
-    if params.flip_y {
-        for coord in tex_coords.iter_mut() {
-            coord.y = tex_1_y - coord.y;
-        }
-    }
 
     let vertices = [0, 1, 2, 3].map(|i| {
         SpriteVertex::new(
