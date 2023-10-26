@@ -242,14 +242,14 @@ pub fn draw_sprite_pro(
         texture_size.x as f32;
     let mut tex_1_y = (source_rect.offset.y + source_rect.size.y) as f32 /
         texture_size.y as f32;
-    
+
     if params.flip_x {
         std::mem::swap(&mut tex_0_x, &mut tex_1_x);
     }
     if params.flip_y {
         std::mem::swap(&mut tex_0_y, &mut tex_1_y);
     }
-    
+
     let tex_coords = [
         Vec2::new(tex_0_x, tex_0_y),
         Vec2::new(tex_1_x, tex_0_y),
