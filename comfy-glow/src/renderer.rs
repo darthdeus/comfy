@@ -342,13 +342,13 @@ impl GlowRenderer {
 
         let mut fonts = egui::FontDefinitions::default();
 
-        // Install my own font (maybe supporting non-latin characters):
-        fonts.font_data.insert(
-            "fira".to_owned(),
-            egui::FontData::from_static(include_bytes!(
-                "../../assets/FiraMono-Medium.ttf"
-            )),
-        ); // .ttf and .otf supported
+        // // Install my own font (maybe supporting non-latin characters):
+        // fonts.font_data.insert(
+        //     "fira".to_owned(),
+        //     egui::FontData::from_static(include_bytes!(
+        //         "../../assets/FiraMono-Medium.ttf"
+        //     )),
+        // ); // .ttf and .otf supported
 
         // Put my font first (highest priority):
         fonts
@@ -417,6 +417,7 @@ impl GlowRenderer {
 
         let mut textures = HashMap::default();
 
+        // TODO: unify this with wgpu renderer
         {
             let mut assets = ASSETS.borrow_mut();
 
@@ -425,7 +426,10 @@ impl GlowRenderer {
                 let white_tex = Texture::new(
                     "1px",
                     gl.clone(),
-                    include_bytes!("../../assets/1px.png"),
+                    include_bytes!(concat!(
+                        env!("CARGO_MANIFEST_DIR"),
+                        "/assets/1px.png"
+                    )),
                 );
 
                 assets.textures.insert("1px".to_string(), white_tex_handle);
@@ -433,12 +437,14 @@ impl GlowRenderer {
             }
 
             {
-                // TODO: use one we can actually use
                 let error_tex_handle = TextureHandle::from_path("error");
                 let error_tex = Texture::new(
                     "error",
                     gl.clone(),
-                    include_bytes!("../../assets/error.png"),
+                    include_bytes!(concat!(
+                        env!("CARGO_MANIFEST_DIR"),
+                        "/assets/error.png"
+                    )),
                 );
 
                 assets.textures.insert("error".to_string(), error_tex_handle);
@@ -484,12 +490,12 @@ impl GlowRenderer {
             bloom: Bloom::new(resolution, gl.clone()),
 
             shaders: vec![
-                Shader::new(
-                    "space-bg",
-                    gl.clone(),
-                    reloadable_str!("shaders/vert.glsl"),
-                    reloadable_str!("shaders/space-bg.frag"),
-                ),
+                // Shader::new(
+                //     "space-bg",
+                //     gl.clone(),
+                //     reloadable_str!("shaders/vert.glsl"),
+                //     reloadable_str!("shaders/space-bg.frag"),
+                // ),
                 Shader::new(
                     "simple-quad",
                     gl.clone(),

@@ -30,7 +30,8 @@ EXAMPLE=animated_sprites
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-default: example
+# default: example
+default: lint
 # default: test
 
 FLAGS=--features=blobs,git-version,dev

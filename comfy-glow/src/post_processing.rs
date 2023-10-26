@@ -47,7 +47,7 @@ impl PostProcessing {
                 -1.0,  1.0,   0.0, 1.0,
                 -1.0, -1.0,   0.0, 0.0,
                  1.0, -1.0,   1.0, 0.0,
-            
+
                 -1.0,  1.0,   0.0, 1.0,
                  1.0, -1.0,   1.0, 0.0,
                  1.0,  1.0,   1.0, 1.0
@@ -65,15 +65,22 @@ impl PostProcessing {
             //      1.0,  1.0, 0.0,  1.0, 1.0
             // ];
 
-            let vao =
-                gl.create_vertex_array().expect("failed to create VAO");
+            let vao = gl.create_vertex_array().expect("failed to create VAO");
             let vbo = gl.create_buffer().expect("failed to create VBO");
 
             gl.bind_vertex_array(Some(vao));
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
 
-            gl.safe_label(glow::VERTEX_ARRAY, vao.0.into(), Some(format!("VAO {}", name)));
-            gl.safe_label(glow::BUFFER, vbo.0.into(), Some(format!("VBO {}", name)));
+            gl.safe_label(
+                glow::VERTEX_ARRAY,
+                vao.0.into(),
+                Some(format!("VAO {}", name)),
+            );
+            gl.safe_label(
+                glow::BUFFER,
+                vbo.0.into(),
+                Some(format!("VBO {}", name)),
+            );
 
             gl.buffer_data_u8_slice(
                 glow::ARRAY_BUFFER,
@@ -212,7 +219,8 @@ impl PostProcessing {
         // self.shader
         //     .set_bool("shake", *params.flags.get("shake").unwrap_or(&false));
         self.shader.set_bool("shake", true);
-        self.shader.set_float("shake_amount", GlobalParams::get("shake_amount"));
+        self.shader
+            .set_float("shake_amount", GlobalParams::get("shake_amount"));
 
         #[rustfmt::skip]
         let edge_kernel = [

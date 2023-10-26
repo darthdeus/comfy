@@ -88,7 +88,7 @@ impl Shader {
         gl: &Arc<glow::Context>,
         vertex: &str,
         fragment: &str,
-    ) -> Result<glow::Program> {
+    ) -> Result<glow::Program, Box<dyn std::error::Error>> {
         let shader_sources =
             [(glow::VERTEX_SHADER, vertex), (glow::FRAGMENT_SHADER, fragment)];
 
@@ -113,7 +113,7 @@ impl Shader {
 
                 gl.compile_shader(shader);
                 if !gl.get_shader_compile_status(shader) {
-                    bail!("{}", gl.get_shader_info_log(shader));
+                    return Err(format!("{}", gl.get_shader_info_log(shader)));
                 }
                 gl.attach_shader(program, shader);
 
@@ -134,7 +134,7 @@ impl Shader {
 
             gl.link_program(program);
             if !gl.get_program_link_status(program) {
-                bail!("{}", gl.get_program_info_log(program));
+                return Err(format!("{}", gl.get_program_info_log(program)));
             }
 
             gl.safe_label(

@@ -46,7 +46,11 @@ pub struct GlowTextureCreator {
 }
 
 impl TextureCreator for GlowTextureCreator {
-    fn from_image(&self, name: &str, image: &DynamicImage) -> TextureHandle {
+    fn handle_from_image(
+        &self,
+        name: &str,
+        image: &DynamicImage,
+    ) -> TextureHandle {
         let texture = Texture::from_image(name, self.gl.clone(), &image);
         let handle = TextureHandle::Raw(texture.texture.0.get().into());
 

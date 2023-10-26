@@ -10,9 +10,9 @@ ci-release = ["sdl2/bundled", "sdl2/static-link"]
 [dependencies]
 comfy-core = { path = "../comfy-core", features = ["use-glow"] }
 
+# TODO: upgrade
 glow = "0.12.1"
-egui_glow = "0.21.0"
-egui = "0.21.0"
+egui_glow = "0.23.0"
 # sdl2 = { version = "0.35.2", features = [] }
 sdl2 = { version = "0.35.2" }
 

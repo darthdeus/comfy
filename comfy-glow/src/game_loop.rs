@@ -1,9 +1,6 @@
 use crate::prelude::*;
 
-pub async fn glow_game_loop(
-    mut loop_helper: LoopHelper,
-    mut game_state: Box<dyn RunGameLoop>,
-) {
+pub async fn glow_game_loop(mut game: impl GameLoop + 'static) {
     let (gl, _shader_version, window, mut event_loop, _context) = {
         let sdl = sdl2::init().unwrap();
         let video = sdl.video().unwrap();
@@ -38,8 +35,7 @@ pub async fn glow_game_loop(
     let gl = Arc::new(gl);
 
     let mut delta = 1.0 / 60.0;
-    game_state
-        .set_renderer(Box::new(GlowRenderer::new(gl, window)));
+    game_state.set_renderer(Box::new(GlowRenderer::new(gl, window)));
 
     let mut running = true;
 
@@ -51,11 +47,12 @@ pub async fn glow_game_loop(
 
         for event in event_loop.poll_iter() {
             if !game_state
-                    .renderer()
-                    .as_mut_any()
-                    .downcast_mut::<GlowRenderer>()
-                    .unwrap()
-                .on_event(event.clone()) {
+                .renderer()
+                .as_mut_any()
+                .downcast_mut::<GlowRenderer>()
+                .unwrap()
+                .on_event(event.clone())
+            {
                 match event {
                     sdl2::event::Event::Window { win_event, .. } => match win_event {
                         sdl2::event::WindowEvent::Resized(w, h)
@@ -78,7 +75,7 @@ pub async fn glow_game_loop(
                         _ => {}
 
                     },
-    
+
 
                     sdl2::event::Event::Quit { .. } => {
                         // TODO:
@@ -123,7 +120,7 @@ pub async fn glow_game_loop(
                     },
                     sdl2::event::Event::MouseMotion {
                         x, y, xrel, yrel,
-                        .. // mousestate, 
+                        .. // mousestate,
                     } => {
                         let mut global_state = GLOBAL_STATE.borrow_mut();
 
@@ -134,7 +131,7 @@ pub async fn glow_game_loop(
                     },
                     sdl2::event::Event::MouseButtonDown {
                         mouse_btn,
-                        .. // which, 
+                        .. // which,
                     } => {
                         if let Some(mouse_btn) = mouse_button_try_from_sdl(mouse_btn) {
                             let mut global_state = GLOBAL_STATE.borrow_mut();
@@ -145,7 +142,7 @@ pub async fn glow_game_loop(
                     },
                     sdl2::event::Event::MouseButtonUp {
                         mouse_btn,
-                        .. // which, 
+                        .. // which,
                     } => {
                         if let Some(mouse_btn) = mouse_button_try_from_sdl(mouse_btn) {
                             let mut global_state = GLOBAL_STATE.borrow_mut();
