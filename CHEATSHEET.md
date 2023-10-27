@@ -1,0 +1,1 @@
+- Hide mouse cursor: `c.renderer.window().set_cursor_visible(false);`
