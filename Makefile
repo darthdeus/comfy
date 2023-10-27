@@ -36,8 +36,8 @@ default: example
 # default: test
 
 FLAGS=--features=blobs,git-version,dev
-# ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
-ENV_VARS=RUST_LOG=trace RUST_BACKTRACE=1
+ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
+# ENV_VARS=RUST_LOG=trace RUST_BACKTRACE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
