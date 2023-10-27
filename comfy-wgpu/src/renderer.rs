@@ -113,19 +113,32 @@ impl WgpuRenderer {
     pub async fn new(window: Window, egui_winit: egui_winit::State) -> Self {
         let size = window.inner_size();
 
-        let instance = wgpu::Instance::default();
-        let surface = unsafe { instance.create_surface(&window).unwrap() };
+        let backends = wgpu::util::backend_bits_from_env()
+            .unwrap_or(wgpu::Backends::all());
+
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            // backends: wgpu::Backends::GL,
+            backends,
+            dx12_shader_compiler: Default::default(),
+        });
+
+        let surface = unsafe {
+            instance
+                .create_surface(&window)
+                .expect("surface config must be valid")
+        };
 
         trace!("Requesting adapter");
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
+                // TODO: make this configurable
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             })
             .await
-            .unwrap();
+            .expect("adapter config must be valid");
 
         info!("Using adapter: {:?}", adapter.get_info().name);
 

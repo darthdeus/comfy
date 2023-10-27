@@ -191,9 +191,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // // Create a new vec4<f32> with the corrected and clamped RGB values and the original alpha component
     // let output_color: vec4<f32> = vec4<f32>(clamped_rgb, final_color.a);
 
-    if final_color.a < 0.05 {
-      discard;
-    }
+    // if final_color.a < 0.00001 {
+    //   discard;
+    // }
 
     return final_color;
 }

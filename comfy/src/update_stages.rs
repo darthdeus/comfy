@@ -564,6 +564,7 @@ fn update_perf_counters(c: &mut EngineContext) {
                 ui.label(format!("   99th: {:.0}", fps.percentile_99));
 
                 ui.separator();
+
                 if let Some(game_loop) = c.game_loop {
                     game_loop.lock().performance_metrics(&mut world_mut(), ui);
                 }

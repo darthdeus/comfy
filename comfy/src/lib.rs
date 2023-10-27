@@ -222,8 +222,6 @@ fn maybe_setup_tracy() -> i32 {
 fn maybe_setup_tracy() -> tracy_client::Client {
     info!("CONNECTING TO TRACY");
 
-    let client = tracy_client::Client::start();
-
     // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
     // This should be user configurable let (non_blocking, _worker_guard) =
     //     tracing_appender::non_blocking(file_appender);
@@ -253,5 +251,5 @@ fn maybe_setup_tracy() -> tracy_client::Client {
     // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
     // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
 
-    client
+    tracy_client::Client::start()
 }

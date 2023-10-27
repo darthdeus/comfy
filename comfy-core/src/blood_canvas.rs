@@ -142,5 +142,6 @@ pub trait TextureCreator: Debug {
         name: &str,
         image: &DynamicImage,
     ) -> TextureHandle;
+
     fn update_texture(&self, image: &DynamicImage, texture: TextureHandle);
 }

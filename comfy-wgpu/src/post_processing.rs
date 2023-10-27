@@ -176,6 +176,8 @@ pub fn draw_post_processing_output(
             depth_stencil_attachment: None,
         });
 
+    render_pass.push_debug_group(name);
+
     render_pass.set_pipeline(post_processing_pipeline);
     render_pass.set_bind_group(0, post_processing_bind_group, &[]);
     render_pass.set_bind_group(1, lighting_params_bind_group, &[]);
@@ -190,4 +192,6 @@ pub fn draw_post_processing_output(
     }
 
     render_pass.draw(0..3, 0..1);
+
+    render_pass.pop_debug_group();
 }
