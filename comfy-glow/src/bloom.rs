@@ -61,7 +61,7 @@ impl Bloom {
         self.threshold_shader.use_global("colorScale");
 
         self.gl.bind_texture(glow::TEXTURE_2D, Some(source_texture));
-        draw_quad(&self.gl);
+        immediate_draw_quad(&self.gl);
         self.gl.bind_framebuffer(glow::FRAMEBUFFER, None);
     }
 
@@ -94,7 +94,7 @@ impl Bloom {
             };
 
             self.gl.bind_texture(glow::TEXTURE_2D, Some(tex));
-            draw_quad(&self.gl);
+            immediate_draw_quad(&self.gl);
 
             horizontal = !horizontal;
 
@@ -126,6 +126,6 @@ impl Bloom {
         self.blend_shader.use_global("colorScale");
         self.blend_shader.use_global_int("tonemapping_alg");
 
-        draw_quad(&self.gl);
+        immediate_draw_quad(&self.gl);
     }
 }

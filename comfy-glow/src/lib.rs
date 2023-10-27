@@ -60,10 +60,10 @@ struct QuadBuffers {
     vbo: glow::NativeBuffer,
 }
 
-pub unsafe fn draw_quad(gl: &glow::Context) {
+pub unsafe fn immediate_draw_quad(gl: &glow::Context) {
     let buffers = QUAD_BUFFERS
         .get()
-        .expect("init_quad_buffers must be called before draw_quad");
+        .expect("init_quad_buffers must be called before immediate_draw_quad");
 
     gl.bind_vertex_array(Some(buffers.vao));
     gl.bind_buffer(glow::ARRAY_BUFFER, Some(buffers.vbo));

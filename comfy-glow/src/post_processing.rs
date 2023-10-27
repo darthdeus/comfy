@@ -250,7 +250,7 @@ impl PostProcessing {
             &blur_kernel,
         );
 
-        draw_quad(&self.gl);
+        immediate_draw_quad(&self.gl);
 
         // self.gl.bind_vertex_array(Some(self.vao));
         // self.gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
