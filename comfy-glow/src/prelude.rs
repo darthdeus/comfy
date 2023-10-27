@@ -5,12 +5,13 @@ pub use comfy_core::*;
 pub use glow;
 pub use glow::HasContext;
 
+pub use sdl2;
+
 pub use crate::batch::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
 pub use crate::egui_integration::*;
 pub use crate::framebuffer::*;
-pub use crate::game_loop::*;
 pub use crate::post_processing::*;
 pub use crate::reloadable_str;
 pub use crate::renderer::*;

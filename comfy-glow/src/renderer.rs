@@ -29,7 +29,8 @@ pub struct GlowRenderer {
     shaders: Vec<Shader>,
 }
 
-impl Renderer for GlowRenderer {
+// impl Renderer for GlowRenderer {
+impl GlowRenderer {
     fn begin_frame(&mut self) {
         self.egui_integration.begin_frame(&self.window);
     }
@@ -182,7 +183,8 @@ impl Renderer for GlowRenderer {
         {
             let mut state = GLOBAL_STATE.borrow_mut();
             state.screen_size = new_size.as_vec2();
-            main_camera().aspect_ratio = new_size.x as f32 / new_size.y as f32;
+            main_camera_mut().aspect_ratio =
+                new_size.x as f32 / new_size.y as f32;
         }
 
         unsafe {
@@ -223,18 +225,18 @@ impl Renderer for GlowRenderer {
     fn load_textures(&mut self, texture_queue: TextureLoadQueue) {
         let _span = span!("load_textures");
 
-        for (path, handle, image) in texture_queue.into_iter() {
-            let image = image.flipv();
+        for loaded_image in texture_queue.into_iter() {
+            let image = loaded_image.image.flipv();
 
             let texture = Texture::from_rgba_bytes(
-                &path,
+                &loaded_image.path,
                 self.gl.clone(),
                 &image.to_rgba8(),
                 image.width(),
                 image.height(),
             );
 
-            self.textures.borrow_mut().insert(handle, texture);
+            self.textures.borrow_mut().insert(loaded_image.handle, texture);
         }
     }
 
@@ -419,8 +421,6 @@ impl GlowRenderer {
 
         // TODO: unify this with wgpu renderer
         {
-            let mut assets = ASSETS.borrow_mut();
-
             {
                 let white_tex_handle = TextureHandle::from_path("1px");
                 let white_tex = Texture::new(
@@ -432,7 +432,7 @@ impl GlowRenderer {
                     )),
                 );
 
-                assets.textures.insert("1px".to_string(), white_tex_handle);
+                ASSETS.borrow_mut().insert_handle("1px", white_tex_handle);
                 textures.insert(white_tex_handle, white_tex);
             }
 
@@ -447,7 +447,7 @@ impl GlowRenderer {
                     )),
                 );
 
-                assets.textures.insert("error".to_string(), error_tex_handle);
+                ASSETS.borrow_mut().insert_handle("error", error_tex_handle);
                 textures.insert(error_tex_handle, error_tex);
             }
         }
@@ -455,11 +455,11 @@ impl GlowRenderer {
         let textures = Arc::new(AtomicRefCell::new(textures));
 
         BLOOD_CANVAS
-            .set(AtomicRefCell::new(BloodCanvas::new(Box::new(
-                GlowTextureCreator {
+            .set(AtomicRefCell::new(BloodCanvas::new(Arc::new(
+                AtomicRefCell::new(GlowTextureCreator {
                     gl: gl.clone(),
                     textures: textures.clone(),
-                },
+                }),
             ))))
             .expect("failed to create glow blood canvas");
 
@@ -828,6 +828,7 @@ impl GlowRenderer {
                         let tex_size = ASSETS
                             .borrow()
                             .texture_image_map
+                            .lock()
                             .get(&texture)
                             .map(|image| {
                                 vec2(
@@ -841,8 +842,7 @@ impl GlowRenderer {
                         let tex_height = tex_size.y;
 
                         let vertices = rotated_rectangle(
-                            // TODO: fix particle Z
-                            draw.position.extend(80.0),
+                            draw.position,
                             RawDrawParams {
                                 dest_size: Some(size),
                                 rotation: draw.rotation,
@@ -852,6 +852,7 @@ impl GlowRenderer {
                             tex_width,
                             tex_height,
                             draw.color,
+                            Vec2::ZERO,
                         );
 
                         let len = vertex_buffer.len() as u32;

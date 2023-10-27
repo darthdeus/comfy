@@ -3,7 +3,6 @@ mod blood_canvas;
 mod bloom;
 mod egui_integration;
 mod framebuffer;
-mod game_loop;
 mod post_processing;
 mod prelude;
 mod renderer;

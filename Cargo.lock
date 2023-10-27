@@ -485,6 +485,7 @@ name = "comfy"
 version = "0.2.0"
 dependencies = [
  "comfy-core",
+ "comfy-glow",
  "comfy-wgpu",
 ]
 

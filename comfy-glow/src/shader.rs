@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::prelude::*;
 
 #[derive(Debug)]
@@ -45,7 +47,7 @@ impl Shader {
     pub fn hot_reload(&mut self) {
         info!("hot reloading {:?} {:?}", self.vertex.path, self.fragment.path);
 
-        let result = (|| -> Result<glow::Program> {
+        let result = (|| -> Result<glow::Program, Box<dyn Error>> {
             let prefix = std::path::Path::new("engine/src/shaders");
 
             let vp = prefix.join(
@@ -113,7 +115,9 @@ impl Shader {
 
                 gl.compile_shader(shader);
                 if !gl.get_shader_compile_status(shader) {
-                    return Err(format!("{}", gl.get_shader_info_log(shader)));
+                    return Err(
+                        format!("{}", gl.get_shader_info_log(shader)).into()
+                    );
                 }
                 gl.attach_shader(program, shader);
 
@@ -134,7 +138,9 @@ impl Shader {
 
             gl.link_program(program);
             if !gl.get_program_link_status(program) {
-                return Err(format!("{}", gl.get_program_info_log(program)));
+                return Err(
+                    format!("{}", gl.get_program_info_log(program)).into()
+                );
             }
 
             gl.safe_label(

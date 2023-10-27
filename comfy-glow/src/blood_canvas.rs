@@ -13,7 +13,10 @@ pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {
             // info!("updating block at {}", key);
             block.modified = false;
 
-            canvas.creator.update_texture(&block.image, block.handle);
+            canvas
+                .creator
+                .borrow_mut()
+                .update_texture(&block.image, block.handle);
         }
     }
 

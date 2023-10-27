@@ -10,7 +10,7 @@ repository = "https://github.com/darthdeus/comfy"
 
 
 [features]
-default = ["color-backtrace", "quick-exit"]
+default = ["color-backtrace", "quick-exit", "use-glow", "use-wgpu"]
 
 dev = ["comfy-core/dev"]
 blobs = []
@@ -30,11 +30,14 @@ tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
 # tracy = ["comfy-core/tracy", "blobs/tracy", "comfy-wgpu/tracy"]
 
 jemalloc = ["comfy-core/jemalloc"]
-
 wayland = ["comfy-core/wayland"]
 
+use-glow = ["comfy-glow"]
+use-wgpu = ["comfy-wgpu"]
+
 [dependencies]
-comfy-wgpu = { path = "../comfy-wgpu", version = "0.2.0" }
+comfy-glow = { path = "../comfy-glow", version = "0.1.0", optional = true }
+comfy-wgpu = { path = "../comfy-wgpu", version = "0.2.0", optional = true }
 comfy-core = { path = "../comfy-core", version = "0.2.0" }
 
 [[example]]
