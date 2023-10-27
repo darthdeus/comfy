@@ -722,7 +722,7 @@ impl GlowRenderer {
                         textures
                             .get(&texture)
                             .unwrap_or_else(|| {
-                                &textures.get(&texture_id("error")).unwrap()
+                                textures.get(&texture_id("error")).unwrap()
                             })
                             .texture
                     }
@@ -735,7 +735,7 @@ impl GlowRenderer {
 
                 self.batch.upload(
                     bytemuck::cast_slice(vertex_buffer.as_slice()),
-                    &index_buffer,
+                    index_buffer,
                 );
 
                 self.gl.draw_elements(
@@ -784,7 +784,7 @@ impl GlowRenderer {
                             mesh.indices
                                 .iter()
                                 .cloned()
-                                .map(|x| x as u32 + all_vertices.len() as u32),
+                                .map(|x| x + all_vertices.len() as u32),
                         );
 
                         all_vertices.extend(mesh.vertices.drain(..));

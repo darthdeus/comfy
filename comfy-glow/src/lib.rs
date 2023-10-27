@@ -1,3 +1,9 @@
+#![allow(clippy::undocumented_unsafe_blocks)]
+#![allow(clippy::missing_safety_doc)]
+#![allow(clippy::len_zero)]
+#![allow(clippy::identity_op)]
+#![allow(dead_code)]
+
 mod batch;
 mod blood_canvas;
 mod bloom;

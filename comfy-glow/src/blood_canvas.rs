@@ -54,7 +54,7 @@ impl TextureCreator for GlowTextureCreator {
         name: &str,
         image: &DynamicImage,
     ) -> TextureHandle {
-        let texture = Texture::from_image(name, self.gl.clone(), &image);
+        let texture = Texture::from_image(name, self.gl.clone(), image);
         let handle = TextureHandle::Raw(texture.texture.0.get().into());
 
         self.textures.borrow_mut().insert(handle, texture);

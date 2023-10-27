@@ -51,21 +51,19 @@ impl Shader {
             let prefix = std::path::Path::new("engine/src/shaders");
 
             let vp = prefix.join(
-                &std::path::Path::new(&self.vertex.path).file_name().unwrap(),
+                std::path::Path::new(&self.vertex.path).file_name().unwrap(),
             );
             let fp = prefix.join(
-                &std::path::Path::new(&self.fragment.path).file_name().unwrap(),
+                std::path::Path::new(&self.fragment.path).file_name().unwrap(),
             );
 
             let vp = std::fs::canonicalize(vp)?;
             let fp = std::fs::canonicalize(fp)?;
 
-            let vertex = std::fs::read_to_string(&vp)?;
-            let fragment = std::fs::read_to_string(&fp)?;
+            let vertex = std::fs::read_to_string(vp)?;
+            let fragment = std::fs::read_to_string(fp)?;
 
-            Ok(Self::try_compile_shader(
-                &self.name, &self.gl, &vertex, &fragment,
-            )?)
+            Self::try_compile_shader(&self.name, &self.gl, &vertex, &fragment)
         })();
 
         match result {
@@ -115,9 +113,7 @@ impl Shader {
 
                 gl.compile_shader(shader);
                 if !gl.get_shader_compile_status(shader) {
-                    return Err(
-                        format!("{}", gl.get_shader_info_log(shader)).into()
-                    );
+                    return Err(gl.get_shader_info_log(shader).into());
                 }
                 gl.attach_shader(program, shader);
 
@@ -138,9 +134,7 @@ impl Shader {
 
             gl.link_program(program);
             if !gl.get_program_link_status(program) {
-                return Err(
-                    format!("{}", gl.get_program_info_log(program)).into()
-                );
+                return Err(gl.get_program_info_log(program).into());
             }
 
             gl.safe_label(

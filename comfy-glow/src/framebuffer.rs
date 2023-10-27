@@ -26,8 +26,7 @@ impl FrameBuffer {
         self.gl.delete_renderbuffer(self.rbo);
         self.gl.delete_texture(self.color_buffer);
 
-        let (fbo, rbo, color_buffer) =
-            Self::create(&self.name, &gl, resolution);
+        let (fbo, rbo, color_buffer) = Self::create(&self.name, gl, resolution);
 
         self.fbo = fbo;
         self.rbo = rbo;

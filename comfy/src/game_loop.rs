@@ -246,10 +246,10 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     });
 }
 
-// #[cfg(feature = "use-glow")]
+#[cfg(feature = "use-glow")]
 pub use comfy_glow::*;
 
-// #[cfg(feature = "use-glow")]
+#[cfg(feature = "use-glow")]
 pub async fn glow_game_loop(mut game: impl GameLoop + 'static) {
     let (gl, _shader_version, window, mut event_loop, _context) = {
         let sdl = sdl2::init().unwrap();

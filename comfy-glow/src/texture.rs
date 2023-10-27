@@ -107,7 +107,7 @@ impl Texture {
                 0,
                 glow::RGBA,
                 glow::UNSIGNED_BYTE,
-                Some(&bytes),
+                Some(bytes),
             );
 
             // gl.generate_mipmap(glow::TEXTURE_2D);
