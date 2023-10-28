@@ -233,10 +233,6 @@ impl WgpuRenderer {
 
         surface.configure(&device, &config);
 
-        trace!("Loading shaders");
-
-        let mut shaders = ShaderMap::new();
-
         trace!("Loading builtin engine textures");
 
         let mut textures = HashMap::default();
@@ -543,9 +539,6 @@ impl WgpuRenderer {
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
-
-        let mut post_processing_effects = Vec::new();
-
         // macro_rules! make_effect {
         //     ($name:literal) => {{
         //         let shader = reloadable_wgsl_fragment_shader!($name);
@@ -674,7 +667,7 @@ impl WgpuRenderer {
             depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
-            shaders: RefCell::new(shaders),
+            shaders: RefCell::new(HashMap::new()),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 
@@ -686,7 +679,7 @@ impl WgpuRenderer {
             config,
             size,
 
-            post_processing_effects: RefCell::new(post_processing_effects),
+            post_processing_effects: RefCell::new(Vec::new()),
             bloom,
 
             egui_winit,
