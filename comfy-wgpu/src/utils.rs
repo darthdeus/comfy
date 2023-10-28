@@ -8,6 +8,9 @@ pub const SHADER_POST_PROCESSING_VERTEX: &str = include_str!(concat!(
     "/shaders/post_processing_vertex.wgsl"
 ));
 
+pub const COPY_SHADER_SRC: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/copy.wgsl"));
+
 #[macro_export]
 macro_rules! reloadable_wgsl_shader {
     ($name:literal) => {{
@@ -44,14 +47,16 @@ macro_rules! reloadable_wgsl_shader {
 //     }};
 // }
 
+pub fn post_process_shader_from_fragment(source: &str) -> String {
+    format!(
+        "{}{}{}",
+        SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, source
+    )
+}
+
 #[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
-        let frag_shader_prefix = format!(
-            "{}{}",
-            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX
-        );
-
         cfg_if! {
             if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let frag_part =
@@ -69,7 +74,10 @@ macro_rules! reloadable_wgsl_fragment_shader {
             }
         }
 
-        let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
+        let full_shader = format!(
+            "{}{}{}",
+            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag_part
+        );
 
         let id = gen_shader_id();
 

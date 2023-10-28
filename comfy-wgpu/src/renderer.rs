@@ -546,32 +546,25 @@ impl WgpuRenderer {
 
         let mut post_processing_effects = Vec::new();
 
-        macro_rules! make_effect {
-            ($name:literal) => {{
-                let shader = reloadable_wgsl_fragment_shader!($name);
-                let effect = PostProcessingEffect::new(
-                    $name.to_string(),
-                    &context.device,
-                    &[
-                        &context.texture_layout,
-                        &global_lighting_params_bind_group_layout,
-                    ],
-                    &config,
-                    render_texture_format,
-                    shader,
-                    &mut shaders,
-                );
-
-                post_processing_effects.push(effect);
-            }};
-        }
-
-        // simple_fragment_shader(
-        //     concat!($name, " Post Processing Shader"),
-        //     include_str!(
-        //     concat!("../../assets/shaders/", $name, ".wgsl")
-        //     // "../../assets/shaders/invert.wgsl"
-        // )),
+        // macro_rules! make_effect {
+        //     ($name:literal) => {{
+        //         let shader = reloadable_wgsl_fragment_shader!($name);
+        //         let effect = PostProcessingEffect::new(
+        //             $name.to_string(),
+        //             &context.device,
+        //             &[
+        //                 &context.texture_layout,
+        //                 &global_lighting_params_bind_group_layout,
+        //             ],
+        //             &config,
+        //             render_texture_format,
+        //             shader,
+        //             &mut shaders,
+        //         );
+        //
+        //         post_processing_effects.push(effect);
+        //     }};
+        // }
 
         // make_effect!("invert");
         // make_effect!("invert");
@@ -595,7 +588,7 @@ impl WgpuRenderer {
 
         // make_effect!("copy");
         // make_effect!("dither");
-        make_effect!("copy");
+        // make_effect!("copy");
 
         // make_effect!("palette");
         // make_effect!("invert");
