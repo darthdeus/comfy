@@ -127,6 +127,15 @@ impl<'a> EngineContext<'a> {
         self.draw.borrow_mut()
     }
 
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
+    // TODO: remove this in plcase of new PP later
     pub fn insert_post_processing_effect(
         &self,
         index: i32,
@@ -140,6 +149,7 @@ impl<'a> EngineContext<'a> {
             &self.renderer.config,
             self.renderer.render_texture_format,
             shader.clone(),
+            &mut self.renderer.shaders.borrow_mut(),
         );
 
         if index == -1 {

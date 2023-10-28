@@ -233,6 +233,10 @@ impl WgpuRenderer {
 
         surface.configure(&device, &config);
 
+        trace!("Loading shaders");
+
+        let mut shaders = ShaderMap::new();
+
         trace!("Loading builtin engine textures");
 
         let mut textures = HashMap::default();
@@ -544,6 +548,7 @@ impl WgpuRenderer {
 
         macro_rules! make_effect {
             ($name:literal) => {{
+                let shader = reloadable_wgsl_fragment_shader!($name);
                 let effect = PostProcessingEffect::new(
                     $name.to_string(),
                     &context.device,
@@ -553,7 +558,8 @@ impl WgpuRenderer {
                     ],
                     &config,
                     render_texture_format,
-                    reloadable_wgsl_fragment_shader!($name),
+                    shader,
+                    &mut shaders,
                 );
 
                 post_processing_effects.push(effect);
@@ -675,7 +681,7 @@ impl WgpuRenderer {
             depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
-            shaders: RefCell::new(load_shaders()),
+            shaders: RefCell::new(shaders),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 
@@ -1458,12 +1464,14 @@ impl WgpuRenderer {
             // self.window.center();
         }
 
+        // TODO: re-implement shader reloading properly
         #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
         if self.hot_reload.maybe_reload_shaders() {
-            // TODO: this breaks previously loaded user shaders
-            error!("TODO: reload breaks previously loaded user shaders");
-            self.shaders = RefCell::new(load_shaders());
-            self.pipelines.clear();
+            panic!("TODO: shader hot reloading is currently unsupported")
+            //     // TODO: this breaks previously loaded user shaders
+            //     error!("TODO: reload breaks previously loaded user shaders");
+            //     self.shaders = RefCell::new(load_shaders());
+            //     self.pipelines.clear();
         }
 
         self.camera_uniform.update_view_proj(&main_camera());

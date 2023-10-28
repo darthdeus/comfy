@@ -17,6 +17,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader: Shader,
+        shaders: &mut ShaderMap,
         mip_level_count: u32,
         blend: wgpu::BlendState,
     ) -> Self {
@@ -42,9 +43,11 @@ impl PostProcessingEffect {
             device,
             format,
             bind_group_layouts,
-            shader,
+            shader.clone(),
             blend,
         );
+
+        shaders.insert(shader.id, shader);
 
         Self { id, name, enabled: true, render_texture, bind_group, pipeline }
     }
@@ -56,6 +59,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader: Shader,
+        shaders: &mut ShaderMap,
     ) -> Self {
         Self::new_with_mip(
             name,
@@ -64,6 +68,7 @@ impl PostProcessingEffect {
             config,
             format,
             shader,
+            shaders,
             1,
             wgpu::BlendState::REPLACE,
         )

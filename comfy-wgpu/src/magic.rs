@@ -32,14 +32,12 @@ pub enum ShaderError {
 }
 
 pub fn create_shader(
-    renderer: &WgpuRenderer,
+    shaders: &mut ShaderMap,
     name: &str,
     source: &str,
     _uniforms_with_defaults: HashMap<&'static str, UniformDesc>,
 ) -> Result<ShaderId, ShaderError> {
     let id = gen_shader_id();
-
-    let mut shaders = renderer.shaders.borrow_mut();
 
     if shaders.contains_key(&id) {
         return Err(ShaderError::CompileError(format!(
