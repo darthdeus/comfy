@@ -8,11 +8,12 @@
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
-EXAMPLE=colors
+# EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
+EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
