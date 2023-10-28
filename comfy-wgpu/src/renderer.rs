@@ -7,6 +7,7 @@ use winit::{dpi::PhysicalSize, window::Window};
 
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
+pub type ShaderMap = HashMap<String, Shader>;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -29,8 +30,6 @@ impl Shader {
         }
     }
 }
-
-pub type ShaderMap = HashMap<Cow<'static, str>, Shader>;
 
 #[derive(Clone)]
 pub struct GraphicsContext {
@@ -772,10 +771,8 @@ impl WgpuRenderer {
             } else {
                 info!("Loading EFFECT: {}", effect.name);
 
-                if let Some(shader) = self
-                    .shaders
-                    .borrow()
-                    .get(&Into::<Cow<_>>::into(effect.name.clone()))
+                if let Some(shader) =
+                    self.shaders.borrow().get(&effect.name.clone())
                 {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,

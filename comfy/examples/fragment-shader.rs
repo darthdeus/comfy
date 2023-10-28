@@ -26,10 +26,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ";
 
-fn setup(state: &mut GameState, _c: &mut EngineContext) {
+fn setup(state: &mut GameState, c: &mut EngineContext) {
     state.my_shader_id = Some(
         // Shader requires a default value for every uniform
-        create_shader(FRAG_SHADER, hashmap! {
+        create_shader(c.renderer, "my-shader", FRAG_SHADER, hashmap! {
             "time" => UniformDesc::F32(0.0),
             "intensity" => UniformDesc::F32(1.0),
         })

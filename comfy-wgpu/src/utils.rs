@@ -1,13 +1,16 @@
 use crate::*;
 
+pub const SHADER_STRUCTS_PREFIX: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl"));
+
+pub const SHADER_POST_PROCESSING_VERTEX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/post_processing_vertex.wgsl"
+));
+
 #[macro_export]
 macro_rules! reloadable_wgsl_shader {
     ($name:literal) => {{
-        let struct_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/structs.wgsl"
-        ));
-
         cfg_if! {
             if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
                 let shader = include_str!(concat!(
@@ -26,7 +29,7 @@ macro_rules! reloadable_wgsl_shader {
 
         Shader {
             name: format!("{} Shader", $name),
-            source: format!("{}{}", struct_prefix, shader).into(),
+            source: format!("{}{}", SHADER_STRUCTS_PREFIX, shader).into(),
         }
     }};
 }
@@ -41,17 +44,10 @@ macro_rules! reloadable_wgsl_shader {
 #[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
-        let struct_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/structs.wgsl"
-        ));
-
-        let pp_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/post_processing_vertex.wgsl"
-        ));
-
-        let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
+        let frag_shader_prefix = format!(
+            "{}{}",
+            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX
+        );
 
         cfg_if! {
             if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
@@ -111,18 +107,12 @@ pub fn simple_fragment_shader(
     name: &'static str,
     frag: &'static str,
 ) -> Shader {
-    let struct_prefix = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/structs.wgsl"
-    ));
-    let frag_shader_prefix = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/post_processing_vertex.wgsl"
-    ));
-
     Shader {
         name: name.to_string(),
-        source: format!("{}{}{}", struct_prefix, frag_shader_prefix, frag),
+        source: format!(
+            "{}{}{}",
+            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag
+        ),
     }
 }
 
