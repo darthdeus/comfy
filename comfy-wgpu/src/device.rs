@@ -118,8 +118,6 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
 
     surface.configure(&device, &config);
 
-    trace!("Loading builtin engine textures");
-
     let texture_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[

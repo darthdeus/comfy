@@ -111,7 +111,8 @@ impl WgpuRenderer {
     pub async fn new(window: Window, egui_winit: egui_winit::State) -> Self {
         let context = create_graphics_context(&window).await;
 
-        let render_texture_format = wgpu::TextureFormat::Rgba16Float;
+        trace!("Loading builtin engine textures");
+
         let mut textures = HashMap::default();
 
         macro_rules! load_engine_tex {
@@ -421,6 +422,8 @@ impl WgpuRenderer {
             &context.device,
             bytemuck::cast_slice(&[quad]),
         );
+
+        let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
         let bloom = Bloom::new(
             &context,
