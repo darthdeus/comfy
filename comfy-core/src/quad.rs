@@ -1186,17 +1186,15 @@ pub fn draw_revs(position: Vec2, r: f32, rev: f32, color: Color, z_index: i32) {
 }
 
 pub fn draw_mesh(mesh: Mesh) {
-    GLOBAL_STATE
-        .borrow_mut()
-        .mesh_queue
-        .push(MeshDraw { mesh, texture_params: TextureParams::default() });
+    draw_mesh_ex(mesh, TextureParams::default());
 }
 
 pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
-    GLOBAL_STATE
-        .borrow_mut()
-        .mesh_queue
-        .push(MeshDraw { mesh, texture_params });
+    GLOBAL_STATE.borrow_mut().mesh_queue.push(MeshDraw {
+        mesh,
+        texture_params,
+        shader: get_current_shader(),
+    });
 }
 
 #[derive(Copy, Clone, Debug)]

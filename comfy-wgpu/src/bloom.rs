@@ -102,23 +102,28 @@ impl Bloom {
                 "Bloom Threshold Texture",
             );
 
-        let threshold = PostProcessingEffect {
-            name: "Bloom Threshold".into(),
-            enabled: true,
-            bind_group: device.simple_bind_group(
-                "Bloom Threshold Bind Group",
-                &threshold_render_texture,
-                texture_layout,
-            ),
-            render_texture: threshold_render_texture,
-            pipeline: create_post_processing_pipeline(
-                "Bloom Threshold",
-                device,
-                format,
-                &[texture_layout, lighting_params_layout],
-                reloadable_wgsl_fragment_shader!("bloom-threshold"),
-                wgpu::BlendState::REPLACE,
-            ),
+        let threshold = {
+            let shader = reloadable_wgsl_fragment_shader!("bloom-threshold");
+
+            PostProcessingEffect {
+                id: shader.id,
+                name: "Bloom Threshold".into(),
+                enabled: true,
+                bind_group: device.simple_bind_group(
+                    "Bloom Threshold Bind Group",
+                    &threshold_render_texture,
+                    texture_layout,
+                ),
+                render_texture: threshold_render_texture,
+                pipeline: create_post_processing_pipeline(
+                    "Bloom Threshold",
+                    device,
+                    format,
+                    &[texture_layout, lighting_params_layout],
+                    shader,
+                    wgpu::BlendState::REPLACE,
+                ),
+            }
         };
 
         // simple_fragment_shader(

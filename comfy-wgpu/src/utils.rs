@@ -27,7 +27,10 @@ macro_rules! reloadable_wgsl_shader {
             }
         }
 
+        let id = gen_shader_id();
+
         Shader {
+            id,
             name: format!("{} Shader", $name),
             source: format!("{}{}", SHADER_STRUCTS_PREFIX, shader).into(),
         }
@@ -68,7 +71,9 @@ macro_rules! reloadable_wgsl_fragment_shader {
 
         let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
 
-        Shader { name: $name.to_string(), source: full_shader.to_string() }
+        let id = gen_shader_id();
+
+        Shader { id, name: $name.to_string(), source: full_shader.to_string() }
     }};
 }
 
@@ -107,7 +112,10 @@ pub fn simple_fragment_shader(
     name: &'static str,
     frag: &'static str,
 ) -> Shader {
+    let id = gen_shader_id();
+
     Shader {
+        id,
         name: name.to_string(),
         source: format!(
             "{}{}{}",

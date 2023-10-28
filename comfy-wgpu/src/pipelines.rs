@@ -1,15 +1,11 @@
 use crate::*;
 
-pub fn load_all_pipelines() -> Option<PipelineMap> {
-    None
-}
-
 pub fn load_shaders() -> ShaderMap {
     let mut shaders = HashMap::new();
     macro_rules! load_shader {
         ($name:literal) => {
-            shaders
-                .insert($name.into(), reloadable_wgsl_fragment_shader!($name));
+            let shader = reloadable_wgsl_fragment_shader!($name);
+            shaders.insert(shader.id, shader);
         };
     }
 

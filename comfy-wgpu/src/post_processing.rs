@@ -1,6 +1,7 @@
 use crate::*;
 
 pub struct PostProcessingEffect {
+    pub id: ShaderId,
     pub name: String,
     pub enabled: bool,
     pub render_texture: Texture,
@@ -34,6 +35,8 @@ impl PostProcessingEffect {
             bind_group_layouts[0],
         );
 
+        let id = shader.id;
+
         let pipeline = create_post_processing_pipeline(
             &name,
             device,
@@ -43,7 +46,7 @@ impl PostProcessingEffect {
             blend,
         );
 
-        Self { name, enabled: true, render_texture, bind_group, pipeline }
+        Self { id, name, enabled: true, render_texture, bind_group, pipeline }
     }
 
     pub fn new(

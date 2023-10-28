@@ -153,10 +153,7 @@ impl<'a> EngineContext<'a> {
             panic!("Invalid index = {}, must be -1 or non-negative.", index);
         }
 
-        self.renderer
-            .shaders
-            .borrow_mut()
-            .insert(name.to_string().into(), shader);
+        self.renderer.shaders.borrow_mut().insert(shader.id, shader);
     }
 
     // pub fn early_update(&mut self) {

@@ -7,7 +7,7 @@ use winit::{dpi::PhysicalSize, window::Window};
 
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
-pub type ShaderMap = HashMap<String, Shader>;
+pub type ShaderMap = HashMap<ShaderId, Shader>;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -18,6 +18,7 @@ pub struct QuadUniform {
 
 #[derive(Clone, Debug)]
 pub struct Shader {
+    pub id: ShaderId,
     pub name: String,
     pub source: String,
 }
@@ -771,9 +772,7 @@ impl WgpuRenderer {
             } else {
                 info!("Loading EFFECT: {}", effect.name);
 
-                if let Some(shader) =
-                    self.shaders.borrow().get(&effect.name.clone())
-                {
+                if let Some(shader) = self.shaders.borrow().get(&effect.id) {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
@@ -790,6 +789,10 @@ impl WgpuRenderer {
                     self.pipelines.insert(effect.name.clone(), pipeline);
                     self.pipelines.get(&effect.name)
                 } else {
+                    warn!(
+                        "NO SHADER FOR EFFECT: {} ... {}",
+                        effect.name, effect.id
+                    );
                     None
                 }
             };
@@ -809,7 +812,7 @@ impl WgpuRenderer {
 
                 input_bind_group = &effect.bind_group;
             } else {
-                error!("Missing shader for {}", effect.name);
+                error!("Missing pipeline for {}", effect.name);
             }
         }
 
