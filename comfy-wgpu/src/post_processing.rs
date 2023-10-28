@@ -1,5 +1,34 @@
 use crate::*;
 
+pub fn insert_post_processing_effect(
+    renderer: &WgpuRenderer,
+    index: i32,
+    name: &str,
+    shader: Shader,
+) {
+    let effect = PostProcessingEffect::new(
+        name.to_string(),
+        &renderer.context.device,
+        &[&renderer.context.texture_layout],
+        &renderer.config,
+        renderer.render_texture_format,
+        shader.clone(),
+        &mut renderer.shaders.borrow_mut(),
+    );
+
+    let mut effects = renderer.post_processing_effects.borrow_mut();
+
+    if index == -1 {
+        effects.push(effect);
+    } else if index >= 0 {
+        effects.insert(index as usize, effect);
+    } else {
+        panic!("Invalid index = {}, must be -1 or non-negative.", index);
+    }
+
+    renderer.shaders.borrow_mut().insert(shader.id, shader);
+}
+
 pub struct PostProcessingEffect {
     pub id: ShaderId,
     pub name: String,

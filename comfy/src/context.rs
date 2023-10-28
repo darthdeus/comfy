@@ -142,54 +142,6 @@ impl<'a> EngineContext<'a> {
         name: &str,
         shader: Shader,
     ) {
-        let effect = PostProcessingEffect::new(
-            name.to_string(),
-            &self.renderer.context.device,
-            &[&self.renderer.context.texture_layout],
-            &self.renderer.config,
-            self.renderer.render_texture_format,
-            shader.clone(),
-            &mut self.renderer.shaders.borrow_mut(),
-        );
-
-        if index == -1 {
-            self.renderer.post_processing_effects.borrow_mut().push(effect);
-        } else if index >= 0 {
-            self.renderer
-                .post_processing_effects
-                .borrow_mut()
-                .insert(index as usize, effect);
-        } else {
-            panic!("Invalid index = {}, must be -1 or non-negative.", index);
-        }
-
-        self.renderer.shaders.borrow_mut().insert(shader.id, shader);
+        insert_post_processing_effect(self.renderer, index, name, shader)
     }
-
-    // pub fn early_update(&mut self) {
-    //     let _span = span!("context.early_update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().early_update(self);
-    //     }
-    // }
-
-    // pub fn update(&mut self) {
-    //     let _span = span!("context.update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().update(self);
-    //     }
-    // }
-    //
-    // pub fn late_update(&mut self) {
-    //     let _span = span!("context.late_update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().late_update(self);
-    //     }
-    // }
 }
