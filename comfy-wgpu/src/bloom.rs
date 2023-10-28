@@ -70,7 +70,6 @@ pub struct Bloom {
 impl Bloom {
     pub fn new(
         context: &GraphicsContext,
-        config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         lighting_params: Arc<wgpu::BindGroup>,
         lighting_params_layout: &wgpu::BindGroupLayout,
@@ -89,13 +88,15 @@ impl Bloom {
         //     wgpu::BlendState::REPLACE,
         // );
 
+        let config = context.config.borrow();
+
         let device = &context.device;
         let texture_layout = &context.texture_layout;
 
         let threshold_render_texture =
             Texture::create_scaled_mip_surface_texture(
                 device,
-                config,
+                &config,
                 format,
                 1.0,
                 BLOOM_MIP_LEVEL_COUNT,
@@ -169,7 +170,7 @@ impl Bloom {
 
         let blur_texture = Texture::create_scaled_mip_filter_surface_texture(
             device,
-            config,
+            &config,
             format,
             1.0,
             1,
@@ -233,14 +234,14 @@ impl Bloom {
             FrameBuffer::new(
                 "Bloom Ping Pong 0",
                 device,
-                config,
+                &config,
                 format,
                 texture_layout,
             ),
             FrameBuffer::new(
                 "Bloom Ping Pong 1",
                 device,
-                config,
+                &config,
                 format,
                 texture_layout,
             ),

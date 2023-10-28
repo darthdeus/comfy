@@ -11,6 +11,7 @@ pub use winit::event::{
 
 mod blood_canvas;
 mod bloom;
+mod device;
 mod egui_integration;
 mod instance;
 mod pipelines;
@@ -24,11 +25,12 @@ mod y_sort;
 // idk what to call this, so magic it is for now ...
 mod magic;
 
-pub use magic::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
+pub use crate::device::*;
 pub use crate::egui_integration::*;
 pub use crate::instance::*;
+pub use crate::magic::*;
 pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;

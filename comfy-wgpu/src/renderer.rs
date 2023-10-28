@@ -3,7 +3,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use crate::*;
 
 use image::Rgba;
-use winit::{dpi::PhysicalSize, window::Window};
+use winit::window::Window;
 
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
@@ -34,23 +34,21 @@ impl Shader {
 
 #[derive(Clone)]
 pub struct GraphicsContext {
+    pub surface: Arc<wgpu::Surface>,
     pub instance: Arc<wgpu::Instance>,
     pub adapter: Arc<wgpu::Adapter>,
     pub device: Arc<wgpu::Device>,
     pub queue: Arc<wgpu::Queue>,
     // Shared for all regular textures/sprites
     pub texture_layout: Arc<wgpu::BindGroupLayout>,
+    pub config: Arc<AtomicRefCell<wgpu::SurfaceConfiguration>>,
 }
 
 pub struct WgpuRenderer {
     pub context: GraphicsContext,
 
-    pub surface: wgpu::Surface,
     #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
     pub hot_reload: HotReload,
-
-    pub config: wgpu::SurfaceConfiguration,
-    pub size: PhysicalSize<u32>,
 
     pub pipelines: PipelineMap,
     pub shaders: RefCell<ShaderMap>,
@@ -111,166 +109,10 @@ pub struct WgpuRenderer {
 
 impl WgpuRenderer {
     pub async fn new(window: Window, egui_winit: egui_winit::State) -> Self {
-        let size = window.inner_size();
-
-        let backends = wgpu::util::backend_bits_from_env()
-            .unwrap_or(wgpu::Backends::all());
-
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            // backends: wgpu::Backends::GL,
-            backends,
-            dx12_shader_compiler: Default::default(),
-        });
-
-        let surface = unsafe {
-            instance
-                .create_surface(&window)
-                .expect("surface config must be valid")
-        };
-
-        trace!("Requesting adapter");
-
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                // TODO: make this configurable
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            })
-            .await
-            .expect("adapter config must be valid");
-
-        info!("Using adapter: {:?}", adapter.get_info().name);
-
-        trace!("Requesting device");
-
-        #[cfg(not(target_arch = "wasm32"))]
-        let limits = wgpu::Limits {
-            max_texture_dimension_2d: 4096,
-            ..wgpu::Limits::downlevel_defaults()
-        };
-
-        #[cfg(target_arch = "wasm32")]
-        let limits = wgpu::Limits {
-            max_texture_dimension_2d: 4096,
-            ..wgpu::Limits::downlevel_webgl2_defaults()
-        };
-
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits,
-                    label: None,
-                },
-                None,
-            )
-            .await
-            .expect("failed to create wgpu adapter");
-
-        #[cfg(feature = "ci-release")]
-        device.on_uncaptured_error(Box::new(|err| {
-            error!("WGPU ERROR: {:?}", err);
-            panic!("Exiting due to wgpu error: {:?}", err);
-        }));
-
-        let caps = surface.get_capabilities(&adapter);
-        let supported_formats = caps.formats;
-        info!("Supported formats: {:?}", supported_formats);
-
-        #[cfg(not(target_arch = "wasm32"))]
-        let preferred_format = wgpu::TextureFormat::Bgra8UnormSrgb;
-        #[cfg(target_arch = "wasm32")]
-        let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
-
-        let monitor_surface_format =
-            if supported_formats.contains(&preferred_format) {
-                preferred_format
-            } else {
-                let fallback = supported_formats[0];
-
-                error!(
-                    "Unsupported preferred surface format: {:?}. Using first \
-                     supported format: {:?}",
-                    preferred_format, fallback
-                );
-
-                fallback
-            };
+        let context = create_graphics_context(&window).await;
 
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
-
-        #[cfg(feature = "record-pngs")]
-        let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT |
-            wgpu::TextureUsages::COPY_SRC;
-        #[cfg(not(feature = "record-pngs"))]
-        let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
-
-        let desired_present_mode = if game_config().vsync_enabled {
-            wgpu::PresentMode::AutoVsync
-        } else {
-            wgpu::PresentMode::AutoNoVsync
-        };
-
-        let present_mode = if caps.present_modes.contains(&desired_present_mode)
-        {
-            desired_present_mode
-        } else {
-            caps.present_modes[0]
-        };
-
-        let config = wgpu::SurfaceConfiguration {
-            usage: surface_usage,
-            format: monitor_surface_format,
-            width: size.width,
-            height: size.height,
-            present_mode,
-            alpha_mode: caps.alpha_modes[0],
-            view_formats: vec![],
-        };
-
-        trace!("Configuring surface");
-
-        surface.configure(&device, &config);
-
-        trace!("Loading builtin engine textures");
-
         let mut textures = HashMap::default();
-
-        let texture_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            sample_type: wgpu::TextureSampleType::Float {
-                                filterable: true,
-                            },
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(
-                            wgpu::SamplerBindingType::Filtering,
-                        ),
-                        count: None,
-                    },
-                ],
-                label: Some("texture_bind_group_layout"),
-            });
-
-        let context = GraphicsContext {
-            instance: Arc::new(instance),
-            adapter: Arc::new(adapter),
-            device: Arc::new(device),
-            queue: Arc::new(queue),
-            texture_layout: Arc::new(texture_bind_group_layout),
-        };
 
         macro_rules! load_engine_tex {
             ($name: literal) => {{
@@ -507,19 +349,24 @@ impl WgpuRenderer {
 
         trace!("Initializing egui");
 
+        let (width, height, format) = {
+            let config = context.config.borrow();
+            (config.width, config.height, config.format)
+        };
+
         let egui_render_routine = EguiRenderRoutine::new(
             &context.device,
-            config.format,
+            format,
             1,
-            config.width,
-            config.height,
+            width,
+            height,
             window.scale_factor() as f32,
         );
 
         let screenshot_buffer = SizedBuffer::new(
             "screenshot_buffer",
             &context.device,
-            (size.width * size.height) as usize * std::mem::size_of::<u32>(),
+            (width * height) as usize * std::mem::size_of::<u32>(),
             BufferType::Read,
         );
 
@@ -539,56 +386,9 @@ impl WgpuRenderer {
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
-        // macro_rules! make_effect {
-        //     ($name:literal) => {{
-        //         let shader = reloadable_wgsl_fragment_shader!($name);
-        //         let effect = PostProcessingEffect::new(
-        //             $name.to_string(),
-        //             &context.device,
-        //             &[
-        //                 &context.texture_layout,
-        //                 &global_lighting_params_bind_group_layout,
-        //             ],
-        //             &config,
-        //             render_texture_format,
-        //             shader,
-        //             &mut shaders,
-        //         );
-        //
-        //         post_processing_effects.push(effect);
-        //     }};
-        // }
-
-        // make_effect!("invert");
-        // make_effect!("invert");
-        // make_effect!("invert");
-
-        // make_effect!("invert");
-        // make_effect!("red");
-        // make_effect!("blue");
-
-        // make_effect!("darken");
-        // make_effect!("red");
-        // make_effect!("darken");
-        // make_effect!("invert");
-        // make_effect!("darken");
-        // make_effect!("invert");
-        // make_effect!("darken");
-
-        // make_effect!("screen-shake");
-        // make_effect!("chromatic-aberration");
-        // make_effect!("film-grain");
-
-        // make_effect!("copy");
-        // make_effect!("dither");
-        // make_effect!("copy");
-
-        // make_effect!("palette");
-        // make_effect!("invert");
-
         let first_pass_texture = Texture::create_scaled_surface_texture(
             &context.device,
-            &config,
+            &context.config.borrow(),
             1.0,
             "First Pass Texture",
         );
@@ -601,7 +401,7 @@ impl WgpuRenderer {
 
         let tonemapping_texture = Texture::create_scaled_mip_surface_texture(
             &context.device,
-            &config,
+            &context.config.borrow(),
             wgpu::TextureFormat::Rgba16Float,
             1.0,
             1,
@@ -624,7 +424,6 @@ impl WgpuRenderer {
 
         let bloom = Bloom::new(
             &context,
-            &config,
             render_texture_format,
             global_lighting_params_bind_group.clone(),
             &global_lighting_params_bind_group_layout,
@@ -651,13 +450,11 @@ impl WgpuRenderer {
 
         let depth_texture = Texture::create_depth_texture(
             &context.device,
-            &config,
+            &context.config.borrow(),
             "Depth Texture",
         );
 
         Self {
-            surface,
-
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
@@ -675,9 +472,6 @@ impl WgpuRenderer {
 
             vertex_buffer,
             index_buffer,
-
-            config,
-            size,
 
             post_processing_effects: RefCell::new(Vec::new()),
             bloom,
@@ -821,7 +615,7 @@ impl WgpuRenderer {
                 create_post_processing_pipeline(
                     "Tonemapping",
                     &self.context.device,
-                    self.config.format,
+                    self.context.config.borrow().format,
                     &[
                         &self.texture_layout,
                         &self.global_lighting_params_bind_group_layout,
@@ -913,7 +707,7 @@ impl WgpuRenderer {
                 create_render_pipeline_with_layout(
                     "Debug",
                     &self.context.device,
-                    self.config.format,
+                    self.context.config.borrow().format,
                     &[&self.texture_layout, &self.quad_ubg.layout],
                     &[],
                     reloadable_wgsl_shader!("debug"),
@@ -1506,7 +1300,7 @@ impl WgpuRenderer {
         let output = {
             let _span = span!("get current surface");
 
-            match self.surface.get_current_texture() {
+            match self.context.surface.get_current_texture() {
                 Ok(texture) => texture,
                 Err(_) => {
                     return;
@@ -1650,16 +1444,20 @@ impl WgpuRenderer {
 
         let scale_factor = self.window.scale_factor() as f32;
 
-        self.size =
-            winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
+        let size = winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
 
-        self.config.width = self.size.width;
-        self.config.height = self.size.height;
-        self.surface.configure(&self.context.device, &self.config);
+        {
+            let mut config = self.context.config.borrow_mut();
+
+            config.width = size.width;
+            config.height = size.height;
+
+            self.context.surface.configure(&self.context.device, &config);
+        }
 
         self.egui_render_routine.borrow_mut().resize(
-            self.size.width,
-            self.size.height,
+            size.width,
+            size.height,
             scale_factor,
         );
 
@@ -1667,11 +1465,11 @@ impl WgpuRenderer {
     }
 
     pub fn width(&self) -> f32 {
-        self.config.width as f32
+        self.context.config.borrow().width as f32
     }
 
     pub fn height(&self) -> f32 {
-        self.config.height as f32
+        self.context.config.borrow().height as f32
     }
 
     pub fn end_frame(&mut self) {}

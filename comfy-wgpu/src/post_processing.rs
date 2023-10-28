@@ -13,7 +13,7 @@ pub fn insert_post_processing_effect(
             &renderer.context.texture_layout,
             &renderer.global_lighting_params_bind_group_layout,
         ],
-        &renderer.config,
+        &renderer.context.config.borrow(),
         renderer.render_texture_format,
         shader.clone(),
         &mut renderer.shaders.borrow_mut(),
