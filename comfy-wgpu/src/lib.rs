@@ -21,7 +21,10 @@ mod screenshot;
 mod texture;
 mod utils;
 mod y_sort;
+// idk what to call this, so magic it is for now ...
+mod magic;
 
+pub use magic::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
 pub use crate::egui_integration::*;

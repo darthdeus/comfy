@@ -365,7 +365,11 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // output_rgb = output_rgb + screen_space_dither(in.position.xy);
     // output_rgb = output_rgb + screen_space_dither(in.position.xy);
     // output_rgb = output_rgb + screen_space_dither(in.position.xy);
+
     output_rgb = powsafe(output_rgb.rgb, 2.2);
+    // This is terrible terrible terrible ... but works for now until
+    // all the sRGB views/targets are fixed.
+    // output_rgb = powsafe(output_rgb.rgb, 2.2);
 
 // #endif
 

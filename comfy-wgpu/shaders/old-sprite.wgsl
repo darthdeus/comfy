@@ -79,6 +79,9 @@ fn apply_light(in: VertexOutput, light: Light) -> vec4<f32> {
 
     let modifier = select(attenuation, falloff, params.quadratic_falloff == 0u);
     var diffuse = light.strength * modifier;
+    // if false {
+    //     diffuse = light.strength * attenuation;
+    // }
 
     return light.color * diffuse * params.global_light_intensity;
 }
@@ -100,9 +103,46 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         1.0 / f32(textureDimensions(t_diffuse).y)
     );
 
+    var alpha_sum: f32 = 0.0;
+
+    for (var y: i32 = -1; y <= 1; y = y + 1) {
+        for (var x: i32 = -1; x <= 1; x = x + 1) {
+            let offset = vec2<f32>(f32(x), f32(y)) * texel_size;
+            let neighbor_alpha = textureSample(t_diffuse, s_diffuse, in.tex_coords + offset).a;
+            alpha_sum = alpha_sum + neighbor_alpha;
+        }
+    }
+
+    let outline_color_c = vec4(1.0, 0.0, 0.0, 1.0);
+
+    // let is_outline = alpha_sum < 1.0 && tex.a > 0.0;
+    let is_outline = alpha_sum < 8.0 && tex.a > 0.0;
+    let outline_color = select(base_color, outline_color_c, is_outline);
+
+    // // Outline
+    // let texel_size = vec2<f32>(
+    //     outline_params.outline_width / textureDimensions(t_diffuse).x,
+    //     outline_params.outline_width / textureDimensions(t_diffuse).y
+    // );
+    //
+    // var alpha_sum: f32 = 0.0;
+    //
+    // for (var y: i32 = -1; y <= 1; y = y + 1) {
+    //     for (var x: i32 = -1; x <= 1; x = x + 1) {
+    //         let offset = vec2<f32>(f32(x), f32(y)) * texel_size;
+    //         let neighbor_alpha = textureSample(t_diffuse, s_diffuse, in.tex_coords + offset).a;
+    //         alpha_sum = alpha_sum + neighbor_alpha;
+    //     }
+    // }
+    //
+    // let is_outline = alpha_sum < outline_params.outline_threshold && tex.a > 0.0;
+    // let outline_color = select(base_color, outline_params.outline_color, is_outline);
+
+    let use_outline = false;
+
     // Ambient lighting
     var ambient_color: vec4<f32> = params.ambient_light_color * params.ambient_light_intensity;
-    var final_color: vec4<f32> = base_color * ambient_color;
+    var final_color: vec4<f32> = select(base_color, outline_color, use_outline) * ambient_color;
 
     // // Ambient lighting
     // var ambient_color: vec4<f32> = params.ambient_light_color * params.ambient_light_intensity;
