@@ -17,6 +17,11 @@ struct LightsUniform {
     light_count: u32,
 }
 
+@group(0) @binding(0)
+var t_diffuse: texture_2d<f32>;
+@group(0)@binding(1)
+var s_diffuse: sampler;
+
 @group(1) @binding(0)
 var<uniform> camera: CameraUniform;
 
@@ -60,11 +65,6 @@ fn vs_main(
 
     return out;
 }
-
-@group(0) @binding(0)
-var t_diffuse: texture_2d<f32>;
-@group(0)@binding(1)
-var s_diffuse: sampler;
 
 fn apply_light(in: VertexOutput, light: Light) -> vec4<f32> {
     let light_to_frag = in.world_position.xy - light.world_position;
