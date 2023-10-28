@@ -83,30 +83,14 @@ fn apply_light(in: VertexOutput, light: Light) -> vec4<f32> {
     return light.color * diffuse * params.global_light_intensity;
 }
 
-fn apply_color_lut(color: vec4<f32>) -> vec4<f32> {
-    let lut_coord = vec2<f32>(color.r, color.g); // Use the red and green channels as texture coordinates
-    let lut_sample = textureSample(color_lut_texture, color_lut_sampler, lut_coord);
-    return vec4<f32>(lut_sample.rgb, color.a); // Preserve the alpha channel from the input color
-}
-
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let tex = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     let base_color: vec4<f32> = tex * in.color;
 
-    // Outline
-    let texel_size = vec2<f32>(
-        1.0 / f32(textureDimensions(t_diffuse).x),
-        1.0 / f32(textureDimensions(t_diffuse).y)
-    );
-
     // Ambient lighting
     var ambient_color: vec4<f32> = params.ambient_light_color * params.ambient_light_intensity;
     var final_color: vec4<f32> = base_color * ambient_color;
-
-    // // Ambient lighting
-    // var ambient_color: vec4<f32> = params.ambient_light_color * params.ambient_light_intensity;
-    // var final_color: vec4<f32> = base_color * ambient_color;
 
     if (params.lighting_enabled == 1u) {
         for (var i: u32 = 0u; i < lights.light_count; i = i + 1u) {
@@ -115,69 +99,11 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         }
     }
 
-    // Apply the Color LUT
-    if params.use_lut == 1u {
-        final_color = apply_color_lut(final_color);
-    }
-
     // Apply gamma correction
     final_color.r = pow(final_color.r, params.gamma_correction);
     final_color.g = pow(final_color.g, params.gamma_correction);
     final_color.b = pow(final_color.b, params.gamma_correction);
     final_color.a = base_color.a;
 
-    // final_color = clamp(
-    //     final_color,
-    //     vec4<f32>(0.0, 0.0, 0.0, 0.0),
-    //     vec4<f32>(1.0, 1.0, 1.0, 1.0)
-    // );
-
-    // final_color.r = 0.0;
-
-    // let corrected_rgb: vec3<f32> = pow(final_color.rgb, vec3<f32>(params.gamma_correction));
-    // final_color = clamp(
-    //     vec4<f32>(corrected_rgb, final_color.a),
-    //     vec4<f32>(0.0, 0.0, 0.0, 0.0),
-    //     vec4<f32>(1.0, 1.0, 1.0, 1.0)
-    // );
-
-
-    // // Apply gamma correction
-    // let corrected_rgb: vec3<f32> = pow(final_color.rgb, vec3<f32>(params.gamma_correction));
-    //
-    // // Clamp corrected RGB color to the range [0, 1]
-    // let clamped_rgb: vec3<f32> = clamp(corrected_rgb, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
-    //
-    // // Create a new vec4<f32> with the corrected and clamped RGB values and the original alpha component
-    // let output_color: vec4<f32> = vec4<f32>(clamped_rgb, final_color.a);
-
-    // if final_color.a < 0.00001 {
-    //   discard;
-    // }
-
     return final_color;
 }
-
-// @fragment
-// fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-//     let tex = textureSample(t_diffuse, s_diffuse, in.tex_coords);
-//     let base_color: vec4<f32> = tex * in.color;
-//
-//     // Ambient lighting
-//     var final_color: vec4<f32> = base_color * 0.1;
-//
-//     for (var i: u32 = 0u; i < lights.light_count; i = i + 1u) {
-//         let light = lights.lights[i];
-//         final_color = final_color + (base_color * apply_light(in, light));
-//     }
-//
-//     // Apply the Color LUT
-//     if params.use_lut == 1u {
-//         final_color = apply_color_lut(final_color);
-//     }
-//
-//     // Clamp final color to the range [0, 1]
-//     final_color = clamp(final_color, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(1.0, 1.0, 1.0, 1.0));
-//
-//     return final_color;
-// }
