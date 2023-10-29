@@ -9,6 +9,7 @@ pub use winit::event::{
     WindowEvent,
 };
 
+mod batching;
 mod blood_canvas;
 mod bloom;
 mod device;
@@ -25,6 +26,7 @@ mod y_sort;
 // idk what to call this, so magic it is for now ...
 mod magic;
 
+pub use crate::batching::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
 pub use crate::device::*;

@@ -3,6 +3,7 @@ use crate::*;
 pub struct MeshDrawData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
+    pub shader: Option<ShaderId>,
     pub data: smallvec::SmallVec<[MeshDraw; 1]>,
 }
 
@@ -18,6 +19,7 @@ pub struct RenderPassData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
     pub data: DrawData,
+    pub shader: Option<ShaderId>,
     // Meshes {
     //     meshes: Vec<MeshDraw>,
     // },
@@ -49,10 +51,10 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         span_with_timing!("prepare meshes");
 
         // Meshes
-        for (blend_mode, group) in &params
-            .mesh_queue
-            .iter()
-            .group_by(|draw| (draw.texture_params.blend_mode))
+        for ((blend_mode, shader), group) in
+            &params.mesh_queue.iter().group_by(|draw| {
+                (draw.texture_params.blend_mode, draw.texture_params.shader)
+            })
         {
             let _span = span!("blend_mode");
 
@@ -91,6 +93,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                     result.push(RenderPassData {
                         z_index: draw.mesh.z_index,
                         blend_mode,
+                        shader,
                         texture: tex_handle,
                         data: DrawData::Meshes([draw.clone()].into()),
                     });
@@ -114,6 +117,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                         z_index: draw.position.z as i32,
                         blend_mode,
                         texture: tex_handle,
+                        shader: None,
                         data: DrawData::Particles(vec![*draw]),
                     });
                 }
@@ -126,6 +130,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
             z_index: 0,
             blend_mode: BlendMode::Alpha,
             texture: white_px,
+            shader: None,
             data: DrawData::Meshes(SmallVec::new()),
         }]
     } else {

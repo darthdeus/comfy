@@ -533,7 +533,7 @@ pub enum BlendMode {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextureParams {
     pub blend_mode: BlendMode,
-    pub shader: Option<String>,
+    pub shader: Option<ShaderId>,
 }
 
 #[derive(Clone, Debug)]
