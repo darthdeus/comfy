@@ -3,7 +3,7 @@ use crate::*;
 pub struct MeshDrawData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
-    pub shader: Option<ShaderId>,
+    pub shader: Option<ShaderInstance>,
     pub data: smallvec::SmallVec<[MeshDraw; 1]>,
 }
 
@@ -19,7 +19,7 @@ pub struct RenderPassData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
     pub data: DrawData,
-    pub shader: Option<ShaderId>,
+    pub shader: Option<ShaderInstance>,
     // Meshes {
     //     meshes: Vec<MeshDraw>,
     // },
@@ -54,7 +54,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         for ((blend_mode, shader), group) in &params
             .mesh_queue
             .iter()
-            .group_by(|draw| (draw.texture_params.blend_mode, draw.shader))
+            .group_by(|draw| (draw.texture_params.blend_mode, &draw.shader))
         {
             let _span = span!("blend_mode");
 
@@ -93,7 +93,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                     result.push(RenderPassData {
                         z_index: draw.mesh.z_index,
                         blend_mode,
-                        shader,
+                        shader: shader.clone(),
                         texture: tex_handle,
                         data: DrawData::Meshes([draw.clone()].into()),
                     });

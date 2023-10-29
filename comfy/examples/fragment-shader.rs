@@ -40,8 +40,8 @@ fn setup(state: &mut GameState, c: &mut EngineContext) {
             "my-shader",
             &sprite_shader_from_fragment(FRAG_SHADER),
             hashmap! {
-                "time" => UniformDesc::F32(0.0),
-                "intensity" => UniformDesc::F32(1.0),
+                "time" => UniformDef::F32(Some(0.0)),
+                "intensity" => UniformDef::F32(Some(1.0)),
             },
         )
         .unwrap(),
@@ -57,7 +57,7 @@ fn update(state: &GameState, _c: &mut EngineContext) {
 
     // We can only set one and then draw and the other uniform will be set
     // to the default value we specified when creating the shader.
-    set_uniform("time", Uniform::F32(get_time() as f32));
+    set_uniform("time", Uniform::F32(OrderedFloat(get_time() as f32)));
     // draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
     draw_sprite_ex(
         texture_id("_builtin-comfy"),
@@ -74,7 +74,7 @@ fn update(state: &GameState, _c: &mut EngineContext) {
     // Note that doing things like this will result in the draw calls not being batched together
     // and instead be done in two separate render passes. This is unavoidable and should be
     // expected, but we're mentioning it here just for extra clarity.
-    set_uniform("intensity", Uniform::F32(get_time() as f32));
+    set_uniform("intensity", Uniform::F32(OrderedFloat(get_time() as f32)));
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
 
     set_default_shader();

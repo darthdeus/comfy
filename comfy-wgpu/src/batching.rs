@@ -34,7 +34,7 @@ pub fn draw_batched_render_passes(
     for (_, z_index_group) in &grouped_render_passes {
         for ((blend_mode, shader), blend_group) in &z_index_group
             .sorted_by_key(|x| x.blend_mode)
-            .group_by(|x| (x.blend_mode, x.shader))
+            .group_by(|x| (x.blend_mode, x.shader.clone()))
         {
             let (meshes, particles) = blend_group.into_iter().fold(
                 (vec![], vec![]),
@@ -43,7 +43,7 @@ pub fn draw_batched_render_passes(
                         DrawData::Meshes(mesh_draw) => {
                             acc.0.push(MeshDrawData {
                                 blend_mode,
-                                shader,
+                                shader: shader.clone(),
                                 texture: pass_data.texture,
                                 data: mesh_draw,
                             })
@@ -64,7 +64,7 @@ pub fn draw_batched_render_passes(
             for ((blend_mode, texture, shader), mesh_group) in &meshes
                 .into_iter()
                 .sorted_by_key(|x| x.texture)
-                .group_by(|x| (x.blend_mode, x.texture, x.shader))
+                .group_by(|x| (x.blend_mode, x.texture, x.shader.clone()))
             {
                 render_meshes(
                     c,
@@ -73,7 +73,7 @@ pub fn draw_batched_render_passes(
                     MeshDrawData {
                         blend_mode,
                         texture,
-                        shader,
+                        shader: shader.clone(),
                         data: mesh_group
                             .flat_map(|x| x.data)
                             .collect_vec()
@@ -132,7 +132,7 @@ pub fn render_meshes(
     let _span = span!("blend_mode");
 
     let mesh_pipeline = {
-        let shader = pass_data.data.get(0).and_then(|x| x.shader);
+        let shader = pass_data.data.get(0).and_then(|x| x.shader.clone());
 
         let name = format!(
             "Mesh {:?} {:?} {:?}",
@@ -143,8 +143,8 @@ pub fn render_meshes(
             info!("shader: {:?}", shader);
 
             let shader = match shader {
-                Some(shader_id) => {
-                    c.shaders.borrow().get(&shader_id).unwrap().clone()
+                Some(shader_instance) => {
+                    c.shaders.borrow().get(&shader_instance.id).unwrap().clone()
                 }
                 None => reloadable_wgsl_shader!("sprite"),
             };

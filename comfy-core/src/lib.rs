@@ -541,7 +541,7 @@ pub struct TextureParams {
 pub struct MeshDraw {
     pub mesh: Mesh,
     pub texture_params: TextureParams,
-    pub shader: Option<ShaderId>,
+    pub shader: Option<ShaderInstance>,
 }
 
 pub struct DrawParams<'a> {

@@ -26,29 +26,10 @@ impl std::fmt::Display for ShaderId {
     }
 }
 
-pub static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderId>>> =
-    Lazy::new(|| AtomicRefCell::new(None));
-
-pub fn set_shader(shader_id: ShaderId) {
-    *CURRENT_SHADER.borrow_mut() = Some(shader_id);
-}
-
-pub fn set_default_shader() {
-    *CURRENT_SHADER.borrow_mut() = None;
-}
-
-pub fn get_current_shader() -> Option<ShaderId> {
-    *CURRENT_SHADER.borrow()
-}
-
-
-/// Generates a new ShaderId. This is intended for internal use only.
-pub fn gen_shader_id() -> ShaderId {
-    let id = SHADER_IDS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-
-    info!("Generated ShaderId: {}", id);
-
-    ShaderId(id)
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ShaderInstance {
+    pub id: ShaderId,
+    pub uniforms: HashMap<&'static str, Uniform>,
 }
 
 #[derive(Clone, Debug)]
@@ -57,11 +38,35 @@ pub enum UniformDef {
     Custom { default_data: Option<Vec<u8>>, wgsl_decl: String },
 }
 
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Uniform {
-    F32(f32),
+    F32(OrderedFloat<f32>),
     Custom(Vec<u8>),
+}
+
+static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
+    Lazy::new(|| AtomicRefCell::new(None));
+
+pub fn set_shader(shader_id: ShaderId) {
+    *CURRENT_SHADER.borrow_mut() =
+        Some(ShaderInstance { id: shader_id, uniforms: Default::default() });
+}
+
+pub fn set_default_shader() {
+    *CURRENT_SHADER.borrow_mut() = None;
+}
+
+pub fn get_current_shader() -> Option<ShaderInstance> {
+    CURRENT_SHADER.borrow().clone()
+}
+
+/// Generates a new ShaderId. This is intended for internal use only.
+pub fn gen_shader_id() -> ShaderId {
+    let id = SHADER_IDS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+
+    info!("Generated ShaderId: {}", id);
+
+    ShaderId(id)
 }
 
 pub fn set_uniform(_name: &str, _value: Uniform) {}
