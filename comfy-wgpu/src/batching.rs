@@ -140,6 +140,15 @@ pub fn render_meshes(
         );
 
         c.pipelines.entry(name.clone()).or_insert_with(|| {
+            info!("shader: {:?}", shader);
+
+            let shader = match shader {
+                Some(shader_id) => {
+                    c.shaders.borrow().get(&shader_id).unwrap().clone()
+                }
+                None => reloadable_wgsl_shader!("sprite"),
+            };
+
             create_render_pipeline_with_layout(
                 &name,
                 &c.context.device,
@@ -151,7 +160,8 @@ pub fn render_meshes(
                     &c.global_lighting_params_bind_group_layout,
                 ],
                 &[SpriteVertex::desc()],
-                reloadable_wgsl_shader!("sprite"),
+                // reloadable_wgsl_shader!("sprite"),
+                &shader,
                 pass_data.blend_mode,
                 c.enable_z_buffer,
             )
@@ -291,7 +301,8 @@ pub fn render_particles(
                     &c.global_lighting_params_bind_group_layout,
                 ],
                 &[SpriteVertex::desc()],
-                reloadable_wgsl_shader!("sprite"),
+                // TODO: shaders.get_or_err(...)
+                &reloadable_wgsl_shader!("sprite"),
                 pass_data.blend_mode,
                 c.enable_z_buffer,
             )

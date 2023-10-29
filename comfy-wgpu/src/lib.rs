@@ -348,7 +348,7 @@ pub fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(shader.to_wgpu());
@@ -458,7 +458,7 @@ pub fn create_render_pipeline_with_layout(
     color_format: wgpu::TextureFormat,
     bind_group_layouts: &[&wgpu::BindGroupLayout],
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
     enable_z_buffer: bool,
 ) -> wgpu::RenderPipeline {

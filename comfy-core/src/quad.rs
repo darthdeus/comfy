@@ -136,8 +136,7 @@ pub fn draw_sprite_ex(
     };
 
     draw_mesh_ex(mesh, TextureParams {
-        // TODO: shader
-        shader: None,
+        shader: params.shader,
         blend_mode: params.blend_mode,
     });
 }
@@ -1207,6 +1206,7 @@ pub struct DrawTextureParams {
     pub flip_y: bool,
     pub pivot: Option<Vec2>,
     pub blend_mode: BlendMode,
+    pub shader: Option<ShaderId>,
 }
 
 impl Default for DrawTextureParams {
@@ -1220,6 +1220,7 @@ impl Default for DrawTextureParams {
             flip_x: false,
             flip_y: false,
             blend_mode: BlendMode::None,
+            shader: None,
         }
     }
 }

@@ -1,5 +1,11 @@
 use crate::*;
 
+
+pub const FRAG_SHADER_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/frag-shader-prefix.wgsl"
+));
+
 pub const SHADER_STRUCTS_PREFIX: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl"));
 
@@ -35,7 +41,7 @@ macro_rules! reloadable_wgsl_shader {
         Shader {
             id,
             name: format!("{} Shader", $name),
-            source: format!("{}{}", SHADER_STRUCTS_PREFIX, shader).into(),
+            source: format!("{}{}{}", SHADER_STRUCTS_PREFIX, FRAG_SHADER_PREFIX, shader).into(),
         }
     }};
 }
@@ -46,6 +52,10 @@ macro_rules! reloadable_wgsl_shader {
 //         Shader { name: $name.to_string(), source: full_shader.to_string() }
 //     }};
 // }
+
+pub fn sprite_shader_from_fragment(source: &str) -> String {
+    format!("{}{}{}", SHADER_STRUCTS_PREFIX, FRAG_SHADER_PREFIX, source)
+}
 
 pub fn post_process_shader_from_fragment(source: &str) -> String {
     format!(

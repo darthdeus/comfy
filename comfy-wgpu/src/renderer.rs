@@ -713,7 +713,8 @@ impl WgpuRenderer {
                     self.context.config.borrow().format,
                     &[&self.texture_layout, &self.quad_ubg.layout],
                     &[],
-                    reloadable_wgsl_shader!("debug"),
+                    // TODO: .shaders.get_or_err(...)
+                    &reloadable_wgsl_shader!("debug"),
                     BlendMode::Alpha,
                     self.enable_z_buffer,
                 )
