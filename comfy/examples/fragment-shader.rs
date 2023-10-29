@@ -24,7 +24,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // at runtime by Comfy.
     // ***************************************************************
     // final_color.r = final_color.r * time * intensity;
-    final_color.r = final_color.r;
+    final_color.r = final_color.r * final_color.g;
     final_color.g = 0.0;
     final_color.b = 0.0;
 
@@ -64,10 +64,7 @@ fn update(state: &GameState, _c: &mut EngineContext) {
         vec2(0.0, 0.0),
         WHITE,
         0,
-        DrawTextureParams {
-            shader: Some(state.my_shader_id.unwrap()),
-            ..Default::default()
-        },
+        DrawTextureParams { ..Default::default() },
     );
 
     // This will set "intensity" while retaining "time" from the previous set in this frame, as
@@ -79,4 +76,7 @@ fn update(state: &GameState, _c: &mut EngineContext) {
     // expected, but we're mentioning it here just for extra clarity.
     set_uniform("intensity", Uniform::F32(get_time() as f32));
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
+
+    set_default_shader();
+    draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
 }

@@ -135,10 +135,7 @@ pub fn draw_sprite_ex(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams {
-        shader: params.shader,
-        blend_mode: params.blend_mode,
-    });
+    draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
 }
 
 pub fn draw_rectangle_z_tex(
@@ -596,7 +593,6 @@ pub fn draw_circle(center: Vec2, r: f32, color: Color, z_index: i32) {
     // let _span = span!("circle");
     draw_poly_z(center, 40, r, 0.0, color, z_index, TextureParams {
         blend_mode: BlendMode::Alpha,
-        ..Default::default()
     });
 }
 
@@ -1206,7 +1202,6 @@ pub struct DrawTextureParams {
     pub flip_y: bool,
     pub pivot: Option<Vec2>,
     pub blend_mode: BlendMode,
-    pub shader: Option<ShaderId>,
 }
 
 impl Default for DrawTextureParams {
@@ -1220,7 +1215,6 @@ impl Default for DrawTextureParams {
             flip_x: false,
             flip_y: false,
             blend_mode: BlendMode::None,
-            shader: None,
         }
     }
 }

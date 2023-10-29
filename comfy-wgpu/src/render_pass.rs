@@ -51,10 +51,10 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         span_with_timing!("prepare meshes");
 
         // Meshes
-        for ((blend_mode, shader), group) in
-            &params.mesh_queue.iter().group_by(|draw| {
-                (draw.texture_params.blend_mode, draw.texture_params.shader)
-            })
+        for ((blend_mode, shader), group) in &params
+            .mesh_queue
+            .iter()
+            .group_by(|draw| (draw.texture_params.blend_mode, draw.shader))
         {
             let _span = span!("blend_mode");
 
