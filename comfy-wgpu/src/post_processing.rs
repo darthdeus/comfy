@@ -138,7 +138,7 @@ pub fn create_post_processing_pipeline(
     blend: wgpu::BlendState,
 ) -> wgpu::RenderPipeline {
     // let shader = create_user_shader_module(device, &shader);
-    let shader = device.create_shader_module(shader.to_wgpu());
+    let shader = device.create_shader_module(shader_to_wgpu(&shader));
 
     let pipeline_layout =
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

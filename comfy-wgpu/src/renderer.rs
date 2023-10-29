@@ -7,7 +7,6 @@ use winit::window::Window;
 
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
-pub type ShaderMap = HashMap<ShaderId, Shader>;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -16,19 +15,10 @@ pub struct QuadUniform {
     pub size: [f32; 2],
 }
 
-#[derive(Clone, Debug)]
-pub struct Shader {
-    pub id: ShaderId,
-    pub name: String,
-    pub source: String,
-}
-
-impl Shader {
-    pub fn to_wgpu(&self) -> wgpu::ShaderModuleDescriptor<'_> {
-        wgpu::ShaderModuleDescriptor {
-            label: Some(&self.name),
-            source: wgpu::ShaderSource::Wgsl(self.source.as_str().into()),
-        }
+pub fn shader_to_wgpu(shader: &Shader) -> wgpu::ShaderModuleDescriptor<'_> {
+    wgpu::ShaderModuleDescriptor {
+        label: Some(&shader.name),
+        source: wgpu::ShaderSource::Wgsl(shader.source.as_str().into()),
     }
 }
 

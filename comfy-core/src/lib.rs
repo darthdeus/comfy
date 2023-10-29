@@ -21,6 +21,7 @@ mod math;
 mod perf_counters;
 mod quad;
 pub mod random;
+mod shaders;
 pub mod spatial_hash;
 mod task_timer;
 mod text;
@@ -47,6 +48,7 @@ pub use crate::math::*;
 pub use crate::perf_counters::*;
 pub use crate::quad::*;
 pub use crate::random::*;
+pub use crate::shaders::*;
 pub use crate::task_timer::*;
 pub use crate::text::*;
 pub use crate::timer::*;
@@ -534,39 +536,6 @@ pub enum BlendMode {
 pub struct TextureParams {
     pub blend_mode: BlendMode,
 }
-
-#[derive(Clone, Debug)]
-pub enum RenderTargetId {
-    Named(String),
-    Generated(u64),
-}
-
-/// Opaque handle to a shader. The ID is exposed for debugging purposes.
-/// If you set it manually, you're on your own :)
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ShaderId(pub u64);
-
-impl std::fmt::Display for ShaderId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ShaderId({})", self.0)
-    }
-}
-
-pub static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderId>>> =
-    Lazy::new(|| AtomicRefCell::new(None));
-
-pub fn set_shader(shader_id: ShaderId) {
-    *CURRENT_SHADER.borrow_mut() = Some(shader_id);
-}
-
-pub fn set_default_shader() {
-    *CURRENT_SHADER.borrow_mut() = None;
-}
-
-pub fn get_current_shader() -> Option<ShaderId> {
-    *CURRENT_SHADER.borrow()
-}
-
 
 #[derive(Clone, Debug)]
 pub struct MeshDraw {

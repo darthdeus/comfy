@@ -17,6 +17,7 @@ pub const SHADER_POST_PROCESSING_VERTEX: &str = include_str!(concat!(
 pub const COPY_SHADER_SRC: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/copy.wgsl"));
 
+#[deprecated(note = "Retire in favor of create_shader")]
 #[macro_export]
 macro_rules! reloadable_wgsl_shader {
     ($name:literal) => {{
@@ -42,6 +43,7 @@ macro_rules! reloadable_wgsl_shader {
             id,
             name: format!("{} Shader", $name),
             source: format!("{}{}{}", SHADER_STRUCTS_PREFIX, FRAG_SHADER_PREFIX, shader).into(),
+            uniform_defs: Default::default(),
         }
     }};
 }
@@ -64,6 +66,7 @@ pub fn post_process_shader_from_fragment(source: &str) -> String {
     )
 }
 
+#[deprecated(note = "Retire in favor of create_shader")]
 #[macro_export]
 macro_rules! reloadable_wgsl_fragment_shader {
     ($name:literal) => {{
@@ -91,7 +94,12 @@ macro_rules! reloadable_wgsl_fragment_shader {
 
         let id = gen_shader_id();
 
-        Shader { id, name: $name.to_string(), source: full_shader.to_string() }
+        Shader {
+            id,
+            name: $name.to_string(),
+            source: full_shader.to_string(),
+            uniform_defs: Default::default(),
+        }
     }};
 }
 
@@ -139,6 +147,7 @@ pub fn simple_fragment_shader(
             "{}{}{}",
             SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag
         ),
+        uniform_defs: Default::default(),
     }
 }
 
