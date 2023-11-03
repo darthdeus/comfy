@@ -25,16 +25,16 @@ var s_diffuse: sampler;
 @group(1) @binding(0)
 var<uniform> camera: CameraUniform;
 
-@group(2) @binding(0)
+@group(1) @binding(1)
 var<uniform> lights: LightsUniform;
 
-@group(3) @binding(0)
+@group(2) @binding(0)
 var<uniform> params: GlobalLightingParams;
 
-@group(3) @binding(1)
+@group(2) @binding(1)
 var color_lut_texture: texture_2d<f32>;
 
-@group(3) @binding(2)
+@group(2) @binding(2)
 var color_lut_sampler: sampler;
 
 // Vertex shader

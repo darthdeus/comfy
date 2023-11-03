@@ -24,7 +24,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // at runtime by Comfy.
     // ***************************************************************
     // final_color.r = final_color.r * time * intensity;
-    final_color.r = final_color.r * final_color.g;
+    // final_color.r = final_color.r * final_color.g;
     final_color.g = 0.0;
     final_color.b = 0.0;
 

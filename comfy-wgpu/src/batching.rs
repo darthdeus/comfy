@@ -156,7 +156,6 @@ pub fn render_meshes(
                 &[
                     &c.texture_layout,
                     &c.camera_bind_group_layout,
-                    &c.lights_bind_group_layout,
                     &c.global_lighting_params_bind_group_layout,
                 ],
                 &[SpriteVertex::desc()],
@@ -250,9 +249,8 @@ pub fn render_meshes(
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);
-        render_pass.set_bind_group(2, &c.lights_bind_group, &[]);
         render_pass
-            .set_bind_group(3, &c.global_lighting_params_bind_group, &[]);
+            .set_bind_group(2, &c.global_lighting_params_bind_group, &[]);
 
         if all_indices.is_empty() {
             render_pass.draw(0..all_vertices.len() as u32, 0..1);
@@ -297,7 +295,6 @@ pub fn render_particles(
                 &[
                     &c.texture_layout,
                     &c.camera_bind_group_layout,
-                    &c.lights_bind_group_layout,
                     &c.global_lighting_params_bind_group_layout,
                 ],
                 &[SpriteVertex::desc()],
@@ -418,9 +415,8 @@ pub fn render_particles(
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);
-        render_pass.set_bind_group(2, &c.lights_bind_group, &[]);
         render_pass
-            .set_bind_group(3, &c.global_lighting_params_bind_group, &[]);
+            .set_bind_group(2, &c.global_lighting_params_bind_group, &[]);
 
         if all_indices.is_empty() {
             render_pass.draw(0..all_vertices.len() as u32, 0..1);

@@ -63,8 +63,8 @@ pub struct WgpuRenderer {
     pub first_pass_bind_group: wgpu::BindGroup,
 
     pub lights_buffer: wgpu::Buffer,
-    pub lights_bind_group: wgpu::BindGroup,
-    pub lights_bind_group_layout: wgpu::BindGroupLayout,
+    // pub lights_bind_group: wgpu::BindGroup,
+    // pub lights_bind_group_layout: wgpu::BindGroupLayout,
 
     pub global_lighting_params_buffer: wgpu::Buffer,
     pub global_lighting_params_bind_group: Arc<wgpu::BindGroup>,
@@ -141,30 +141,33 @@ impl WgpuRenderer {
 
         let camera_bind_group_layout = context.device.create_bind_group_layout(
             &wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX |
-                        wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::VERTEX |
+                            wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                }],
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::VERTEX |
+                            wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                ],
                 label: Some("camera_bind_group_layout"),
             },
         );
-
-        let camera_bind_group =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &camera_bind_group_layout,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: camera_buffer.as_entire_binding(),
-                }],
-                label: Some("camera_bind_group"),
-            });
 
         let lights_buffer = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
@@ -175,32 +178,38 @@ impl WgpuRenderer {
             },
         );
 
-        let lights_bind_group_layout: wgpu::BindGroupLayout = context
-            .device
-            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX |
-                        wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+        let camera_bind_group =
+            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &camera_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: camera_buffer.as_entire_binding(),
                     },
-                    count: None,
-                }],
-                label: Some("Lights Bind Group Layout"),
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: lights_buffer.as_entire_binding(),
+                    },
+                ],
+                label: Some("camera_bind_group"),
             });
 
-        let lights_bind_group =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &lights_bind_group_layout,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: lights_buffer.as_entire_binding(),
-                }],
-                label: Some("Lights Bind Group"),
-            });
+        // let lights_bind_group_layout: wgpu::BindGroupLayout = context
+        //     .device
+        //     .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        //         entries: &[],
+        //         label: Some("Lights Bind Group Layout"),
+        //     });
+
+        // let lights_bind_group =
+        //     context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        //         layout: &lights_bind_group_layout,
+        //         entries: &[wgpu::BindGroupEntry {
+        //             binding: 0,
+        //             resource: lights_buffer.as_entire_binding(),
+        //         }],
+        //         label: Some("Lights Bind Group"),
+        //     });
 
         let global_lighting_params_buffer = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
@@ -476,8 +485,8 @@ impl WgpuRenderer {
             first_pass_bind_group,
 
             lights_buffer,
-            lights_bind_group,
-            lights_bind_group_layout,
+            // lights_bind_group,
+            // lights_bind_group_layout,
 
             quad_ubg,
 

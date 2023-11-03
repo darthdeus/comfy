@@ -38,6 +38,15 @@ pub enum UniformDef {
     Custom { default_data: Option<Vec<u8>>, wgsl_decl: String },
 }
 
+impl UniformDef {
+    pub fn to_wgsl(&self) -> &'static str {
+        match self {
+            UniformDef::F32(_) => "f32",
+            UniformDef::Custom { .. } => "X",
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Uniform {
     F32(OrderedFloat<f32>),
@@ -91,10 +100,30 @@ pub fn create_shader(
         )));
     }
 
+    let mut uniforms_src = String::new();
+
+    // for (i, (name, typ)) in uniform_defs.iter().enumerate() {
+    //     uniforms_src.push_str(&format!(
+    //         // "
+    //         // @group(4) @binding({})
+    //         //     struct {} {{
+    //         //         {}: {}
+    //         //     }}
+    //         //     ",
+    //         "
+    //         @group(4) @binding({})
+    //         var<uniform> {}: {};
+    //             ",
+    //         i,
+    //         name,
+    //         typ.to_wgsl()
+    //     ));
+    // }
+
     shaders.insert(id, Shader {
         id,
         name: format!("{} Shader", name),
-        source: source.to_string(),
+        source: format!("{}\n{}", uniforms_src, source),
         uniform_defs,
     });
 

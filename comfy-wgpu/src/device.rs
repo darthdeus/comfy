@@ -35,6 +35,7 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
     #[cfg(not(target_arch = "wasm32"))]
     let limits = wgpu::Limits {
         max_texture_dimension_2d: 4096,
+        max_bind_groups: 5,
         ..wgpu::Limits::downlevel_defaults()
     };
 
