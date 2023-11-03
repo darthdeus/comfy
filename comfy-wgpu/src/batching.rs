@@ -153,11 +153,7 @@ pub fn render_meshes(
                 &name,
                 &c.context.device,
                 wgpu::TextureFormat::Rgba16Float,
-                &[
-                    &c.texture_layout,
-                    &c.camera_bind_group_layout,
-                    &c.global_lighting_params_bind_group_layout,
-                ],
+                &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
                 // reloadable_wgsl_shader!("sprite"),
                 &shader,
@@ -249,8 +245,6 @@ pub fn render_meshes(
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);
-        render_pass
-            .set_bind_group(2, &c.global_lighting_params_bind_group, &[]);
 
         if all_indices.is_empty() {
             render_pass.draw(0..all_vertices.len() as u32, 0..1);
@@ -292,11 +286,7 @@ pub fn render_particles(
                 &c.context.device,
                 // c.config.format,
                 wgpu::TextureFormat::Rgba16Float,
-                &[
-                    &c.texture_layout,
-                    &c.camera_bind_group_layout,
-                    &c.global_lighting_params_bind_group_layout,
-                ],
+                &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
                 // TODO: shaders.get_or_err(...)
                 &reloadable_wgsl_shader!("sprite"),
@@ -415,8 +405,6 @@ pub fn render_particles(
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);
-        render_pass
-            .set_bind_group(2, &c.global_lighting_params_bind_group, &[]);
 
         if all_indices.is_empty() {
             render_pass.draw(0..all_vertices.len() as u32, 0..1);

@@ -64,8 +64,6 @@ pub struct WgpuRenderer {
 
     pub lights_buffer: wgpu::Buffer,
     pub global_lighting_params_buffer: wgpu::Buffer,
-    pub global_lighting_params_bind_group: Arc<wgpu::BindGroup>,
-    pub global_lighting_params_bind_group_layout: wgpu::BindGroupLayout,
 
     pub bloom: Bloom,
     pub post_processing_effects: RefCell<Vec<PostProcessingEffect>>,
@@ -77,7 +75,7 @@ pub struct WgpuRenderer {
 
     pub camera_uniform: CameraUniform,
     pub camera_buffer: wgpu::Buffer,
-    pub camera_bind_group: wgpu::BindGroup,
+    pub camera_bind_group: Arc<wgpu::BindGroup>,
     pub camera_bind_group_layout: wgpu::BindGroupLayout,
 
     pub color: Color,
@@ -161,6 +159,36 @@ impl WgpuRenderer {
                         },
                         count: None,
                     },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 3,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float {
+                                filterable: true,
+                            },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 4,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(
+                            wgpu::SamplerBindingType::Filtering,
+                        ),
+                        count: None,
+                    },
                 ],
                 label: Some("camera_bind_group_layout"),
             },
@@ -174,22 +202,6 @@ impl WgpuRenderer {
                     wgpu::BufferUsages::COPY_DST,
             },
         );
-
-        let camera_bind_group =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout: &camera_bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: camera_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: lights_buffer.as_entire_binding(),
-                    },
-                ],
-                label: Some("camera_bind_group"),
-            });
 
         let global_lighting_params_buffer = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
@@ -261,71 +273,51 @@ impl WgpuRenderer {
             },
         );
 
-        let global_lighting_params_bind_group_layout = context
-            .device
-            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Global Lighting Params Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Uniform,
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float {
-                                filterable: true,
-                            },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(
-                            wgpu::SamplerBindingType::Filtering,
-                        ),
-                        count: None,
-                    },
-                ],
-            });
-
-        let global_lighting_params_bind_group =
+        let camera_bind_group =
             context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Global Lighting Params Bind Group"),
-                layout: &global_lighting_params_bind_group_layout,
+                layout: &camera_bind_group_layout,
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
+                        resource: camera_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: lights_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
                         resource: global_lighting_params_buffer
                             .as_entire_binding(),
                     },
                     wgpu::BindGroupEntry {
-                        binding: 1,
+                        binding: 3,
                         resource: wgpu::BindingResource::TextureView(
                             &color_lut_texture.view,
                         ),
                     },
                     wgpu::BindGroupEntry {
-                        binding: 2,
+                        binding: 4,
                         resource: wgpu::BindingResource::Sampler(
                             &color_lut_texture.sampler,
                         ),
                     },
                 ],
+                label: Some("camera_bind_group"),
             });
 
-        let global_lighting_params_bind_group =
-            Arc::new(global_lighting_params_bind_group);
+        let camera_bind_group = Arc::new(camera_bind_group);
+
+        // let global_lighting_params_bind_group =
+        //     context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        //         label: Some("Global Lighting Params Bind Group"),
+        //         layout: &global_lighting_params_bind_group_layout,
+        //         entries: &[
+        //         ],
+        //     });
+
+        // let global_lighting_params_bind_group =
+        //     Arc::new(global_lighting_params_bind_group);
 
         trace!("Initializing egui");
 
@@ -407,8 +399,8 @@ impl WgpuRenderer {
         let bloom = Bloom::new(
             &context,
             render_texture_format,
-            global_lighting_params_bind_group.clone(),
-            &global_lighting_params_bind_group_layout,
+            camera_bind_group.clone(),
+            &camera_bind_group_layout,
         );
 
         let vertex_buffer = SizedBuffer::new(
@@ -469,8 +461,6 @@ impl WgpuRenderer {
             quad_ubg,
 
             global_lighting_params_buffer,
-            global_lighting_params_bind_group,
-            global_lighting_params_bind_group_layout,
 
             texture_layout: context.texture_layout.clone(),
 
@@ -543,10 +533,7 @@ impl WgpuRenderer {
                         &effect.name,
                         &self.context.device,
                         self.render_texture_format,
-                        &[
-                            &self.texture_layout,
-                            &self.global_lighting_params_bind_group_layout,
-                        ],
+                        &[&self.texture_layout, &self.camera_bind_group_layout],
                         shader.clone(),
                         // &effect.shader,
                         wgpu::BlendState::REPLACE,
@@ -569,7 +556,7 @@ impl WgpuRenderer {
                     &mut encoder,
                     pipeline,
                     input_bind_group,
-                    &self.global_lighting_params_bind_group,
+                    &self.camera_bind_group,
                     // &effect.bind_group,
                     output_texture_view,
                     true,
@@ -596,10 +583,7 @@ impl WgpuRenderer {
                     "Tonemapping",
                     &self.context.device,
                     self.context.config.borrow().format,
-                    &[
-                        &self.texture_layout,
-                        &self.global_lighting_params_bind_group_layout,
-                    ],
+                    &[&self.texture_layout, &self.camera_bind_group_layout],
                     reloadable_wgsl_fragment_shader!("tonemapping"),
                     wgpu::BlendState::REPLACE,
                 )
@@ -636,11 +620,7 @@ impl WgpuRenderer {
 
             render_pass.set_pipeline(tonemapping_pipeline);
             render_pass.set_bind_group(0, &self.tonemapping_bind_group, &[]);
-            render_pass.set_bind_group(
-                1,
-                &self.global_lighting_params_bind_group,
-                &[],
-            );
+            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 
             render_pass.draw(0..3, 0..1);
         }
@@ -812,6 +792,7 @@ impl WgpuRenderer {
         self.camera_uniform.update_view_proj(&main_camera());
 
         params.config.lighting.time = get_time() as f32;
+
         {
             let camera = main_camera();
             params.config.lighting.chromatic_aberration =

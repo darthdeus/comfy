@@ -28,13 +28,13 @@ var<uniform> camera: CameraUniform;
 @group(1) @binding(1)
 var<uniform> lights: LightsUniform;
 
-@group(2) @binding(0)
+@group(1) @binding(2)
 var<uniform> params: GlobalLightingParams;
 
-@group(2) @binding(1)
+@group(1) @binding(3)
 var color_lut_texture: texture_2d<f32>;
 
-@group(2) @binding(2)
+@group(1) @binding(4)
 var color_lut_sampler: sampler;
 
 // Vertex shader
