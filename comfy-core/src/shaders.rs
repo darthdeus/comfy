@@ -102,23 +102,23 @@ pub fn create_shader(
 
     let mut uniforms_src = String::new();
 
-    // for (i, (name, typ)) in uniform_defs.iter().enumerate() {
-    //     uniforms_src.push_str(&format!(
-    //         // "
-    //         // @group(3) @binding({})
-    //         //     struct {} {{
-    //         //         {}: {}
-    //         //     }}
-    //         //     ",
-    //         "
-    //         @group(3) @binding({})
-    //         var<uniform> {}: {};
-    //             ",
-    //         i,
-    //         name,
-    //         typ.to_wgsl()
-    //     ));
-    // }
+    for (i, (name, typ)) in uniform_defs.iter().enumerate() {
+        uniforms_src.push_str(&format!(
+            // "
+            // @group(3) @binding({})
+            //     struct {} {{
+            //         {}: {}
+            //     }}
+            //     ",
+            "
+            @group(3) @binding({})
+            var<uniform> {}: {};
+                ",
+            i,
+            name,
+            typ.to_wgsl()
+        ));
+    }
 
     shaders.insert(id, Shader {
         id,

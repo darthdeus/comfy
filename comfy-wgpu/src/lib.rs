@@ -24,11 +24,13 @@ mod texture;
 mod utils;
 mod y_sort;
 // idk what to call this, so magic it is for now ...
+mod debug;
 mod magic;
 
 pub use crate::batching::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
+pub use crate::debug::*;
 pub use crate::device::*;
 pub use crate::egui_integration::*;
 pub use crate::instance::*;

@@ -648,103 +648,6 @@ impl WgpuRenderer {
         self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
-    pub fn render_debug(&mut self, surface_view: &wgpu::TextureView) {
-        let _span = span!("render_debug");
-
-        let mut bind_groups = vec![&self.first_pass_bind_group];
-        bind_groups.push(&self.bloom.threshold.bind_group);
-        bind_groups.push(&self.bloom.blur_bind_group);
-
-        let size = 0.3;
-        let post_processing_effects = self.post_processing_effects.borrow();
-
-        for effect in post_processing_effects.iter() {
-            if effect.enabled {
-                bind_groups.push(&effect.bind_group);
-            }
-        }
-
-        let quads: Vec<_> = bind_groups
-            .iter()
-            .enumerate()
-            .map(|(i, _)| {
-                QuadUniform {
-                    clip_position: [
-                        1.0 - size / 2.0, // - size / 3.0 * i as f32,
-                        0.8 - size / 2.0 - 2.0 * size * i as f32,
-                    ],
-                    size: [size, size],
-                }
-            })
-            .collect();
-
-        let debug_render_pipeline = self
-            .pipelines
-            .entry(
-                if self.enable_z_buffer { "debug-z" } else { "debug" }.into(),
-            )
-            .or_insert_with(|| {
-                create_render_pipeline_with_layout(
-                    "Debug",
-                    &self.context.device,
-                    self.context.config.borrow().format,
-                    &[&self.texture_layout, &self.quad_ubg.layout],
-                    &[],
-                    // TODO: .shaders.get_or_err(...)
-                    &reloadable_wgsl_shader!("debug"),
-                    BlendMode::Alpha,
-                    self.enable_z_buffer,
-                )
-            });
-
-
-        for (i, bind_group) in bind_groups.iter().enumerate() {
-            self.context.queue.write_buffer(
-                &self.quad_ubg.buffer,
-                0,
-                bytemuck::cast_slice(&[quads[i]]),
-            );
-
-            let mut encoder =
-                self.context.device.simple_encoder("Debug Render Encoder");
-            {
-                // let mut render_pass = encoder.simple_render_pass(
-                //     "Debug Render Pass",
-                //     None,
-                //     surface_view,
-                // );
-
-                let mut render_pass =
-                    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                        label: Some("Debug Render Pass"),
-                        color_attachments: &[Some(
-                            wgpu::RenderPassColorAttachment {
-                                view: surface_view,
-                                resolve_target: None,
-                                ops: wgpu::Operations {
-                                    load: color_to_clear_op(None),
-                                    store: true,
-                                },
-                            },
-                        )],
-                        depth_stencil_attachment: depth_stencil_attachment(
-                            self.enable_z_buffer,
-                            &self.depth_texture.view,
-                            false,
-                        ),
-                    });
-
-
-                render_pass.set_pipeline(debug_render_pipeline);
-                render_pass.set_bind_group(0, bind_group, &[]);
-                render_pass.set_bind_group(1, &self.quad_ubg.bind_group, &[]);
-                render_pass.draw(0..6, 0..1);
-            }
-
-            self.context.queue.submit(std::iter::once(encoder.finish()));
-        }
-    }
-
     pub fn render_egui(&self, view: &wgpu::TextureView, params: &DrawParams) {
         let _span = span!("render_egui");
 
@@ -971,7 +874,28 @@ impl WgpuRenderer {
         self.render_egui(&surface_view, &params);
 
         if params.config.dev.show_buffers {
-            self.render_debug(&surface_view);
+            let pp = self.post_processing_effects.borrow();
+
+            let mut bind_groups = vec![&self.first_pass_bind_group];
+            bind_groups.push(&self.bloom.threshold.bind_group);
+            bind_groups.push(&self.bloom.blur_bind_group);
+
+            for effect in pp.iter() {
+                if effect.enabled {
+                    bind_groups.push(&effect.bind_group);
+                }
+            }
+
+            render_debug(
+                &self.context,
+                self.enable_z_buffer,
+                &self.quad_ubg,
+                &self.texture_layout,
+                &self.depth_texture,
+                bind_groups,
+                &mut self.pipelines,
+                &surface_view,
+            );
         }
 
         #[cfg(feature = "record-pngs")]
