@@ -63,9 +63,6 @@ pub struct WgpuRenderer {
     pub first_pass_bind_group: wgpu::BindGroup,
 
     pub lights_buffer: wgpu::Buffer,
-    // pub lights_bind_group: wgpu::BindGroup,
-    // pub lights_bind_group_layout: wgpu::BindGroupLayout,
-
     pub global_lighting_params_buffer: wgpu::Buffer,
     pub global_lighting_params_bind_group: Arc<wgpu::BindGroup>,
     pub global_lighting_params_bind_group_layout: wgpu::BindGroupLayout,
@@ -193,23 +190,6 @@ impl WgpuRenderer {
                 ],
                 label: Some("camera_bind_group"),
             });
-
-        // let lights_bind_group_layout: wgpu::BindGroupLayout = context
-        //     .device
-        //     .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        //         entries: &[],
-        //         label: Some("Lights Bind Group Layout"),
-        //     });
-
-        // let lights_bind_group =
-        //     context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        //         layout: &lights_bind_group_layout,
-        //         entries: &[wgpu::BindGroupEntry {
-        //             binding: 0,
-        //             resource: lights_buffer.as_entire_binding(),
-        //         }],
-        //         label: Some("Lights Bind Group"),
-        //     });
 
         let global_lighting_params_buffer = context.device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
@@ -485,8 +465,6 @@ impl WgpuRenderer {
             first_pass_bind_group,
 
             lights_buffer,
-            // lights_bind_group,
-            // lights_bind_group_layout,
 
             quad_ubg,
 

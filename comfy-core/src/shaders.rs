@@ -105,13 +105,13 @@ pub fn create_shader(
     // for (i, (name, typ)) in uniform_defs.iter().enumerate() {
     //     uniforms_src.push_str(&format!(
     //         // "
-    //         // @group(4) @binding({})
+    //         // @group(3) @binding({})
     //         //     struct {} {{
     //         //         {}: {}
     //         //     }}
     //         //     ",
     //         "
-    //         @group(4) @binding({})
+    //         @group(3) @binding({})
     //         var<uniform> {}: {};
     //             ",
     //         i,
