@@ -1,13 +1,14 @@
 use crate::*;
 
-
 pub const FRAG_SHADER_PREFIX: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/shaders/frag-shader-prefix.wgsl"
 ));
 
-pub const SHADER_STRUCTS_PREFIX: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl"));
+pub const CAMERA_BIND_GROUP_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/camera-bind-group.wgsl"
+));
 
 pub const SHADER_POST_PROCESSING_VERTEX: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -42,7 +43,7 @@ macro_rules! reloadable_wgsl_shader {
         Shader {
             id,
             name: format!("{} Shader", $name),
-            source: format!("{}{}{}", SHADER_STRUCTS_PREFIX, FRAG_SHADER_PREFIX, shader).into(),
+            source: format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, shader).into(),
             uniform_defs: Default::default(),
         }
     }};
@@ -56,13 +57,13 @@ macro_rules! reloadable_wgsl_shader {
 // }
 
 pub fn sprite_shader_from_fragment(source: &str) -> String {
-    format!("{}{}{}", SHADER_STRUCTS_PREFIX, FRAG_SHADER_PREFIX, source)
+    format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, source)
 }
 
 pub fn post_process_shader_from_fragment(source: &str) -> String {
     format!(
         "{}{}{}",
-        SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, source
+        CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, source
     )
 }
 
@@ -89,7 +90,7 @@ macro_rules! reloadable_wgsl_fragment_shader {
 
         let full_shader = format!(
             "{}{}{}",
-            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag_part
+            CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag_part
         );
 
         let id = gen_shader_id();
@@ -145,7 +146,7 @@ pub fn simple_fragment_shader(
         name: name.to_string(),
         source: format!(
             "{}{}{}",
-            SHADER_STRUCTS_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag
+            CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag
         ),
         uniform_defs: Default::default(),
     }

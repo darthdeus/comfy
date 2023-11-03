@@ -104,19 +104,19 @@ impl PostProcessingEffect {
     }
 }
 
-pub const USER_SHADER_PREFIX: &str = concat!(
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl")),
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/user_post_processing_vertex.wgsl"
-    ))
-);
+pub const USER_SHADER_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/user_post_processing_vertex.wgsl"
+));
 
 pub fn create_user_shader_module(
     device: &wgpu::Device,
     shader: &Shader,
 ) -> wgpu::ShaderModule {
-    let full_shader = format!("{}{}", USER_SHADER_PREFIX, &shader.source);
+    let full_shader = format!(
+        "{}{}{}",
+        CAMERA_BIND_GROUP_PREFIX, USER_SHADER_PREFIX, &shader.source
+    );
 
     let descriptor = wgpu::ShaderModuleDescriptor {
         label: Some(&shader.name),
