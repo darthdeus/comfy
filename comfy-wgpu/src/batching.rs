@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn draw_batched_render_passes(
+pub fn run_batched_render_passes(
     c: &mut WgpuRenderer,
     surface_view: &wgpu::TextureView,
     params: &DrawParams,
@@ -146,7 +146,20 @@ pub fn render_meshes(
                 Some(shader_instance) => {
                     c.shaders.borrow().get(&shader_instance.id).unwrap().clone()
                 }
-                None => reloadable_wgsl_shader!("sprite"),
+                // None => reloadable_wgsl_shader!("sprite"),
+                None => {
+                    let shader_id = create_shader(
+                        &mut c.shaders.borrow_mut(),
+                        "sprite",
+                        &sprite_shader_from_fragment(&engine_shader_source!(
+                            "sprite"
+                        )),
+                        HashMap::new(),
+                    )
+                    .unwrap();
+
+                    c.shaders.borrow().get(&shader_id).unwrap().clone()
+                }
             };
 
             create_render_pipeline_with_layout(

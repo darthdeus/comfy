@@ -471,7 +471,6 @@ pub fn create_render_pipeline_with_layout(
             push_constant_ranges: &[],
         });
 
-
     create_render_pipeline(
         &format!("{} Pipeline", name),
         device,

@@ -849,7 +849,7 @@ impl WgpuRenderer {
             output.texture.create_view(&wgpu::TextureViewDescriptor::default())
         };
 
-        draw_batched_render_passes(self, &surface_view, &params);
+        run_batched_render_passes(self, &surface_view, &params);
 
         self.render_post_processing(&surface_view, params.config);
         self.render_egui(&surface_view, &params);
