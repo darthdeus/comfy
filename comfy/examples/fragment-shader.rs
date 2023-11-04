@@ -26,7 +26,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // ***************************************************************
     final_color.r = final_color.r * abs(cos(time * 3.0));
     final_color.g = final_color.g * abs(sin(time * 2.0));
-    final_color.b = final_color.b * abs(cos(time * 5.0)) * 1.0;
+    final_color.b = final_color.b * abs(cos(time * 5.0));
 
     final_color = final_color * intensity;
 
@@ -68,7 +68,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
 
     // We can only set one and then draw and the other uniform will be set
     // to the default value we specified when creating the shader.
-    set_uniform("time", Uniform::F32(OrderedFloat(get_time() as f32)));
+    set_uniform_f32("time", get_time() as f32);
 
     // draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
     draw_sprite_ex(
@@ -86,7 +86,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
     // Note that doing things like this will result in the draw calls not being batched together
     // and instead be done in two separate render passes. This is unavoidable and should be
     // expected, but we're mentioning it here just for extra clarity.
-    set_uniform("intensity", Uniform::F32(OrderedFloat(state.intensity)));
+    set_uniform_f32("intensity", state.intensity);
 
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
 

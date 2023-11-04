@@ -78,6 +78,11 @@ pub fn gen_shader_id() -> ShaderId {
     ShaderId(id)
 }
 
+
+pub fn set_uniform_f32(name: impl Into<String>, value: f32) {
+    set_uniform(name, Uniform::F32(OrderedFloat(value)));
+}
+
 pub fn set_uniform(name: impl Into<String>, value: Uniform) {
     if let Some(shader) = &mut *CURRENT_SHADER.borrow_mut() {
         shader.uniforms.insert(name.into(), value);

@@ -290,11 +290,6 @@ pub fn render_meshes(
                         });
                     }
 
-                    // println!("LAYOUT: {:#?}", layout_entries);
-                    // println!("BIND GROUP: {:#?}", bind_group_entries);
-
-                    // panic!("got layout entires :O ... {:?}", layout_entries);
-
                     let user_layout =
                         c.context.device.create_bind_group_layout(
                             &wgpu::BindGroupLayoutDescriptor {
@@ -390,7 +385,9 @@ pub fn render_meshes(
                 //     .unwrap();
             }
 
-            for (uniform_name, uniform_value) in shader.uniform_defs.iter() {}
+            // for (uniform_name, uniform_value) in shader.uniform_defs.iter() {
+            //
+            // }
         }
     }
 
