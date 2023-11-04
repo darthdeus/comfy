@@ -158,19 +158,19 @@ pub fn render_meshes(
 
         if let Some(shader) = maybe_shader {
             RenderPipeline::User(
-                // TODO: leaking render pipeline per frame
                 c.user_pipelines.entry(name.clone()).or_insert_with(|| {
-                    info!("shader: {:?}", shader);
+                    info!("Creating pipeline for shader: {:?}", shader);
 
                     let mut layout_entries = Vec::new();
                     let mut bind_group_entries = Vec::new();
                     let mut buffers = HashMap::new();
 
-                    for (i, (uniform_name, uniform_def)) in
-                        shader.uniform_defs.iter().enumerate()
-                    {
+                    for (uniform_name, binding) in shader.bindings.iter() {
+                        let uniform_def =
+                            shader.uniform_defs.get(uniform_name).unwrap();
+
                         layout_entries.push(wgpu::BindGroupLayoutEntry {
-                            binding: i as u32,
+                            binding: *binding,
                             visibility: wgpu::ShaderStages::FRAGMENT,
                             ty: wgpu::BindingType::Buffer {
                                 ty: wgpu::BufferBindingType::Uniform,
@@ -180,8 +180,8 @@ pub fn render_meshes(
                             count: None,
                         });
 
-                        let uniform_buffer_usage = wgpu::BufferUsages::UNIFORM |
-                            wgpu::BufferUsages::COPY_DST;
+                        let uniform_buffer_usage = wgpu::BufferUsages::UNIFORM
+                            | wgpu::BufferUsages::COPY_DST;
 
                         match uniform_def {
                             UniformDef::F32(maybe_default) => {
@@ -241,52 +241,18 @@ pub fn render_meshes(
                                 }
                             }
                             UniformDef::Custom { .. } => {
-                                todo!()
+                                unimplemented!()
                             }
                         };
                     }
 
-                    // for (i, (uniform_name, uniform_value)) in
-                    //     shader_instance.uniforms.iter().enumerate()
-                    // {
-                    //     layout_entries.push(wgpu::BindGroupLayoutEntry {
-                    //         binding: i as u32,
-                    //         visibility: wgpu::ShaderStages::FRAGMENT,
-                    //         ty: wgpu::BindingType::Buffer {
-                    //             ty: wgpu::BufferBindingType::Uniform,
-                    //             has_dynamic_offset: false,
-                    //             min_binding_size: None,
-                    //         },
-                    //         count: None,
-                    //     });
-                    //
-                    //     let val = match uniform_value {
-                    //         Uniform::F32(val) => val,
-                    //         Uniform::Custom(_) => {
-                    //             unimplemented!("CUSTOM unsupported")
-                    //         }
-                    //     };
-                    //
-                    //     let buffer = c.context.device.create_buffer_init(
-                    //         &wgpu::util::BufferInitDescriptor {
-                    //             label: Some(&format!(
-                    //                 "User UB: {}",
-                    //                 uniform_name
-                    //             )),
-                    //             contents: bytemuck::cast_slice(&[val.0]),
-                    //             usage: wgpu::BufferUsages::UNIFORM,
-                    //         },
-                    //     );
-                    //
-                    //     buffers.insert(uniform_name.to_string(), buffer);
-                    // }
-
-                    for (i, (_uniform_name, buffer)) in
-                        buffers.iter().enumerate()
-                    {
+                    for (name, binding) in shader.bindings.iter() {
                         bind_group_entries.push(wgpu::BindGroupEntry {
-                            binding: i as u32,
-                            resource: buffer.as_entire_binding(),
+                            binding: *binding,
+                            resource: buffers
+                                .get(name)
+                                .unwrap()
+                                .as_entire_binding(),
                         });
                     }
 
@@ -297,7 +263,6 @@ pub fn render_meshes(
                                 entries: &layout_entries,
                             },
                         );
-
 
                     let pipeline = create_render_pipeline_with_layout(
                         &name,
@@ -356,7 +321,7 @@ pub fn render_meshes(
         if let Some(shader_instance) = maybe_shader_instance {
             let shader = shaders.get(&shader_instance.id).unwrap();
 
-            for (buffer_name, buffer) in user_pipeline.buffers.iter() {
+            for (buffer_name, buffer) in user_pipeline.buffers.iter().sorted_by_key(|x| x.0) {
                 if let Some(Uniform::F32(OrderedFloat(value))) =
                     shader_instance.uniforms.get(buffer_name)
                 {
@@ -376,18 +341,8 @@ pub fn render_meshes(
                 } else {
                     panic!("No uniform value or default for {buffer_name}");
                 }
-
-                // let value = shader_instance
-                //     .uniforms
-                //     .get(buffer_name)
-                //     .map(|x| x)
-                //     .or_else(|| shader.uniform_defs.get(buffer_name))
-                //     .unwrap();
             }
 
-            // for (uniform_name, uniform_value) in shader.uniform_defs.iter() {
-            //
-            // }
         }
     }
 

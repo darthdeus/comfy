@@ -81,7 +81,8 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
         id: gen_shader_id(),
         name: "copy".to_string(),
         source: post_process_shader_from_fragment(COPY_SHADER_SRC),
-        uniform_defs: Default::default(),
+        uniform_defs: HashMap::new(),
+        bindings: HashMap::new(),
     });
 
     game.engine().texture_creator = Some(renderer.texture_creator.clone());

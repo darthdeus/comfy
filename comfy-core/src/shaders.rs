@@ -13,6 +13,7 @@ pub struct Shader {
     pub name: String,
     pub source: String,
     pub uniform_defs: UniformDefs,
+    pub bindings: HashMap<String, u32>,
 }
 
 /// Opaque handle to a shader. The ID is exposed for debugging purposes.
@@ -111,19 +112,20 @@ pub fn create_shader(
 
     let mut uniforms_src = String::new();
 
-    for (i, (name, typ)) in uniform_defs.iter().enumerate() {
+    let bindings = uniform_defs
+        .iter()
+        .sorted_by_key(|x| x.0)
+        .enumerate()
+        .map(|(i, (name, _))| (name.clone(), i as u32))
+        .collect::<HashMap<String, u32>>();
+
+    for (name, binding) in bindings.iter() {
+        let typ = uniform_defs.get(name).unwrap();
+
         uniforms_src.push_str(&format!(
-            // "
-            // @group(3) @binding({})
-            //     struct {} {{
-            //         {}: {}
-            //     }}
-            //     ",
-            "
-            @group(2) @binding({})
-            var<uniform> {}: {};
-                ",
-            i,
+            "@group(2) @binding({})
+            var<uniform> {}: {};",
+            binding,
             name,
             typ.to_wgsl()
         ));
@@ -134,6 +136,7 @@ pub fn create_shader(
         name: format!("{} Shader", name),
         source: format!("{}\n{}", uniforms_src, source),
         uniform_defs,
+        bindings,
     });
 
     Ok(id)
