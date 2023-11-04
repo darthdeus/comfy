@@ -32,37 +32,6 @@ macro_rules! engine_shader_source {
     }};
 }
 
-#[deprecated(note = "Retire in favor of engine_shader_source")]
-#[macro_export]
-macro_rules! reloadable_wgsl_shader {
-    ($name:literal) => {{
-        cfg_if! {
-            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
-                let shader = include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"));
-            } else {
-                let path = concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"
-                );
-
-                info!("DEV loading shader: {}", path);
-                let shader: String = std::fs::read_to_string(path).unwrap().into();
-            }
-        }
-
-        let id = gen_shader_id();
-
-        Shader {
-            id,
-            name: format!("{} Shader", $name),
-            source: format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, shader).into(),
-            uniform_defs: Default::default(),
-        }
-    }};
-}
-
 pub fn sprite_shader_from_fragment(source: &str) -> String {
     format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, source)
 }
