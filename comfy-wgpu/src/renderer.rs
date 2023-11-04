@@ -398,8 +398,11 @@ impl WgpuRenderer {
 
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
+        let mut shaders = HashMap::new();
+
         let bloom = Bloom::new(
             &context,
+            &mut shaders,
             render_texture_format,
             camera_bind_group.clone(),
             &camera_bind_group_layout,
@@ -429,8 +432,6 @@ impl WgpuRenderer {
             &context.config.borrow(),
             "Depth Texture",
         );
-
-        let mut shaders = HashMap::new();
 
         let sprite_shader_id = create_shader(
             &mut shaders,
@@ -594,24 +595,14 @@ impl WgpuRenderer {
 
         let tonemapping_pipeline =
             self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
-                let mut shaders = self.shaders.borrow_mut();
-
-                let tonemapping_shader_id = create_shader(
-                    &mut shaders,
-                    "tonemapping",
-                    &post_process_shader_from_fragment(engine_shader_source!(
-                        "tonemapping"
-                    )),
-                    HashMap::new(),
-                )
-                .unwrap();
+                let shaders = &mut self.shaders.borrow_mut();
 
                 create_post_processing_pipeline(
                     "Tonemapping",
                     &self.context.device,
                     self.context.config.borrow().format,
                     &[&self.texture_layout, &self.camera_bind_group_layout],
-                    shaders.get(&tonemapping_shader_id).unwrap().clone(),
+                    create_engine_post_processing_shader!(shaders, "tonemapping"),
                     wgpu::BlendState::REPLACE,
                 )
             });

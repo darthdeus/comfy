@@ -43,40 +43,17 @@ pub fn post_process_shader_from_fragment(source: &str) -> String {
     )
 }
 
-#[deprecated(note = "Retire in favor of create_shader")]
 #[macro_export]
-macro_rules! reloadable_wgsl_fragment_shader {
-    ($name:literal) => {{
-        cfg_if! {
-            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
-                let frag_part =
-                    include_str!(concat!(
-                        env!("CARGO_MANIFEST_DIR"),
-                        "/shaders/", $name, ".wgsl"));
-            } else {
-                let path = concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl");
-                info!("DEV loading shader: {}", path);
+macro_rules! create_engine_post_processing_shader {
+    ($shaders:expr, $name:literal) => {{
+        let full_shader =
+            post_process_shader_from_fragment(engine_shader_source!($name));
 
-                let frag_part = std::fs::read_to_string(path)
-                    .expect(&format!("shader at {path} must exist"));
-            }
-        }
+        let shader_id =
+            create_shader($shaders, $name, &full_shader, HashMap::new())
+                .unwrap();
 
-        let full_shader = format!(
-            "{}{}{}",
-            CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag_part
-        );
-
-        let id = gen_shader_id();
-
-        Shader {
-            id,
-            name: $name.to_string(),
-            source: full_shader.to_string(),
-            uniform_defs: Default::default(),
-        }
+        $shaders.get(&shader_id).unwrap().clone()
     }};
 }
 
@@ -109,24 +86,6 @@ pub fn load_texture_from_engine_bytes(
     ASSETS.borrow_mut().insert_handle(name, handle);
     ASSETS.borrow_mut().texture_image_map.lock().insert(handle, img);
     textures.insert(handle, (error_bind_group, error_texture));
-}
-
-#[deprecated]
-pub fn simple_fragment_shader(
-    name: &'static str,
-    frag: &'static str,
-) -> Shader {
-    let id = gen_shader_id();
-
-    Shader {
-        id,
-        name: name.to_string(),
-        source: format!(
-            "{}{}{}",
-            CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, frag
-        ),
-        uniform_defs: Default::default(),
-    }
 }
 
 pub struct MipmapGenerator {

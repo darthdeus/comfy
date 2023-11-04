@@ -70,24 +70,11 @@ pub struct Bloom {
 impl Bloom {
     pub fn new(
         context: &GraphicsContext,
+        shaders: &mut ShaderMap,
         format: wgpu::TextureFormat,
         lighting_params: Arc<wgpu::BindGroup>,
         lighting_params_layout: &wgpu::BindGroupLayout,
     ) -> Self {
-        // let threshold = PostProcessingEffect::new_with_mip(
-        //     "Bloom Threshold",
-        //     device,
-        //     &layout,
-        //     config,
-        //     format,
-        //     simple_fragment_shader(
-        //         "bloom-threshold",
-        //         include_str!("../../assets/shaders/bloom-threshold.wgsl"),
-        //     ),
-        //     BLOOM_MIP_LEVEL_COUNT,
-        //     wgpu::BlendState::REPLACE,
-        // );
-
         let config = context.config.borrow();
 
         let device = &context.device;
@@ -104,7 +91,10 @@ impl Bloom {
             );
 
         let threshold = {
-            let shader = reloadable_wgsl_fragment_shader!("bloom-threshold");
+            let shader = create_engine_post_processing_shader!(
+                shaders,
+                "bloom-threshold"
+            );
 
             PostProcessingEffect {
                 id: shader.id,
@@ -127,14 +117,8 @@ impl Bloom {
             }
         };
 
-        // simple_fragment_shader(
-        //     "bloom-threshold",
-        //     include_str!("../../assets/shaders/bloom-threshold.wgsl"),
-        // ),
-
         // let use_hdr = true;
         // let hdr_format = wgpu::TextureFormat::Rgba16Float;
-
 
         // let blur_bind_group_layout = device.simple_bind_group("Bloom Blur", texture, layout)
         // let blur_bind_group_layout =
@@ -189,13 +173,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout],
-            simple_fragment_shader(
-                "bloom-mip-blur",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-mip-blur.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-mip-blur"),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
@@ -211,13 +189,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout],
-            simple_fragment_shader(
-                "bloom-mip-blur",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-merge.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-merge"),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
@@ -305,13 +277,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout, lighting_params_layout, &blur_direction_layout],
-            simple_fragment_shader(
-                "bloom-gauss",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-gauss.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-gauss"),
             wgpu::BlendState::REPLACE,
         );
 
