@@ -63,13 +63,6 @@ macro_rules! reloadable_wgsl_shader {
     }};
 }
 
-// #[macro_export]
-// macro_rules! include_wgsl_fragment_shader {
-//     ($name:expr, $source:expr) => {{
-//         Shader { name: $name.to_string(), source: full_shader.to_string() }
-//     }};
-// }
-
 pub fn sprite_shader_from_fragment(source: &str) -> String {
     format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, source)
 }
@@ -149,6 +142,7 @@ pub fn load_texture_from_engine_bytes(
     textures.insert(handle, (error_bind_group, error_texture));
 }
 
+#[deprecated]
 pub fn simple_fragment_shader(
     name: &'static str,
     frag: &'static str,

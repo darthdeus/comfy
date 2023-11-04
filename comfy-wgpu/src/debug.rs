@@ -2,6 +2,7 @@ use crate::*;
 
 pub fn render_debug(
     context: &GraphicsContext,
+    shaders: &mut ShaderMap,
     enable_z_buffer: bool,
     quad_ubg: &UniformBindGroup,
     texture_layout: &wgpu::BindGroupLayout,
@@ -31,6 +32,14 @@ pub fn render_debug(
     let debug_render_pipeline = pipelines
         .entry(if enable_z_buffer { "debug-z" } else { "debug" }.into())
         .or_insert_with(|| {
+            let debug_shader_id = create_shader(
+                shaders,
+                "debug",
+                &sprite_shader_from_fragment(engine_shader_source!("debug")),
+                HashMap::new(),
+            )
+            .unwrap();
+
             create_render_pipeline_with_layout(
                 "Debug",
                 &context.device,
@@ -38,7 +47,7 @@ pub fn render_debug(
                 &[&texture_layout, &quad_ubg.layout],
                 &[],
                 // TODO: .shaders.get_or_err(...)
-                &reloadable_wgsl_shader!("debug"),
+                shaders.get(&debug_shader_id).unwrap(),
                 BlendMode::Alpha,
                 enable_z_buffer,
             )

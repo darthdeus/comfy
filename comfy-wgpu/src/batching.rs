@@ -150,7 +150,6 @@ pub fn render_meshes(
                 Some(shader_instance) => {
                     c.shaders.borrow().get(&shader_instance.id).unwrap().clone()
                 }
-                // None => reloadable_wgsl_shader!("sprite"),
                 None => {
                     c.shaders.borrow().get(&sprite_shader_id).unwrap().clone()
                 }
@@ -162,7 +161,6 @@ pub fn render_meshes(
                 wgpu::TextureFormat::Rgba16Float,
                 &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
-                // reloadable_wgsl_shader!("sprite"),
                 &shader,
                 pass_data.blend_mode,
                 c.enable_z_buffer,
@@ -296,8 +294,6 @@ pub fn render_particles(
                 wgpu::TextureFormat::Rgba16Float,
                 &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
-                // TODO: shaders.get_or_err(...)
-                // &reloadable_wgsl_shader!("sprite"),
                 &c.shaders.borrow().get(&sprite_shader_id).unwrap().clone(),
                 pass_data.blend_mode,
                 c.enable_z_buffer,

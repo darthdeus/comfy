@@ -901,6 +901,7 @@ impl WgpuRenderer {
 
             render_debug(
                 &self.context,
+                &mut self.shaders.borrow_mut(),
                 self.enable_z_buffer,
                 &self.quad_ubg,
                 &self.texture_layout,
