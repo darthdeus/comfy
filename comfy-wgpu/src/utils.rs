@@ -21,21 +21,12 @@ pub const COPY_SHADER_SRC: &str =
 #[macro_export]
 macro_rules! engine_shader_source {
     ($name:literal) => {{
-        cfg_if! {
-            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
-                let shader = include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"));
-            } else {
-                let path = concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"
-                );
-
-                info!("DEV loading shader: {}", path);
-                let shader: String = std::fs::read_to_string(path).unwrap().into();
-            }
-        }
+        let shader = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/shaders/",
+            $name,
+            ".wgsl"
+        ));
 
         shader
     }};

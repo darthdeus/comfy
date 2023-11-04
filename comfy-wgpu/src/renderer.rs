@@ -90,6 +90,8 @@ pub struct WgpuRenderer {
     pub loaded_image_send: Sender<LoadedImage>,
 
     pub textures: Arc<Mutex<TextureMap>>,
+
+    pub sprite_shader_id: ShaderId,
 }
 
 impl WgpuRenderer {
@@ -428,9 +430,22 @@ impl WgpuRenderer {
             "Depth Texture",
         );
 
+        let mut shaders = HashMap::new();
+
+        let sprite_shader_id = create_shader(
+            &mut shaders,
+            "sprite",
+            &sprite_shader_from_fragment(engine_shader_source!("sprite")),
+            HashMap::new(),
+        )
+        .unwrap();
+
+
         Self {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
+
+            sprite_shader_id,
 
             loaded_image_recv: rx_texture,
             loaded_image_send: tx_texture,
@@ -438,7 +453,7 @@ impl WgpuRenderer {
             depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
-            shaders: RefCell::new(HashMap::new()),
+            shaders: RefCell::new(shaders),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 
@@ -579,12 +594,24 @@ impl WgpuRenderer {
 
         let tonemapping_pipeline =
             self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
+                let mut shaders = self.shaders.borrow_mut();
+
+                let tonemapping_shader_id = create_shader(
+                    &mut shaders,
+                    "tonemapping",
+                    &post_process_shader_from_fragment(engine_shader_source!(
+                        "tonemapping"
+                    )),
+                    HashMap::new(),
+                )
+                .unwrap();
+
                 create_post_processing_pipeline(
                     "Tonemapping",
                     &self.context.device,
                     self.context.config.borrow().format,
                     &[&self.texture_layout, &self.camera_bind_group_layout],
-                    reloadable_wgsl_fragment_shader!("tonemapping"),
+                    shaders.get(&tonemapping_shader_id).unwrap().clone(),
                     wgpu::BlendState::REPLACE,
                 )
             });
@@ -849,7 +876,12 @@ impl WgpuRenderer {
             output.texture.create_view(&wgpu::TextureViewDescriptor::default())
         };
 
-        run_batched_render_passes(self, &surface_view, &params);
+        run_batched_render_passes(
+            self,
+            &surface_view,
+            &params,
+            self.sprite_shader_id,
+        );
 
         self.render_post_processing(&surface_view, params.config);
         self.render_egui(&surface_view, &params);

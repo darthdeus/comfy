@@ -4,6 +4,7 @@ pub fn run_batched_render_passes(
     c: &mut WgpuRenderer,
     surface_view: &wgpu::TextureView,
     params: &DrawParams,
+    sprite_shader_id: ShaderId,
 ) {
     let render_passes = collect_render_passes(params);
 
@@ -80,6 +81,7 @@ pub fn run_batched_render_passes(
                             .into(),
                     },
                     surface_view,
+                    sprite_shader_id,
                 );
 
                 perf_counter_inc("real_mesh_draw", 1);
@@ -99,6 +101,7 @@ pub fn run_batched_render_passes(
                     },
                     params.clear_color,
                     surface_view,
+                    sprite_shader_id,
                 );
 
                 perf_counter_inc("real_particle_draw", 1);
@@ -117,6 +120,7 @@ pub fn render_meshes(
     clear_color: Color,
     pass_data: MeshDrawData,
     surface_view: &wgpu::TextureView,
+    sprite_shader_id: ShaderId,
 ) {
     let _span = span!("render_meshes");
 
@@ -148,17 +152,7 @@ pub fn render_meshes(
                 }
                 // None => reloadable_wgsl_shader!("sprite"),
                 None => {
-                    let shader_id = create_shader(
-                        &mut c.shaders.borrow_mut(),
-                        "sprite",
-                        &sprite_shader_from_fragment(&engine_shader_source!(
-                            "sprite"
-                        )),
-                        HashMap::new(),
-                    )
-                    .unwrap();
-
-                    c.shaders.borrow().get(&shader_id).unwrap().clone()
+                    c.shaders.borrow().get(&sprite_shader_id).unwrap().clone()
                 }
             };
 
@@ -275,6 +269,7 @@ pub fn render_particles(
     pass_data: ParticleDrawData,
     clear_color: Color,
     surface_view: &wgpu::TextureView,
+    sprite_shader_id: ShaderId,
 ) {
     let _span = span!("render_particles");
 
@@ -302,7 +297,8 @@ pub fn render_particles(
                 &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
                 // TODO: shaders.get_or_err(...)
-                &reloadable_wgsl_shader!("sprite"),
+                // &reloadable_wgsl_shader!("sprite"),
+                &c.shaders.borrow().get(&sprite_shader_id).unwrap().clone(),
                 pass_data.blend_mode,
                 c.enable_z_buffer,
             )
