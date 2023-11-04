@@ -5,7 +5,20 @@ use crate::*;
 use image::Rgba;
 use winit::window::Window;
 
+pub enum RenderPipeline<'a> {
+    User(&'a mut UserRenderPipeline),
+    Wgpu(&'a mut wgpu::RenderPipeline),
+}
+
+pub struct UserRenderPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+    pub layout: wgpu::BindGroupLayout,
+    pub bind_group: wgpu::BindGroup,
+    pub buffers: HashMap<String, wgpu::Buffer>,
+}
+
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
+pub type UserPipelineMap = HashMap<String, UserRenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
 
 #[repr(C)]
@@ -41,6 +54,7 @@ pub struct WgpuRenderer {
     pub hot_reload: HotReload,
 
     pub pipelines: PipelineMap,
+    pub user_pipelines: UserPipelineMap,
     pub shaders: RefCell<ShaderMap>,
 
     pub egui_winit: egui_winit::State,
@@ -454,6 +468,8 @@ impl WgpuRenderer {
             depth_texture: Arc::new(depth_texture),
 
             pipelines: HashMap::new(),
+            user_pipelines: HashMap::new(),
+
             shaders: RefCell::new(shaders),
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
@@ -602,7 +618,10 @@ impl WgpuRenderer {
                     &self.context.device,
                     self.context.config.borrow().format,
                     &[&self.texture_layout, &self.camera_bind_group_layout],
-                    create_engine_post_processing_shader!(shaders, "tonemapping"),
+                    create_engine_post_processing_shader!(
+                        shaders,
+                        "tonemapping"
+                    ),
                     wgpu::BlendState::REPLACE,
                 )
             });

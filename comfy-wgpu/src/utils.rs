@@ -97,14 +97,12 @@ pub struct MipmapGenerator {
 impl MipmapGenerator {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         let blit_pipeline = {
+            // TODO: unify with other shaders
             let shader =
                 device.create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Blit Shader"),
                     source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
-                        include_str!(concat!(
-                            env!("CARGO_MANIFEST_DIR"),
-                            "/shaders/blit.wgsl"
-                        )),
+                        engine_shader_source!("blit"),
                     )),
                 });
 

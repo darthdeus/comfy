@@ -5,7 +5,7 @@ static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 static GENERATED_RENDER_TARGET_IDS: AtomicU64 = AtomicU64::new(0);
 
 pub type ShaderMap = HashMap<ShaderId, Shader>;
-pub type UniformDefs = HashMap<&'static str, UniformDef>;
+pub type UniformDefs = HashMap<String, UniformDef>;
 
 #[derive(Clone, Debug)]
 pub struct Shader {
@@ -29,7 +29,7 @@ impl std::fmt::Display for ShaderId {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ShaderInstance {
     pub id: ShaderId,
-    pub uniforms: HashMap<&'static str, Uniform>,
+    pub uniforms: HashMap<String, Uniform>,
 }
 
 #[derive(Clone, Debug)]
@@ -78,7 +78,11 @@ pub fn gen_shader_id() -> ShaderId {
     ShaderId(id)
 }
 
-pub fn set_uniform(_name: &str, _value: Uniform) {}
+pub fn set_uniform(name: impl Into<String>, value: Uniform) {
+    if let Some(shader) = &mut *CURRENT_SHADER.borrow_mut() {
+        shader.uniforms.insert(name.into(), value);
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum ShaderError {
@@ -89,7 +93,7 @@ pub fn create_shader(
     shaders: &mut ShaderMap,
     name: &str,
     source: &str,
-    uniform_defs: HashMap<&'static str, UniformDef>,
+    uniform_defs: UniformDefs,
 ) -> Result<ShaderId, ShaderError> {
     let id = gen_shader_id();
 
@@ -111,7 +115,7 @@ pub fn create_shader(
             //     }}
             //     ",
             "
-            @group(3) @binding({})
+            @group(2) @binding({})
             var<uniform> {}: {};
                 ",
             i,

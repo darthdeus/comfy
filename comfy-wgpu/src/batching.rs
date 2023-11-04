@@ -135,40 +135,264 @@ pub fn render_meshes(
 
     let _span = span!("blend_mode");
 
-    let mesh_pipeline = {
-        let shader = pass_data.data.get(0).and_then(|x| x.shader.clone());
+    let maybe_shader_instance =
+        pass_data.data.get(0).and_then(|x| x.shader.clone());
 
+    let shaders = c.shaders.borrow();
+    let maybe_shader = maybe_shader_instance
+        .as_ref()
+        .and_then(|instance| shaders.get(&instance.id));
+
+    let mesh_pipeline = {
         let name = format!(
-            "Mesh {:?} {:?} {:?}",
-            pass_data.blend_mode, shader, c.enable_z_buffer
+            "{} {:?} {:?} {:?}",
+            if maybe_shader_instance.is_some() {
+                "USER(Mesh)"
+            } else {
+                "BUILTIN(Mesh)"
+            },
+            pass_data.blend_mode,
+            maybe_shader,
+            c.enable_z_buffer
         );
 
-        c.pipelines.entry(name.clone()).or_insert_with(|| {
-            info!("shader: {:?}", shader);
+        if let Some(shader) = maybe_shader {
+            RenderPipeline::User(
+                // TODO: leaking render pipeline per frame
+                c.user_pipelines.entry(name.clone()).or_insert_with(|| {
+                    info!("shader: {:?}", shader);
 
-            let shader = match shader {
-                Some(shader_instance) => {
-                    c.shaders.borrow().get(&shader_instance.id).unwrap().clone()
-                }
-                None => {
-                    c.shaders.borrow().get(&sprite_shader_id).unwrap().clone()
-                }
-            };
+                    let mut layout_entries = Vec::new();
+                    let mut bind_group_entries = Vec::new();
+                    let mut buffers = HashMap::new();
 
-            create_render_pipeline_with_layout(
-                &name,
-                &c.context.device,
-                wgpu::TextureFormat::Rgba16Float,
-                &[&c.texture_layout, &c.camera_bind_group_layout],
-                &[SpriteVertex::desc()],
-                &shader,
-                pass_data.blend_mode,
-                c.enable_z_buffer,
+                    for (i, (uniform_name, uniform_def)) in
+                        shader.uniform_defs.iter().enumerate()
+                    {
+                        layout_entries.push(wgpu::BindGroupLayoutEntry {
+                            binding: i as u32,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Uniform,
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
+                        });
+
+                        let uniform_buffer_usage = wgpu::BufferUsages::UNIFORM |
+                            wgpu::BufferUsages::COPY_DST;
+
+                        match uniform_def {
+                            UniformDef::F32(maybe_default) => {
+                                if let Some(value) = maybe_default {
+                                    let buffer =
+                                        c.context.device.create_buffer_init(
+                                            &wgpu::util::BufferInitDescriptor {
+                                                label: Some(&format!(
+                                                    "User UB: {} (default={})",
+                                                    uniform_name, value
+                                                )),
+                                                contents: bytemuck::cast_slice(
+                                                    &[1.0],
+                                                ),
+                                                usage: uniform_buffer_usage,
+                                            },
+                                        );
+
+                                    buffers.insert(
+                                        uniform_name.to_string(),
+                                        buffer,
+                                    );
+                                } else {
+                                    // let buffer =
+                                    //     c.context.device.create_buffer(
+                                    //         &wgpu::BufferDescriptor {
+                                    //             label: Some(&format!(
+                                    //                 "User UB: {} (no-default)",
+                                    //                 uniform_name
+                                    //             )),
+                                    //             size: std::mem::size_of::<f32>()
+                                    //                 as u64,
+                                    //             usage:
+                                    //                 wgpu::BufferUsages::UNIFORM,
+                                    //             mapped_at_creation: false,
+                                    //         },
+                                    //     );
+
+                                    let buffer =
+                                        c.context.device.create_buffer_init(
+                                            &wgpu::util::BufferInitDescriptor {
+                                                label: Some(&format!(
+                                                    "User UB: {} (default={})",
+                                                    uniform_name, 0
+                                                )),
+                                                contents: bytemuck::cast_slice(
+                                                    &[0.5],
+                                                ),
+                                                usage: uniform_buffer_usage,
+                                            },
+                                        );
+
+                                    buffers.insert(
+                                        uniform_name.to_string(),
+                                        buffer,
+                                    );
+                                }
+                            }
+                            UniformDef::Custom { .. } => {
+                                todo!()
+                            }
+                        };
+                    }
+
+                    // for (i, (uniform_name, uniform_value)) in
+                    //     shader_instance.uniforms.iter().enumerate()
+                    // {
+                    //     layout_entries.push(wgpu::BindGroupLayoutEntry {
+                    //         binding: i as u32,
+                    //         visibility: wgpu::ShaderStages::FRAGMENT,
+                    //         ty: wgpu::BindingType::Buffer {
+                    //             ty: wgpu::BufferBindingType::Uniform,
+                    //             has_dynamic_offset: false,
+                    //             min_binding_size: None,
+                    //         },
+                    //         count: None,
+                    //     });
+                    //
+                    //     let val = match uniform_value {
+                    //         Uniform::F32(val) => val,
+                    //         Uniform::Custom(_) => {
+                    //             unimplemented!("CUSTOM unsupported")
+                    //         }
+                    //     };
+                    //
+                    //     let buffer = c.context.device.create_buffer_init(
+                    //         &wgpu::util::BufferInitDescriptor {
+                    //             label: Some(&format!(
+                    //                 "User UB: {}",
+                    //                 uniform_name
+                    //             )),
+                    //             contents: bytemuck::cast_slice(&[val.0]),
+                    //             usage: wgpu::BufferUsages::UNIFORM,
+                    //         },
+                    //     );
+                    //
+                    //     buffers.insert(uniform_name.to_string(), buffer);
+                    // }
+
+                    for (i, (_uniform_name, buffer)) in
+                        buffers.iter().enumerate()
+                    {
+                        bind_group_entries.push(wgpu::BindGroupEntry {
+                            binding: i as u32,
+                            resource: buffer.as_entire_binding(),
+                        });
+                    }
+
+                    // println!("LAYOUT: {:#?}", layout_entries);
+                    // println!("BIND GROUP: {:#?}", bind_group_entries);
+
+                    // panic!("got layout entires :O ... {:?}", layout_entries);
+
+                    let user_layout =
+                        c.context.device.create_bind_group_layout(
+                            &wgpu::BindGroupLayoutDescriptor {
+                                label: Some(&format!("User Layout: {}", name)),
+                                entries: &layout_entries,
+                            },
+                        );
+
+
+                    let pipeline = create_render_pipeline_with_layout(
+                        &name,
+                        &c.context.device,
+                        wgpu::TextureFormat::Rgba16Float,
+                        &[
+                            &c.texture_layout,
+                            &c.camera_bind_group_layout,
+                            &user_layout,
+                        ],
+                        &[SpriteVertex::desc()],
+                        shader,
+                        pass_data.blend_mode,
+                        c.enable_z_buffer,
+                    );
+
+                    let bind_group = c.context.device.create_bind_group(
+                        &wgpu::BindGroupDescriptor {
+                            label: Some("User Bind Group"),
+                            layout: &user_layout,
+                            entries: &bind_group_entries,
+                        },
+                    );
+
+                    UserRenderPipeline {
+                        pipeline,
+                        layout: user_layout,
+                        bind_group,
+                        buffers,
+                    }
+                }),
             )
-        })
+        } else {
+            RenderPipeline::Wgpu(
+                c.pipelines.entry(name.clone()).or_insert_with(|| {
+                    create_render_pipeline_with_layout(
+                        &name,
+                        &c.context.device,
+                        wgpu::TextureFormat::Rgba16Float,
+                        &[&c.texture_layout, &c.camera_bind_group_layout],
+                        &[SpriteVertex::desc()],
+                        c.shaders.borrow().get(&sprite_shader_id).unwrap(),
+                        pass_data.blend_mode,
+                        c.enable_z_buffer,
+                    )
+                }),
+            )
+        }
     };
 
     perf_counter_inc("batch-count", 1);
+
+    let mut encoder = c.context.device.simple_encoder("Mesh Render Encoder");
+
+    if let RenderPipeline::User(ref user_pipeline) = mesh_pipeline {
+        if let Some(shader_instance) = maybe_shader_instance {
+            let shader = shaders.get(&shader_instance.id).unwrap();
+
+            for (buffer_name, buffer) in user_pipeline.buffers.iter() {
+                if let Some(Uniform::F32(OrderedFloat(value))) =
+                    shader_instance.uniforms.get(buffer_name)
+                {
+                    c.context.queue.write_buffer(
+                        buffer,
+                        0,
+                        bytemuck::cast_slice(&[*value]),
+                    );
+                } else if let UniformDef::F32(Some(default_value)) =
+                    shader.uniform_defs.get(buffer_name).unwrap()
+                {
+                    c.context.queue.write_buffer(
+                        buffer,
+                        0,
+                        bytemuck::cast_slice(&[*default_value]),
+                    );
+                } else {
+                    panic!("No uniform value or default for {buffer_name}");
+                }
+
+                // let value = shader_instance
+                //     .uniforms
+                //     .get(buffer_name)
+                //     .map(|x| x)
+                //     .or_else(|| shader.uniform_defs.get(buffer_name))
+                //     .unwrap();
+            }
+
+            for (uniform_name, uniform_value) in shader.uniform_defs.iter() {}
+        }
+    }
 
     let tex_handle = pass_data.texture;
     let _span = span!("texture");
@@ -197,8 +421,6 @@ pub fn render_meshes(
 
     // let all_vertices = mesh_draw[0].mesh.vertices.clone();
     // let all_indices = mesh_draw[0].mesh.indices.clone();
-
-    let mut encoder = c.context.device.simple_encoder("Mesh Render Encoder");
 
     c.vertex_buffer.ensure_size_and_copy(
         &c.context.device,
@@ -233,7 +455,14 @@ pub fn render_meshes(
                 ),
             });
 
-        render_pass.set_pipeline(mesh_pipeline);
+        match &mesh_pipeline {
+            RenderPipeline::User(pipeline) => {
+                render_pass.set_pipeline(&pipeline.pipeline);
+            }
+            RenderPipeline::Wgpu(pipeline) => {
+                render_pass.set_pipeline(pipeline);
+            }
+        }
         render_pass.set_vertex_buffer(0, c.vertex_buffer.buffer.slice(..));
 
         if !all_indices.is_empty() {
@@ -250,6 +479,13 @@ pub fn render_meshes(
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);
+
+        match &mesh_pipeline {
+            RenderPipeline::User(pipeline) => {
+                render_pass.set_bind_group(2, &pipeline.bind_group, &[]);
+            }
+            RenderPipeline::Wgpu(_) => {}
+        }
 
         if all_indices.is_empty() {
             render_pass.draw(0..all_vertices.len() as u32, 0..1);
