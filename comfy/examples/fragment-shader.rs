@@ -43,7 +43,7 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     let shader_id = state.my_shader_id.unwrap();
 
     // First draw with a default shader.
-    // draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
+    draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
 
     egui::Window::new("Uniforms")
         .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, -100.0))
@@ -61,7 +61,7 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     // to the default value we specified when creating the shader.
     set_uniform_f32("time", time);
 
-    // draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
+    draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
 
     // This will set "intensity" while retaining "time" from the previous set in this frame, as
     // expected. None of this should be surprising, other than the fact that we can draw in between
@@ -73,8 +73,8 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     set_uniform_f32("intensity", state.intensity);
 
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
-    //
-    // // We can also easily switch back to the default sprite shader.
-    // set_default_shader();
-    // draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
+    
+    // We can also easily switch back to the default sprite shader.
+    use_default_shader();
+    draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
 }
