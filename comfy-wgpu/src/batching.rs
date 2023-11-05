@@ -194,7 +194,7 @@ pub fn render_meshes(
                                                     uniform_name, value
                                                 )),
                                                 contents: bytemuck::cast_slice(
-                                                    &[1.0],
+                                                    &[*value],
                                                 ),
                                                 usage: uniform_buffer_usage,
                                             },
