@@ -19,6 +19,13 @@ macro_rules! reloadable_shader_source {
     };
 }
 
+/// Similar to `create_shader` but automatically hot reloads the shader on change.
+/// The user needs to provide a `ReloadableShaderSource` which contains the static source to be
+/// embedded in the binary, as well as the path to the shader file path for hot reloading.
+///
+/// The [fragment_shader
+/// example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/fragment-shader.rs#L24-L57)
+/// contains a full working example of how works.
 pub fn create_reloadable_shader(
     shaders: &mut ShaderMap,
     name: &str,
@@ -50,6 +57,7 @@ pub fn watch_shader_path(
     Ok(())
 }
 
+/// Internal use only, checks for shader hot reloads and reloads them if needed.
 pub fn maybe_reload_shaders(shaders: &mut ShaderMap) {
     HOT_RELOAD.lock().maybe_reload_shaders(shaders);
 }

@@ -80,15 +80,19 @@ pub enum Uniform {
 static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
     Lazy::new(|| AtomicRefCell::new(None));
 
+/// Switches to the shader with the given ID. The shader must already exist. To revert back to the
+/// default shader simply call `use_default_shader()`.
 pub fn use_shader(shader_id: ShaderId) {
     *CURRENT_SHADER.borrow_mut() =
         Some(ShaderInstance { id: shader_id, uniforms: Default::default() });
 }
 
+/// Switches back to the default shader.
 pub fn use_default_shader() {
     *CURRENT_SHADER.borrow_mut() = None;
 }
 
+/// Returns the current `ShaderInstance` if any. Currently intended only for internal use.
 pub fn get_current_shader() -> Option<ShaderInstance> {
     CURRENT_SHADER.borrow().clone()
 }
@@ -102,7 +106,7 @@ pub fn gen_shader_id() -> ShaderId {
     ShaderId(id)
 }
 
-
+/// Sets a `f32` uniform value by name. The uniform must exist in the shader.
 pub fn set_uniform_f32(name: impl Into<String>, value: f32) {
     set_uniform(name, Uniform::F32(OrderedFloat(value)));
 }
@@ -113,6 +117,16 @@ pub fn set_uniform(name: impl Into<String>, value: Uniform) {
     }
 }
 
+/// Creates a new shader and returns its ID. The `source` parameter should only contain the
+/// fragment function, as the rest of the shader is automatically generated.
+///
+/// `uniform_defs` specifies the uniforms that the shader will use. The keys are the uniform names
+/// that will be also automatically generated and can be directly used in the shader. Meaning users
+/// don't have to care about WGPU bindings/groups.
+///
+/// For example, if you have a uniform named `time`, you simply use it as `time` in the shader.
+///
+/// `ShaderMap` can be obtained from `EngineContext` as `c.renderer.shaders.borrow_mut()`
 pub fn create_shader(
     shaders: &mut ShaderMap,
     name: &str,
@@ -143,11 +157,15 @@ pub fn create_shader(
     Ok(id)
 }
 
+/// Stores both a static source code for a shader as well as path to its file in development. This
+/// is used for automatic shader hot reloading.
 pub struct ReloadableShaderSource {
     pub static_source: String,
     pub path: String,
 }
 
+/// Update the shader source for the given shader ID. This can be used by users who with to
+/// implement their own shader hot reloading.
 pub fn update_shader(
     shaders: &mut ShaderMap,
     id: ShaderId,

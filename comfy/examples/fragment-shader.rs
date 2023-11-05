@@ -13,7 +13,6 @@ impl GameState {
     }
 }
 
-
 fn setup(_state: &mut GameState, _c: &mut EngineContext) {
     game_config_mut().bloom_enabled = true;
 }

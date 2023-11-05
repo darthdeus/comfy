@@ -1,5 +1,29 @@
 # v0.3.0
 
+## User defined fragment shaders with uniforms
+
+Starting from this version Comfy now supports user defined fragment shaders
+with custom uniforms. Right now we only support `f32` uniforms, but this will
+get expanded relatively soon.
+
+The API is intentionally kept a bit low level and simple, as we already have
+some use cases for Comfy via FFI. While this isn't a primary goal of the
+engine, it is a use case that should very much remain supported, and as such
+we'll try to make the lower level APIs FFI friendly. Higher level wrappers
+(e.g. with RAII/Drop trait) will be added afterwards. Users should feel free to
+create their own higher level wrappers around Comfy's low level primitives!
+
+New shader related functions (see their individual docstrings & [fragment shader example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/fragment-shader.rs) for more information):
+
+- `create_shader`: Create a new shader from source code.
+- `create_reloadable_shader`: Create a new hot reloadable shader from source code & path.
+- `update_shader`: Update the source code of a shader. Intended for users who want to hot reload shaders manually.
+- `use_shader`: Use a given shader for rendering from now on.
+- `use_default_shader`: Switch back to the default shader.
+- `set_uniform_f32`: Set a `f32` uniform value.
+
+## Other changes
+
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
   where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
   window managers like i3 to automatically float windows with this title, e.g.
