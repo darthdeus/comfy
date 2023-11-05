@@ -4,7 +4,7 @@ pub fn insert_post_processing_effect(
     renderer: &WgpuRenderer,
     index: i32,
     name: &str,
-    shader: Shader,
+    shader_id: ShaderId,
 ) {
     let effect = PostProcessingEffect::new(
         name.to_string(),
@@ -12,7 +12,7 @@ pub fn insert_post_processing_effect(
         &[&renderer.context.texture_layout],
         &renderer.context.config.borrow(),
         renderer.render_texture_format,
-        shader.clone(),
+        shader_id,
         &mut renderer.shaders.borrow_mut(),
     );
 
@@ -25,8 +25,6 @@ pub fn insert_post_processing_effect(
     } else {
         panic!("Invalid index = {}, must be -1 or non-negative.", index);
     }
-
-    renderer.shaders.borrow_mut().insert_shader(shader.id, shader);
 }
 
 pub struct PostProcessingEffect {
@@ -45,7 +43,7 @@ impl PostProcessingEffect {
         bind_group_layouts: &[&wgpu::BindGroupLayout],
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
-        shader: Shader,
+        shader_id: ShaderId,
         shaders: &mut ShaderMap,
         mip_level_count: u32,
         blend: wgpu::BlendState,
@@ -65,7 +63,7 @@ impl PostProcessingEffect {
             bind_group_layouts[0],
         );
 
-        let id = shader.id;
+        let shader = shaders.get(shader_id).unwrap();
 
         let pipeline = create_post_processing_pipeline(
             &name,
@@ -76,9 +74,14 @@ impl PostProcessingEffect {
             blend,
         );
 
-        shaders.insert_shader(shader.id, shader);
-
-        Self { id, name, enabled: true, render_texture, bind_group, pipeline }
+        Self {
+            id: shader_id,
+            name,
+            enabled: true,
+            render_texture,
+            bind_group,
+            pipeline,
+        }
     }
 
     pub fn new(
@@ -87,7 +90,7 @@ impl PostProcessingEffect {
         bind_group_layouts: &[&wgpu::BindGroupLayout],
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
-        shader: Shader,
+        shader_id: ShaderId,
         shaders: &mut ShaderMap,
     ) -> Self {
         Self::new_with_mip(
@@ -96,7 +99,7 @@ impl PostProcessingEffect {
             bind_group_layouts,
             config,
             format,
-            shader,
+            shader_id,
             shaders,
             1,
             wgpu::BlendState::REPLACE,

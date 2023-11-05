@@ -126,22 +126,4 @@ impl<'a> EngineContext<'a> {
     pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
         self.draw.borrow_mut()
     }
-
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    // TODO: remove this in plcase of new PP later
-    pub fn insert_post_processing_effect(
-        &self,
-        index: i32,
-        name: &str,
-        shader: Shader,
-    ) {
-        insert_post_processing_effect(self.renderer, index, name, shader)
-    }
 }

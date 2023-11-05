@@ -464,8 +464,7 @@ impl WgpuRenderer {
         )
         .unwrap();
 
-
-        Self {
+        let renderer = Self {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
@@ -526,7 +525,21 @@ impl WgpuRenderer {
             window,
 
             context,
+        };
+
+        {
+            let copy_shader_id = create_shader(
+                &mut renderer.shaders.borrow_mut(),
+                "copy",
+                &post_process_shader_from_fragment(COPY_SHADER_SRC),
+                HashMap::new(),
+            )
+            .expect("copy shader creation failed");
+
+            insert_post_processing_effect(&renderer, 0, "copy", copy_shader_id);
         }
+
+        renderer
     }
 
     pub fn window(&self) -> &Window {
@@ -828,13 +841,6 @@ impl WgpuRenderer {
 
         #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
         maybe_reload_shaders(&mut self.shaders.borrow_mut());
-        // if self.hot_reload.maybe_reload_shaders() {
-        //     panic!("TODO: shader hot reloading is currently unsupported")
-        //     //     // TODO: this breaks previously loaded user shaders
-        //     //     error!("TODO: reload breaks previously loaded user shaders");
-        //     //     self.shaders = RefCell::new(load_shaders());
-        //     //     self.pipelines.clear();
-        // }
 
         self.camera_uniform.update_view_proj(&main_camera());
 

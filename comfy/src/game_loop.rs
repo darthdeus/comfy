@@ -75,16 +75,6 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
 
     let renderer = WgpuRenderer::new(window, egui_winit).await;
 
-    warn!("INTERNAL TODO: use create_shader for copy post processing instead");
-
-    insert_post_processing_effect(&renderer, 0, "copy", Shader {
-        id: gen_shader_id(),
-        name: "copy".to_string(),
-        source: post_process_shader_from_fragment(COPY_SHADER_SRC),
-        uniform_defs: HashMap::new(),
-        bindings: HashMap::new(),
-    });
-
     game.engine().texture_creator = Some(renderer.texture_creator.clone());
     game.engine().renderer = Some(renderer);
 
