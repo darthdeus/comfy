@@ -48,7 +48,7 @@ pub fn watch_shader_path(
     path: &str,
     shader_id: ShaderId,
 ) -> notify::Result<()> {
-    let path = Path::new(path).to_path_buf();
+    let path = Path::new(path).canonicalize().unwrap().to_path_buf();
 
     let mut hot_reload = HOT_RELOAD.lock();
     hot_reload.watch_path(path.as_path())?;
