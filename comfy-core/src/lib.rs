@@ -14,13 +14,13 @@ mod events;
 mod fast_sprite;
 mod global_state;
 #[cfg(not(target_arch = "wasm32"))]
-mod hot_reload;
 mod input;
 mod lighting;
 mod math;
 mod perf_counters;
 mod quad;
 pub mod random;
+mod shaders;
 pub mod spatial_hash;
 mod task_timer;
 mod text;
@@ -39,14 +39,13 @@ pub use crate::errors::*;
 pub use crate::events::*;
 pub use crate::fast_sprite::*;
 pub use crate::global_state::*;
-#[cfg(not(target_arch = "wasm32"))]
-pub use crate::hot_reload::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
 pub use crate::math::*;
 pub use crate::perf_counters::*;
 pub use crate::quad::*;
 pub use crate::random::*;
+pub use crate::shaders::*;
 pub use crate::task_timer::*;
 pub use crate::text::*;
 pub use crate::timer::*;
@@ -76,6 +75,9 @@ use num_traits::NumCast;
 pub use rand::seq::SliceRandom;
 
 pub use smallvec::{self, SmallVec};
+
+pub use anyhow;
+pub use anyhow::{bail, Result};
 
 pub use bimap::BiHashMap;
 pub use fxhash;
@@ -533,13 +535,13 @@ pub enum BlendMode {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextureParams {
     pub blend_mode: BlendMode,
-    pub shader: Option<String>,
 }
 
 #[derive(Clone, Debug)]
 pub struct MeshDraw {
     pub mesh: Mesh,
     pub texture_params: TextureParams,
+    pub shader: Option<ShaderInstance>,
 }
 
 pub struct DrawParams<'a> {

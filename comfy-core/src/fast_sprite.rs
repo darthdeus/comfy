@@ -26,10 +26,7 @@ pub fn draw_sprite_rot(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams {
-        shader: None,
-        blend_mode: BlendMode::None,
-    });
+    draw_mesh_ex(mesh, TextureParams { blend_mode: BlendMode::None });
 }
 
 pub fn simple_rotated_rect(

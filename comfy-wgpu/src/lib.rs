@@ -9,11 +9,14 @@ pub use winit::event::{
     WindowEvent,
 };
 
+mod batching;
 mod blood_canvas;
 mod bloom;
+mod device;
 mod egui_integration;
+#[cfg(not(target_arch = "wasm32"))]
+mod hot_reload;
 mod instance;
-mod pipelines;
 mod post_processing;
 mod render_pass;
 mod renderer;
@@ -21,12 +24,20 @@ mod screenshot;
 mod texture;
 mod utils;
 mod y_sort;
+// idk what to call this, so magic it is for now ...
+mod debug;
+mod magic;
 
+pub use crate::batching::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
+pub use crate::debug::*;
+pub use crate::device::*;
 pub use crate::egui_integration::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::hot_reload::*;
 pub use crate::instance::*;
-pub use crate::pipelines::*;
+pub use crate::magic::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
@@ -341,10 +352,10 @@ pub fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
 ) -> wgpu::RenderPipeline {
-    let shader = device.create_shader_module(shader.to_wgpu());
+    let shader = device.create_shader_module(shader_to_wgpu(shader));
 
     let blend_state = match blend_mode {
         BlendMode::Alpha => Some(wgpu::BlendState::ALPHA_BLENDING),
@@ -451,7 +462,7 @@ pub fn create_render_pipeline_with_layout(
     color_format: wgpu::TextureFormat,
     bind_group_layouts: &[&wgpu::BindGroupLayout],
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
     enable_z_buffer: bool,
 ) -> wgpu::RenderPipeline {
@@ -461,7 +472,6 @@ pub fn create_render_pipeline_with_layout(
             bind_group_layouts,
             push_constant_ranges: &[],
         });
-
 
     create_render_pipeline(
         &format!("{} Pipeline", name),

@@ -1,78 +1,59 @@
 use crate::*;
 
+pub const FRAG_SHADER_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/frag-shader-prefix.wgsl"
+));
+
+pub const CAMERA_BIND_GROUP_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/camera-bind-group.wgsl"
+));
+
+pub const SHADER_POST_PROCESSING_VERTEX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/post_processing_vertex.wgsl"
+));
+
+pub const COPY_SHADER_SRC: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/copy.wgsl"));
+
 #[macro_export]
-macro_rules! reloadable_wgsl_shader {
+macro_rules! engine_shader_source {
     ($name:literal) => {{
-        let struct_prefix = include_str!(concat!(
+        let shader = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/shaders/structs.wgsl"
+            "/shaders/",
+            $name,
+            ".wgsl"
         ));
 
-        cfg_if! {
-            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
-                let shader = include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"));
-            } else {
-                let path = concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl"
-                );
-
-                info!("DEV loading shader: {}", path);
-                let shader: String = std::fs::read_to_string(path).unwrap().into();
-            }
-        }
-
-        Shader {
-            name: format!("{} Shader", $name),
-            source: format!("{}{}", struct_prefix, shader).into(),
-        }
+        shader
     }};
 }
 
-// #[macro_export]
-// macro_rules! include_wgsl_fragment_shader {
-//     ($name:expr, $source:expr) => {{
-//         Shader { name: $name.to_string(), source: full_shader.to_string() }
-//     }};
-// }
+pub fn sprite_shader_from_fragment(source: &str) -> String {
+    format!("{}{}{}", CAMERA_BIND_GROUP_PREFIX, FRAG_SHADER_PREFIX, source)
+}
+
+pub fn post_process_shader_from_fragment(source: &str) -> String {
+    format!(
+        "{}{}{}",
+        CAMERA_BIND_GROUP_PREFIX, SHADER_POST_PROCESSING_VERTEX, source
+    )
+}
 
 #[macro_export]
-macro_rules! reloadable_wgsl_fragment_shader {
-    ($name:literal) => {{
-        let struct_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/structs.wgsl"
-        ));
+macro_rules! create_engine_post_processing_shader {
+    ($shaders:expr, $name:literal) => {{
+        let full_shader =
+            post_process_shader_from_fragment(engine_shader_source!($name));
 
-        let pp_prefix = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/post_processing_vertex.wgsl"
-        ));
+        let shader_id =
+            create_shader($shaders, $name, &full_shader, HashMap::new())
+                .unwrap();
 
-        let frag_shader_prefix = format!("{}{}", struct_prefix, pp_prefix);
-
-        cfg_if! {
-            if #[cfg(any(feature = "ci-release", target_arch = "wasm32"))] {
-                let frag_part =
-                    include_str!(concat!(
-                        env!("CARGO_MANIFEST_DIR"),
-                        "/shaders/", $name, ".wgsl"));
-            } else {
-                let path = concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/", $name, ".wgsl");
-                info!("DEV loading shader: {}", path);
-
-                let frag_part = std::fs::read_to_string(path)
-                    .expect(&format!("shader at {path} must exist"));
-            }
-        }
-
-        let full_shader = format!("{}{}", frag_shader_prefix, frag_part);
-
-        Shader { name: $name.to_string(), source: full_shader.to_string() }
+        $shaders.get(shader_id).unwrap().clone()
     }};
 }
 
@@ -107,25 +88,6 @@ pub fn load_texture_from_engine_bytes(
     textures.insert(handle, (error_bind_group, error_texture));
 }
 
-pub fn simple_fragment_shader(
-    name: &'static str,
-    frag: &'static str,
-) -> Shader {
-    let struct_prefix = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/structs.wgsl"
-    ));
-    let frag_shader_prefix = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/post_processing_vertex.wgsl"
-    ));
-
-    Shader {
-        name: name.to_string(),
-        source: format!("{}{}{}", struct_prefix, frag_shader_prefix, frag),
-    }
-}
-
 pub struct MipmapGenerator {
     pub format: wgpu::TextureFormat,
     pub blit_pipeline: wgpu::RenderPipeline,
@@ -135,14 +97,12 @@ pub struct MipmapGenerator {
 impl MipmapGenerator {
     pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
         let blit_pipeline = {
+            // TODO: unify with other shaders
             let shader =
                 device.create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: Some("Blit Shader"),
                     source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(
-                        include_str!(concat!(
-                            env!("CARGO_MANIFEST_DIR"),
-                            "/shaders/blit.wgsl"
-                        )),
+                        engine_shader_source!("blit"),
                     )),
                 });
 

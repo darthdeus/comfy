@@ -1,6 +1,36 @@
 use crate::*;
 
+pub fn insert_post_processing_effect(
+    renderer: &WgpuRenderer,
+    index: i32,
+    name: &str,
+    shader: Shader,
+) {
+    let effect = PostProcessingEffect::new(
+        name.to_string(),
+        &renderer.context.device,
+        &[&renderer.context.texture_layout],
+        &renderer.context.config.borrow(),
+        renderer.render_texture_format,
+        shader.clone(),
+        &mut renderer.shaders.borrow_mut(),
+    );
+
+    let mut effects = renderer.post_processing_effects.borrow_mut();
+
+    if index == -1 {
+        effects.push(effect);
+    } else if index >= 0 {
+        effects.insert(index as usize, effect);
+    } else {
+        panic!("Invalid index = {}, must be -1 or non-negative.", index);
+    }
+
+    renderer.shaders.borrow_mut().insert_shader(shader.id, shader);
+}
+
 pub struct PostProcessingEffect {
+    pub id: ShaderId,
     pub name: String,
     pub enabled: bool,
     pub render_texture: Texture,
@@ -16,6 +46,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader: Shader,
+        shaders: &mut ShaderMap,
         mip_level_count: u32,
         blend: wgpu::BlendState,
     ) -> Self {
@@ -34,16 +65,20 @@ impl PostProcessingEffect {
             bind_group_layouts[0],
         );
 
+        let id = shader.id;
+
         let pipeline = create_post_processing_pipeline(
             &name,
             device,
             format,
             bind_group_layouts,
-            shader,
+            shader.clone(),
             blend,
         );
 
-        Self { name, enabled: true, render_texture, bind_group, pipeline }
+        shaders.insert_shader(shader.id, shader);
+
+        Self { id, name, enabled: true, render_texture, bind_group, pipeline }
     }
 
     pub fn new(
@@ -53,6 +88,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader: Shader,
+        shaders: &mut ShaderMap,
     ) -> Self {
         Self::new_with_mip(
             name,
@@ -61,25 +97,26 @@ impl PostProcessingEffect {
             config,
             format,
             shader,
+            shaders,
             1,
             wgpu::BlendState::REPLACE,
         )
     }
 }
 
-pub const USER_SHADER_PREFIX: &str = concat!(
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/structs.wgsl")),
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/shaders/user_post_processing_vertex.wgsl"
-    ))
-);
+pub const USER_SHADER_PREFIX: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/shaders/user_post_processing_vertex.wgsl"
+));
 
 pub fn create_user_shader_module(
     device: &wgpu::Device,
     shader: &Shader,
 ) -> wgpu::ShaderModule {
-    let full_shader = format!("{}{}", USER_SHADER_PREFIX, &shader.source);
+    let full_shader = format!(
+        "{}{}{}",
+        CAMERA_BIND_GROUP_PREFIX, USER_SHADER_PREFIX, &shader.source
+    );
 
     let descriptor = wgpu::ShaderModuleDescriptor {
         label: Some(&shader.name),
@@ -98,7 +135,7 @@ pub fn create_post_processing_pipeline(
     blend: wgpu::BlendState,
 ) -> wgpu::RenderPipeline {
     // let shader = create_user_shader_module(device, &shader);
-    let shader = device.create_shader_module(shader.to_wgpu());
+    let shader = device.create_shader_module(shader_to_wgpu(&shader));
 
     let pipeline_layout =
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

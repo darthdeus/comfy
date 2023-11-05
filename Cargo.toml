@@ -7,3 +7,7 @@ members = ["comfy", "comfy-core", "comfy-glow", "comfy-wgpu"]
 opt-level = 3
 [profile.dev.package."*"]
 opt-level = 3
+
+[patch.crates-io]
+# wgpu = { path = "../wgpu/wgpu" }
+# wgpu-types = { path = "../wgpu/wgpu-types" }

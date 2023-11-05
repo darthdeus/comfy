@@ -1,7 +1,7 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
-EXAMPLE=alpha_sprite
+# EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
@@ -13,6 +13,7 @@ EXAMPLE=alpha_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
+EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
@@ -36,8 +37,7 @@ default: example
 # default: test
 
 FLAGS=--features=blobs,git-version,dev
-ENV_VARS=RUST_LOG=warn,wgpu=info,symphonia=warn,naga=warn RUST_BACKTRACE=1
-# ENV_VARS=RUST_LOG=trace RUST_BACKTRACE=1
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
@@ -54,6 +54,10 @@ build-examples:
 lint:
 	cargo fmt --all -- --check
 	cargo clippy
+
+timings:
+	cargo clean
+	cargo build --timings --example sprite
 
 serve:
 	simple-http-server target/generated -c wasm,html,js -i
