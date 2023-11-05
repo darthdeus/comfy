@@ -156,6 +156,8 @@ pub fn render_meshes(
             c.enable_z_buffer
         );
 
+        // println!("shader: {}", default_hash(&name));
+
         if let Some(shader) = maybe_shader {
             RenderPipeline::User(
                 c.user_pipelines.entry(name.clone()).or_insert_with(|| {

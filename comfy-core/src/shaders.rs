@@ -57,12 +57,12 @@ pub enum Uniform {
 static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
     Lazy::new(|| AtomicRefCell::new(None));
 
-pub fn set_shader(shader_id: ShaderId) {
+pub fn use_shader(shader_id: ShaderId) {
     *CURRENT_SHADER.borrow_mut() =
         Some(ShaderInstance { id: shader_id, uniforms: Default::default() });
 }
 
-pub fn set_default_shader() {
+pub fn use_default_shader() {
     *CURRENT_SHADER.borrow_mut() = None;
 }
 
@@ -110,14 +110,44 @@ pub fn create_shader(
         )));
     }
 
-    let mut uniforms_src = String::new();
-
     let bindings = uniform_defs
         .iter()
         .sorted_by_key(|x| x.0)
         .enumerate()
         .map(|(i, (name, _))| (name.clone(), i as u32))
         .collect::<HashMap<String, u32>>();
+
+    shaders.insert(id, Shader {
+        id,
+        name: format!("{} Shader", name),
+        source: build_shader_source(source, &bindings, &uniform_defs),
+        uniform_defs,
+        bindings,
+    });
+
+    Ok(id)
+}
+
+pub fn update_shader(
+    shaders: &mut ShaderMap,
+    id: ShaderId,
+    fragment_source: &str,
+) {
+    if let Some(shader) = shaders.get_mut(&id) {
+        shader.source = build_shader_source(
+            fragment_source,
+            &shader.bindings,
+            &shader.uniform_defs,
+        );
+    }
+}
+
+fn build_shader_source(
+    fragment_source: &str,
+    bindings: &HashMap<String, u32>,
+    uniform_defs: &UniformDefs,
+) -> String {
+    let mut uniforms_src = String::new();
 
     for (name, binding) in bindings.iter() {
         let typ = uniform_defs.get(name).unwrap();
@@ -131,15 +161,7 @@ pub fn create_shader(
         ));
     }
 
-    shaders.insert(id, Shader {
-        id,
-        name: format!("{} Shader", name),
-        source: format!("{}\n{}", uniforms_src, source),
-        uniform_defs,
-        bindings,
-    });
-
-    Ok(id)
+    format!("{}\n{}", uniforms_src, fragment_source)
 }
 
 #[derive(Clone, Debug)]

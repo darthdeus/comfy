@@ -98,7 +98,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
 
                 set_delta(delta);
                 set_time(get_time() + delta as f64);
-                set_default_shader();
+                use_default_shader();
 
                 if game.engine().quit_flag() {
                     *control_flow = ControlFlow::Exit;

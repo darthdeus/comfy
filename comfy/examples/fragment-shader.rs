@@ -13,48 +13,44 @@ impl GameState {
     }
 }
 
-const FRAG_SHADER: &str = r"
-@fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let tex = textureSample(t_diffuse, s_diffuse, in.tex_coords);
-    var final_color: vec4<f32> = tex * in.color;
 
-    // ***************************************************************
-    // We can use our uniforms here directly by name. Their WGSL
-    // declarations are automatically generated, mapped and checked
-    // at runtime by Comfy.
-    // ***************************************************************
-    final_color.r = final_color.r * abs(cos(time * 3.0));
-    final_color.g = final_color.g * abs(sin(time * 2.0));
-    final_color.b = final_color.b * abs(cos(time * 5.0));
-
-    final_color = final_color * intensity;
-
-    return final_color;
-}
-";
-
-fn setup(state: &mut GameState, c: &mut EngineContext) {
+fn setup(_state: &mut GameState, _c: &mut EngineContext) {
     game_config_mut().bloom_enabled = true;
-
-    state.my_shader_id = Some(
-        // Shader requires a default value for every uniform
-        create_shader(
-            &mut c.renderer.shaders.borrow_mut(),
-            "my-shader",
-            &sprite_shader_from_fragment(FRAG_SHADER),
-            hashmap! {
-                "time".to_string() => UniformDef::F32(Some(0.0)),
-                "intensity".to_string() => UniformDef::F32(Some(1.0)),
-            },
-        )
-        .unwrap(),
-    )
 }
 
-fn update(state: &mut GameState, _c: &mut EngineContext) {
+fn update(state: &mut GameState, c: &mut EngineContext) {
+    let shader_path =
+        concat!(env!("CARGO_MANIFEST_DIR"), "/examples/fragment-shader.wgsl");
+
+    let frag_shader = std::fs::read_to_string(shader_path).unwrap();
+
+    if state.my_shader_id.is_none() {
+        state.my_shader_id = Some(
+            // Shader requires a default value for every uniform
+            create_shader(
+                &mut c.renderer.shaders.borrow_mut(),
+                "my-shader",
+                &sprite_shader_from_fragment(&frag_shader),
+                hashmap! {
+                    "time".to_string() => UniformDef::F32(Some(0.0)),
+                    "intensity".to_string() => UniformDef::F32(Some(1.0)),
+                },
+            )
+            .unwrap(),
+        )
+    }
+
+
+    let shader_id = state.my_shader_id.unwrap();
+
+    update_shader(
+        &mut c.renderer.shaders.borrow_mut(),
+        shader_id,
+        &sprite_shader_from_fragment(&frag_shader),
+    );
+
     // First draw with a default shader.
-    draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
+    // draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
 
     egui::Window::new("Uniforms")
         .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, -100.0))
@@ -64,7 +60,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
         });
 
     // When we switch a shader the uniforms will get their default value
-    set_shader(state.my_shader_id.unwrap());
+    use_shader(shader_id);
 
     let time = get_time() as f32;
 
@@ -72,7 +68,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
     // to the default value we specified when creating the shader.
     set_uniform_f32("time", time);
 
-    draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
+    // draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
 
     // This will set "intensity" while retaining "time" from the previous set in this frame, as
     // expected. None of this should be surprising, other than the fact that we can draw in between
@@ -84,8 +80,8 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
     set_uniform_f32("intensity", state.intensity);
 
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
-
-    // We can also easily switch back to the default sprite shader.
-    set_default_shader();
-    draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
+    //
+    // // We can also easily switch back to the default sprite shader.
+    // set_default_shader();
+    // draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
 }
