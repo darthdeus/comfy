@@ -55,6 +55,10 @@ lint:
 	cargo fmt --all -- --check
 	cargo clippy
 
+timings:
+	cargo clean
+	cargo build --timings --example sprite
+
 serve:
 	simple-http-server target/generated -c wasm,html,js -i
 

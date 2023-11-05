@@ -9,7 +9,7 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(_c: &mut EngineContext) -> Self {
-        Self { my_shader_id: None, intensity: 1.0 }
+        Self { my_shader_id: None, intensity: 2.0 }
     }
 }
 
@@ -85,6 +85,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
 
     draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
 
+    // We can also easily switch back to the default sprite shader.
     set_default_shader();
     draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
 }

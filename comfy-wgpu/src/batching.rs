@@ -205,32 +205,17 @@ pub fn render_meshes(
                                         buffer,
                                     );
                                 } else {
-                                    // let buffer =
-                                    //     c.context.device.create_buffer(
-                                    //         &wgpu::BufferDescriptor {
-                                    //             label: Some(&format!(
-                                    //                 "User UB: {} (no-default)",
-                                    //                 uniform_name
-                                    //             )),
-                                    //             size: std::mem::size_of::<f32>()
-                                    //                 as u64,
-                                    //             usage:
-                                    //                 wgpu::BufferUsages::UNIFORM,
-                                    //             mapped_at_creation: false,
-                                    //         },
-                                    //     );
-
                                     let buffer =
-                                        c.context.device.create_buffer_init(
-                                            &wgpu::util::BufferInitDescriptor {
+                                        c.context.device.create_buffer(
+                                            &wgpu::BufferDescriptor {
                                                 label: Some(&format!(
-                                                    "User UB: {} (default={})",
-                                                    uniform_name, 0
+                                                    "User UB: {} (no-default)",
+                                                    uniform_name
                                                 )),
-                                                contents: bytemuck::cast_slice(
-                                                    &[0.5],
-                                                ),
+                                                size: std::mem::size_of::<f32>()
+                                                    as u64,
                                                 usage: uniform_buffer_usage,
+                                                mapped_at_creation: false,
                                             },
                                         );
 
