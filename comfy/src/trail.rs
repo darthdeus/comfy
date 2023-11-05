@@ -261,10 +261,7 @@ impl Trail {
                 z_index: self.z_index,
                 texture: Some(tex),
             },
-            TextureParams {
-                blend_mode: BlendMode::Additive,
-                ..Default::default()
-            },
+            TextureParams { blend_mode: BlendMode::Additive },
         );
     }
 

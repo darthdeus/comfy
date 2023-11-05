@@ -13,7 +13,7 @@ pub fn insert_post_processing_effect(
         &renderer.context.config.borrow(),
         renderer.render_texture_format,
         shader_id,
-        &mut renderer.shaders.borrow_mut(),
+        &renderer.shaders.borrow_mut(),
     );
 
     let mut effects = renderer.post_processing_effects.borrow_mut();
@@ -44,7 +44,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader_id: ShaderId,
-        shaders: &mut ShaderMap,
+        shaders: &ShaderMap,
         mip_level_count: u32,
         blend: wgpu::BlendState,
     ) -> Self {
@@ -91,7 +91,7 @@ impl PostProcessingEffect {
         config: &wgpu::SurfaceConfiguration,
         format: wgpu::TextureFormat,
         shader_id: ShaderId,
-        shaders: &mut ShaderMap,
+        shaders: &ShaderMap,
     ) -> Self {
         Self::new_with_mip(
             name,

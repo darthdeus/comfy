@@ -157,7 +157,7 @@ impl HotReload {
 }
 
 pub fn check_shader_with_naga(source: &str) -> Result<()> {
-    let module = naga::front::wgsl::parse_str(&source)?;
+    let module = naga::front::wgsl::parse_str(source)?;
 
     let mut validator = naga::valid::Validator::new(
         naga::valid::ValidationFlags::all(),

@@ -26,8 +26,6 @@ mod utils;
 mod y_sort;
 // idk what to call this, so magic it is for now ...
 mod debug;
-mod magic;
-mod pipelines;
 
 pub use crate::batching::*;
 pub use crate::blood_canvas::*;
@@ -38,14 +36,12 @@ pub use crate::egui_integration::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use crate::hot_reload::*;
 pub use crate::instance::*;
-pub use crate::magic::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
 pub use crate::texture::*;
 pub use crate::utils::*;
 pub use crate::y_sort::*;
-pub use crate::pipelines::*;
 
 pub use wgpu;
 pub use wgpu_types;
