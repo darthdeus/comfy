@@ -25,8 +25,8 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
             // shipped with shaders embedded in the binary, as well as a path for hot reloading,
             // which will be watched by Comfy and hot-reloaded on change.
             //
-            // Note that currently hot reloading an invalid shader will crash. This will get fixed
-            // relatively soon.
+            // Note that currently hot reloading an invalid shader will log the error in the
+            // terminal, but will automatically fall back to the previous shader that compiled.
             create_reloadable_shader(
                 &mut c.renderer.shaders.borrow_mut(),
                 "my-shader",
