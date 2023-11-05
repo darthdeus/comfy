@@ -504,6 +504,7 @@ dependencies = [
 name = "comfy-core"
 version = "0.2.0"
 dependencies = [
+ "anyhow",
  "anymap",
  "atomic_refcell",
  "backtrace",

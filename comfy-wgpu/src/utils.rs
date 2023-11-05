@@ -53,7 +53,7 @@ macro_rules! create_engine_post_processing_shader {
             create_shader($shaders, $name, &full_shader, HashMap::new())
                 .unwrap();
 
-        $shaders.get(&shader_id).unwrap().clone()
+        $shaders.get(shader_id).unwrap().clone()
     }};
 }
 

@@ -26,7 +26,7 @@ pub fn insert_post_processing_effect(
         panic!("Invalid index = {}, must be -1 or non-negative.", index);
     }
 
-    renderer.shaders.borrow_mut().insert(shader.id, shader);
+    renderer.shaders.borrow_mut().insert_shader(shader.id, shader);
 }
 
 pub struct PostProcessingEffect {
@@ -76,7 +76,7 @@ impl PostProcessingEffect {
             blend,
         );
 
-        shaders.insert(shader.id, shader);
+        shaders.insert_shader(shader.id, shader);
 
         Self { id, name, enabled: true, render_texture, bind_group, pipeline }
     }

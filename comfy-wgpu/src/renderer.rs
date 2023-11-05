@@ -412,7 +412,7 @@ impl WgpuRenderer {
 
         let render_texture_format = wgpu::TextureFormat::Rgba16Float;
 
-        let mut shaders = HashMap::new();
+        let mut shaders = ShaderMap::new();
 
         let bloom = Bloom::new(
             &context,
@@ -560,7 +560,7 @@ impl WgpuRenderer {
             } else {
                 info!("Loading EFFECT: {}", effect.name);
 
-                if let Some(shader) = self.shaders.borrow().get(&effect.id) {
+                if let Some(shader) = self.shaders.borrow().get(effect.id) {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
@@ -817,13 +817,14 @@ impl WgpuRenderer {
         }
 
         #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
-        if self.hot_reload.maybe_reload_shaders() {
-            panic!("TODO: shader hot reloading is currently unsupported")
-            //     // TODO: this breaks previously loaded user shaders
-            //     error!("TODO: reload breaks previously loaded user shaders");
-            //     self.shaders = RefCell::new(load_shaders());
-            //     self.pipelines.clear();
-        }
+        maybe_reload_shaders(&mut self.shaders.borrow_mut());
+        // if self.hot_reload.maybe_reload_shaders() {
+        //     panic!("TODO: shader hot reloading is currently unsupported")
+        //     //     // TODO: this breaks previously loaded user shaders
+        //     //     error!("TODO: reload breaks previously loaded user shaders");
+        //     //     self.shaders = RefCell::new(load_shaders());
+        //     //     self.pipelines.clear();
+        // }
 
         self.camera_uniform.update_view_proj(&main_camera());
 

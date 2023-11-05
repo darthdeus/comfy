@@ -14,7 +14,6 @@ mod events;
 mod fast_sprite;
 mod global_state;
 #[cfg(not(target_arch = "wasm32"))]
-mod hot_reload;
 mod input;
 mod lighting;
 mod math;
@@ -40,8 +39,6 @@ pub use crate::errors::*;
 pub use crate::events::*;
 pub use crate::fast_sprite::*;
 pub use crate::global_state::*;
-#[cfg(not(target_arch = "wasm32"))]
-pub use crate::hot_reload::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
 pub use crate::math::*;
@@ -78,6 +75,9 @@ use num_traits::NumCast;
 pub use rand::seq::SliceRandom;
 
 pub use smallvec::{self, SmallVec};
+
+pub use anyhow;
+pub use anyhow::{bail, Result};
 
 pub use bimap::BiHashMap;
 pub use fxhash;

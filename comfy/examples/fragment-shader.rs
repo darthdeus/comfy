@@ -19,18 +19,18 @@ fn setup(_state: &mut GameState, _c: &mut EngineContext) {
 }
 
 fn update(state: &mut GameState, c: &mut EngineContext) {
-    let shader_path =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/examples/fragment-shader.wgsl");
-
-    let frag_shader = std::fs::read_to_string(shader_path).unwrap();
-
     if state.my_shader_id.is_none() {
         state.my_shader_id = Some(
             // Shader requires a default value for every uniform
-            create_shader(
+            create_reloadable_shader(
                 &mut c.renderer.shaders.borrow_mut(),
                 "my-shader",
-                &sprite_shader_from_fragment(&frag_shader),
+                ReloadableShaderSource {
+                    static_source: sprite_shader_from_fragment(include_str!(
+                        "fragment-shader.wgsl"
+                    )),
+                    path: "comfy/examples/fragment-shader.wgsl".to_string(),
+                },
                 hashmap! {
                     "time".to_string() => UniformDef::F32(Some(0.0)),
                     "intensity".to_string() => UniformDef::F32(Some(1.0)),
@@ -40,14 +40,7 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
         )
     }
 
-
     let shader_id = state.my_shader_id.unwrap();
-
-    update_shader(
-        &mut c.renderer.shaders.borrow_mut(),
-        shader_id,
-        &sprite_shader_from_fragment(&frag_shader),
-    );
 
     // First draw with a default shader.
     // draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));

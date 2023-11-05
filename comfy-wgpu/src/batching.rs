@@ -141,7 +141,7 @@ pub fn render_meshes(
     let shaders = c.shaders.borrow();
     let maybe_shader = maybe_shader_instance
         .as_ref()
-        .and_then(|instance| shaders.get(&instance.id));
+        .and_then(|instance| shaders.get(instance.id));
 
     let mesh_pipeline = {
         let name = format!(
@@ -161,7 +161,7 @@ pub fn render_meshes(
         if let Some(shader) = maybe_shader {
             RenderPipeline::User(
                 c.user_pipelines.entry(name.clone()).or_insert_with(|| {
-                    info!("Creating pipeline for shader: {:?}", shader);
+                    info!("Creating pipeline for shader: {:?}", shader.id);
 
                     let mut layout_entries = Vec::new();
                     let mut bind_group_entries = Vec::new();
@@ -293,7 +293,7 @@ pub fn render_meshes(
                         wgpu::TextureFormat::Rgba16Float,
                         &[&c.texture_layout, &c.camera_bind_group_layout],
                         &[SpriteVertex::desc()],
-                        c.shaders.borrow().get(&sprite_shader_id).unwrap(),
+                        c.shaders.borrow().get(sprite_shader_id).unwrap(),
                         pass_data.blend_mode,
                         c.enable_z_buffer,
                     )
@@ -308,7 +308,7 @@ pub fn render_meshes(
 
     if let RenderPipeline::User(ref user_pipeline) = mesh_pipeline {
         if let Some(shader_instance) = maybe_shader_instance {
-            let shader = shaders.get(&shader_instance.id).unwrap();
+            let shader = shaders.get(shader_instance.id).unwrap();
 
             for (buffer_name, buffer) in
                 user_pipeline.buffers.iter().sorted_by_key(|x| x.0)
@@ -456,7 +456,7 @@ pub fn render_particles(
                 wgpu::TextureFormat::Rgba16Float,
                 &[&c.texture_layout, &c.camera_bind_group_layout],
                 &[SpriteVertex::desc()],
-                &c.shaders.borrow().get(&sprite_shader_id).unwrap().clone(),
+                &c.shaders.borrow().get(sprite_shader_id).unwrap().clone(),
                 pass_data.blend_mode,
                 c.enable_z_buffer,
             )

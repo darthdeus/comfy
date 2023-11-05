@@ -14,6 +14,8 @@ mod blood_canvas;
 mod bloom;
 mod device;
 mod egui_integration;
+#[cfg(not(target_arch = "wasm32"))]
+mod hot_reload;
 mod instance;
 mod post_processing;
 mod render_pass;
@@ -32,6 +34,8 @@ pub use crate::bloom::*;
 pub use crate::debug::*;
 pub use crate::device::*;
 pub use crate::egui_integration::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::hot_reload::*;
 pub use crate::instance::*;
 pub use crate::magic::*;
 pub use crate::post_processing::*;

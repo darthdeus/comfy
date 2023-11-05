@@ -47,7 +47,7 @@ pub fn render_debug(
                 &[&texture_layout, &quad_ubg.layout],
                 &[],
                 // TODO: .shaders.get_or_err(...)
-                shaders.get(&debug_shader_id).unwrap(),
+                shaders.get(debug_shader_id).unwrap(),
                 BlendMode::Alpha,
                 enable_z_buffer,
             )

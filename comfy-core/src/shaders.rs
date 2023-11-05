@@ -4,7 +4,30 @@ use std::sync::atomic::AtomicU64;
 static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 static GENERATED_RENDER_TARGET_IDS: AtomicU64 = AtomicU64::new(0);
 
-pub type ShaderMap = HashMap<ShaderId, Shader>;
+#[derive(Debug)]
+pub struct ShaderMap {
+    shaders: HashMap<ShaderId, Shader>,
+    pub watched_paths: HashMap<String, ShaderId>,
+}
+
+impl ShaderMap {
+    pub fn new() -> Self {
+        Self { shaders: Default::default(), watched_paths: Default::default() }
+    }
+
+    pub fn get(&self, id: ShaderId) -> Option<&Shader> {
+        self.shaders.get(&id)
+    }
+
+    pub fn insert_shader(&mut self, id: ShaderId, shader: Shader) {
+        self.shaders.insert(id, shader);
+    }
+
+    pub fn exists(&self, id: ShaderId) -> bool {
+        self.shaders.contains_key(&id)
+    }
+}
+
 pub type UniformDefs = HashMap<String, UniformDef>;
 
 #[derive(Clone, Debug)]
@@ -90,24 +113,16 @@ pub fn set_uniform(name: impl Into<String>, value: Uniform) {
     }
 }
 
-#[derive(Clone, Debug)]
-pub enum ShaderError {
-    CompileError(String),
-}
-
 pub fn create_shader(
     shaders: &mut ShaderMap,
     name: &str,
     source: &str,
     uniform_defs: UniformDefs,
-) -> Result<ShaderId, ShaderError> {
+) -> Result<ShaderId> {
     let id = gen_shader_id();
 
-    if shaders.contains_key(&id) {
-        return Err(ShaderError::CompileError(format!(
-            "Shader with name '{}' already exists",
-            name
-        )));
+    if shaders.exists(id) {
+        bail!("Shader with name '{}' already exists", name);
     }
 
     let bindings = uniform_defs
@@ -117,7 +132,7 @@ pub fn create_shader(
         .map(|(i, (name, _))| (name.clone(), i as u32))
         .collect::<HashMap<String, u32>>();
 
-    shaders.insert(id, Shader {
+    shaders.insert_shader(id, Shader {
         id,
         name: format!("{} Shader", name),
         source: build_shader_source(source, &bindings, &uniform_defs),
@@ -128,12 +143,17 @@ pub fn create_shader(
     Ok(id)
 }
 
+pub struct ReloadableShaderSource {
+    pub static_source: String,
+    pub path: String,
+}
+
 pub fn update_shader(
     shaders: &mut ShaderMap,
     id: ShaderId,
     fragment_source: &str,
 ) {
-    if let Some(shader) = shaders.get_mut(&id) {
+    if let Some(shader) = shaders.shaders.get_mut(&id) {
         shader.source = build_shader_source(
             fragment_source,
             &shader.bindings,
