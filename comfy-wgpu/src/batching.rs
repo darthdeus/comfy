@@ -180,8 +180,8 @@ pub fn render_meshes(
                             count: None,
                         });
 
-                        let uniform_buffer_usage = wgpu::BufferUsages::UNIFORM
-                            | wgpu::BufferUsages::COPY_DST;
+                        let uniform_buffer_usage = wgpu::BufferUsages::UNIFORM |
+                            wgpu::BufferUsages::COPY_DST;
 
                         match uniform_def {
                             UniformDef::F32(maybe_default) => {
@@ -241,7 +241,9 @@ pub fn render_meshes(
                                 }
                             }
                             UniformDef::Custom { .. } => {
-                                unimplemented!()
+                                unimplemented!(
+                                    "custom uniforms aren't available yet"
+                                );
                             }
                         };
                     }
@@ -321,7 +323,9 @@ pub fn render_meshes(
         if let Some(shader_instance) = maybe_shader_instance {
             let shader = shaders.get(&shader_instance.id).unwrap();
 
-            for (buffer_name, buffer) in user_pipeline.buffers.iter().sorted_by_key(|x| x.0) {
+            for (buffer_name, buffer) in
+                user_pipeline.buffers.iter().sorted_by_key(|x| x.0)
+            {
                 if let Some(Uniform::F32(OrderedFloat(value))) =
                     shader_instance.uniforms.get(buffer_name)
                 {
@@ -342,37 +346,20 @@ pub fn render_meshes(
                     panic!("No uniform value or default for {buffer_name}");
                 }
             }
-
         }
     }
 
     let tex_handle = pass_data.texture;
     let _span = span!("texture");
-    // let tex_handle = TextureHandle::from_path("1px");
 
     let mut all_vertices: Vec<SpriteVertex> = vec![];
     let mut all_indices = vec![];
 
     for draw in pass_data.data.into_iter() {
-        // for draw in group {
-        // let mut mesh = draw.mesh.clone();
-
-        // all_indices.extend(
-        //     mesh.indices
-        //         .iter()
-        //         .cloned()
-        //         .map(|x| x as u32 + all_vertices.len() as u32),
-        // );
-        //
-        // all_vertices.extend(mesh.vertices.drain(..));
-
         let offset = all_vertices.len() as u32;
         all_vertices.extend(&draw.mesh.vertices);
         all_indices.extend(draw.mesh.indices.iter().map(|x| *x + offset));
     }
-
-    // let all_vertices = mesh_draw[0].mesh.vertices.clone();
-    // let all_indices = mesh_draw[0].mesh.indices.clone();
 
     c.vertex_buffer.ensure_size_and_copy(
         &c.context.device,

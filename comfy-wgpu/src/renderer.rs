@@ -816,7 +816,6 @@ impl WgpuRenderer {
             // self.window.center();
         }
 
-        // TODO: re-implement shader reloading properly
         #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
         if self.hot_reload.maybe_reload_shaders() {
             panic!("TODO: shader hot reloading is currently unsupported")
