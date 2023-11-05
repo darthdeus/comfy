@@ -106,6 +106,7 @@ pub struct WgpuRenderer {
     pub textures: Arc<Mutex<TextureMap>>,
 
     pub sprite_shader_id: ShaderId,
+    pub error_shader_id: ShaderId,
 }
 
 impl WgpuRenderer {
@@ -455,12 +456,21 @@ impl WgpuRenderer {
         )
         .unwrap();
 
+        let error_shader_id = create_shader(
+            &mut shaders,
+            "error",
+            &sprite_shader_from_fragment(engine_shader_source!("error")),
+            HashMap::new(),
+        )
+        .unwrap();
+
 
         Self {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
             sprite_shader_id,
+            error_shader_id,
 
             loaded_image_recv: rx_texture,
             loaded_image_send: tx_texture,
@@ -891,6 +901,7 @@ impl WgpuRenderer {
             &surface_view,
             &params,
             self.sprite_shader_id,
+            self.error_shader_id,
         );
 
         self.render_post_processing(&surface_view, params.config);

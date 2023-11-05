@@ -51,6 +51,7 @@ pub fn render_debug(
                 BlendMode::Alpha,
                 enable_z_buffer,
             )
+            .expect("debug pipeline creation failed")
         });
 
 

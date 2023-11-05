@@ -56,9 +56,9 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         .await
         .expect("failed to create wgpu adapter");
 
-    #[cfg(feature = "ci-release")]
     device.on_uncaptured_error(Box::new(|err| {
         error!("WGPU ERROR: {:?}", err);
+        #[cfg(fature = "ci-release")]
         panic!("Exiting due to wgpu error: {:?}", err);
     }));
 

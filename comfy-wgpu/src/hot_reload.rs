@@ -107,48 +107,7 @@ impl HotReload {
                     if is_close_write && !is_temp {
                         reload = true;
 
-                        for path in event
-                            .paths
-                            .iter()
-                            .filter(|x| !x.to_string_lossy().ends_with('~'))
-                        {
-                            if let Some(shader_id) = self.shader_paths.get(path)
-                            {
-                                match std::fs::read_to_string(path) {
-                                    Ok(source) => {
-                                        let fragment_source =
-                                            &sprite_shader_from_fragment(
-                                                &source,
-                                            );
-
-                                        update_shader(
-                                            shaders,
-                                            *shader_id,
-                                            fragment_source,
-                                        );
-                                    }
-
-                                    Err(error) => {
-                                        error!(
-                                            "Error loading a shader at {}: \
-                                             {:?}",
-                                            path.to_string_lossy(),
-                                            error
-                                        )
-                                    }
-                                }
-                            } else {
-                                error!(
-                                    "Trying to reload shader at {} but no \
-                                     ShaderId defined for that path. This \
-                                     likely means a wrong path was passed to \
-                                     `create_reloadable_shader`. Existing \
-                                     paths: {:?}",
-                                    path.to_string_lossy(),
-                                    self.shader_paths
-                                );
-                            }
-                        }
+                        self.reload_path_bufs(shaders, &event.paths);
                     }
                 }
 
@@ -158,4 +117,54 @@ impl HotReload {
 
         reload
     }
+
+    fn reload_path_bufs(&self, shaders: &mut ShaderMap, paths: &[PathBuf]) {
+        for path in paths.iter().filter(|x| !x.to_string_lossy().ends_with('~'))
+        {
+            if let Some(shader_id) = self.shader_paths.get(path) {
+                match std::fs::read_to_string(path) {
+                    Ok(source) => {
+                        let fragment_source =
+                            &sprite_shader_from_fragment(&source);
+
+                        if check_shader_with_naga(fragment_source)
+                            .log_err_ok()
+                            .is_some()
+                        {
+                            update_shader(shaders, *shader_id, fragment_source);
+                        }
+                    }
+
+                    Err(error) => {
+                        error!(
+                            "Error loading a shader at {}: {:?}",
+                            path.to_string_lossy(),
+                            error
+                        )
+                    }
+                }
+            } else {
+                error!(
+                    "Trying to reload shader at {} but no ShaderId defined \
+                     for that path. This likely means a wrong path was passed \
+                     to `create_reloadable_shader`. Existing paths: {:?}",
+                    path.to_string_lossy(),
+                    self.shader_paths
+                );
+            }
+        }
+    }
+}
+
+pub fn check_shader_with_naga(source: &str) -> Result<()> {
+    let module = naga::front::wgsl::parse_str(&source)?;
+
+    let mut validator = naga::valid::Validator::new(
+        naga::valid::ValidationFlags::all(),
+        naga::valid::Capabilities::all(),
+    );
+
+    validator.validate(&module)?;
+
+    Ok(())
 }
