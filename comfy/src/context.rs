@@ -82,15 +82,6 @@ impl<'a> EngineContext<'a> {
         );
     }
 
-    pub fn load_sound_from_bytes(
-        &self,
-        name: &str,
-        bytes: &[u8],
-        settings: StaticSoundSettings,
-    ) {
-        ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
-    }
-
     pub fn load_fonts_from_bytes(&self, fonts: &[(&str, &[u8])]) {
         let mut font_defs = egui::FontDefinitions::default();
 
@@ -126,4 +117,12 @@ impl<'a> EngineContext<'a> {
     pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
         self.draw.borrow_mut()
     }
+}
+
+pub fn load_sound_from_bytes(
+    name: &str,
+    bytes: &[u8],
+    settings: StaticSoundSettings,
+) {
+    ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
 }
