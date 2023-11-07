@@ -18,7 +18,7 @@ pub struct PhysicsGame {
 }
 
 impl PhysicsGame {
-    pub fn new(c: &mut EngineState) -> Self {
+    pub fn new(_c: &mut EngineState) -> Self {
         let mut state = Self {
             spawn_timer: 0.0,
             physics: Physics::new(vec2(0.0, -20.0), false),
@@ -56,7 +56,7 @@ impl PhysicsGame {
 }
 
 impl GameLoop for PhysicsGame {
-    fn update(&mut self, c: &mut EngineContext) {
+    fn update(&mut self, _c: &mut EngineContext) {
         self.spawn_timer -= delta();
 
         let limit = match self.ball_spawning_speed {
@@ -162,5 +162,3 @@ impl GameLoop for PhysicsGame {
             });
     }
 }
-
-fn setup(state: &mut PhysicsGame, c: &mut EngineContext) {}
