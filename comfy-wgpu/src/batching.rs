@@ -128,31 +128,9 @@ pub fn render_meshes(
     let _span = span!("render_meshes");
 
     let _span = span!("blend_mode");
-
-    let shaders = c.shaders.borrow();
-
-    let maybe_shader_instance =
-        pass_data.data.get(0).and_then(|x| x.shader.clone());
-
-    let maybe_shader = maybe_shader_instance
-        .as_ref()
-        .and_then(|instance| shaders.get(instance.id));
-
     // println!("shader: {}", default_hash(&name));
 
-    let mesh_pipeline = get_or_create_pipeline(
-        c.enable_z_buffer,
-        &mut c.user_pipelines,
-        &c.context,
-        &c.texture_layout,
-        &c.camera_bind_group_layout,
-        &pass_data,
-        sprite_shader_id,
-        maybe_shader,
-        &maybe_shader_instance,
-        &mut c.pipelines,
-        &shaders,
-    );
+    let pipeline_name = ensure_pipeline_exists(c, &pass_data, sprite_shader_id);
 
     perf_counter_inc("batch-count", 1);
 
@@ -213,6 +191,16 @@ pub fn render_meshes(
                 ),
             });
 
+        let mesh_pipeline = c
+            .user_pipelines
+            .get(&pipeline_name)
+            .map(RenderPipeline::User)
+            .or_else(|| {
+                c.pipelines.get(&pipeline_name).map(RenderPipeline::Wgpu)
+            })
+            .expect("ensured pipeline must exist within the same frame");
+
+
         match &mesh_pipeline {
             RenderPipeline::User(pipeline) => {
                 render_pass.set_pipeline(&pipeline.pipeline);
@@ -221,6 +209,7 @@ pub fn render_meshes(
                 render_pass.set_pipeline(pipeline);
             }
         }
+
         render_pass.set_vertex_buffer(0, c.vertex_buffer.buffer.slice(..));
 
         if !all_indices.is_empty() {

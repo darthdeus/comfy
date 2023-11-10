@@ -6,8 +6,8 @@ use image::Rgba;
 use winit::window::Window;
 
 pub enum RenderPipeline<'a> {
-    User(&'a mut UserRenderPipeline),
-    Wgpu(&'a mut wgpu::RenderPipeline),
+    User(&'a UserRenderPipeline),
+    Wgpu(&'a wgpu::RenderPipeline),
 }
 
 pub struct UserRenderPipeline {

@@ -1,18 +1,19 @@
 use crate::*;
 
-pub fn get_or_create_pipeline<'a>(
-    enable_z_buffer: bool,
-    user_pipelines: &'a mut UserPipelineMap,
-    context: &'a GraphicsContext,
-    texture_layout: &Arc<wgpu::BindGroupLayout>,
-    camera_bind_group_layout: &wgpu::BindGroupLayout,
+pub fn ensure_pipeline_exists(
+    c: &mut WgpuRenderer,
     pass_data: &MeshDrawData,
     sprite_shader_id: ShaderId,
-    maybe_shader: Option<&Shader>,
-    maybe_shader_instance: &Option<ShaderInstance>,
-    pipelines: &'a mut PipelineMap,
-    shaders: &'a ShaderMap,
-) -> RenderPipeline<'a> {
+) -> String {
+    let shaders = c.shaders.borrow();
+
+    let maybe_shader_instance =
+        pass_data.data.get(0).and_then(|x| x.shader.clone());
+
+    let maybe_shader = maybe_shader_instance
+        .as_ref()
+        .and_then(|instance| shaders.get(instance.id));
+
     let name = format!(
         "{} {:?} {:?} {:?}",
         if maybe_shader_instance.is_some() {
@@ -22,12 +23,12 @@ pub fn get_or_create_pipeline<'a>(
         },
         pass_data.blend_mode,
         maybe_shader,
-        enable_z_buffer
+        c.enable_z_buffer
     );
 
     let mesh_pipeline = if let Some(shader) = maybe_shader {
-        RenderPipeline::User(user_pipelines.entry(name.clone()).or_insert_with(
-            || {
+        RenderPipeline::User(
+            c.user_pipelines.entry(name.clone()).or_insert_with(|| {
                 info!("Creating pipeline for shader: {:?}", shader.id);
 
                 let mut layout_entries = Vec::new();
@@ -55,23 +56,24 @@ pub fn get_or_create_pipeline<'a>(
                     match uniform_def {
                         UniformDef::F32(maybe_default) => {
                             if let Some(value) = maybe_default {
-                                let buffer = context.device.create_buffer_init(
-                                    &wgpu::util::BufferInitDescriptor {
-                                        label: Some(&format!(
-                                            "User UB: {} (default={})",
-                                            uniform_name, value
-                                        )),
-                                        contents: bytemuck::cast_slice(&[
-                                            *value,
-                                        ]),
-                                        usage: uniform_buffer_usage,
-                                    },
-                                );
+                                let buffer =
+                                    c.context.device.create_buffer_init(
+                                        &wgpu::util::BufferInitDescriptor {
+                                            label: Some(&format!(
+                                                "User UB: {} (default={})",
+                                                uniform_name, value
+                                            )),
+                                            contents: bytemuck::cast_slice(&[
+                                                *value,
+                                            ]),
+                                            usage: uniform_buffer_usage,
+                                        },
+                                    );
 
                                 buffers
                                     .insert(uniform_name.to_string(), buffer);
                             } else {
-                                let buffer = context.device.create_buffer(
+                                let buffer = c.context.device.create_buffer(
                                     &wgpu::BufferDescriptor {
                                         label: Some(&format!(
                                             "User UB: {} (no-default)",
@@ -105,7 +107,7 @@ pub fn get_or_create_pipeline<'a>(
                     });
                 }
 
-                let user_layout = context.device.create_bind_group_layout(
+                let user_layout = c.context.device.create_bind_group_layout(
                     &wgpu::BindGroupLayoutDescriptor {
                         label: Some(&format!("User Layout: {}", name)),
                         entries: &layout_entries,
@@ -114,17 +116,21 @@ pub fn get_or_create_pipeline<'a>(
 
                 let pipeline = create_render_pipeline_with_layout(
                     &name,
-                    &context.device,
+                    &c.context.device,
                     wgpu::TextureFormat::Rgba16Float,
-                    &[texture_layout, camera_bind_group_layout, &user_layout],
+                    &[
+                        &c.texture_layout,
+                        &c.camera_bind_group_layout,
+                        &user_layout,
+                    ],
                     &[SpriteVertex::desc()],
                     shader,
                     pass_data.blend_mode,
-                    enable_z_buffer,
+                    c.enable_z_buffer,
                 )
                 .unwrap();
 
-                let bind_group = context.device.create_bind_group(
+                let bind_group = c.context.device.create_bind_group(
                     &wgpu::BindGroupDescriptor {
                         label: Some("User Bind Group"),
                         layout: &user_layout,
@@ -138,27 +144,27 @@ pub fn get_or_create_pipeline<'a>(
                     bind_group,
                     buffers,
                 }
-            },
-        ))
+            }),
+        )
     } else {
-        RenderPipeline::Wgpu(pipelines.entry(name.clone()).or_insert_with(
+        RenderPipeline::Wgpu(c.pipelines.entry(name.clone()).or_insert_with(
             || {
                 create_render_pipeline_with_layout(
                     &name,
-                    &context.device,
+                    &c.context.device,
                     wgpu::TextureFormat::Rgba16Float,
-                    &[texture_layout, camera_bind_group_layout],
+                    &[&c.texture_layout, &c.camera_bind_group_layout],
                     &[SpriteVertex::desc()],
                     shaders.get(sprite_shader_id).unwrap(),
                     pass_data.blend_mode,
-                    enable_z_buffer,
+                    c.enable_z_buffer,
                 )
                 .unwrap()
             },
         ))
     };
 
-    if let RenderPipeline::User(ref user_pipeline) = mesh_pipeline {
+    if let RenderPipeline::User(user_pipeline) = mesh_pipeline {
         if let Some(shader_instance) = maybe_shader_instance {
             let shader = shaders.get(shader_instance.id).unwrap();
 
@@ -168,7 +174,7 @@ pub fn get_or_create_pipeline<'a>(
                 if let Some(Uniform::F32(OrderedFloat(value))) =
                     shader_instance.uniforms.get(buffer_name)
                 {
-                    context.queue.write_buffer(
+                    c.context.queue.write_buffer(
                         buffer,
                         0,
                         bytemuck::cast_slice(&[*value]),
@@ -176,7 +182,7 @@ pub fn get_or_create_pipeline<'a>(
                 } else if let UniformDef::F32(Some(default_value)) =
                     shader.uniform_defs.get(buffer_name).unwrap()
                 {
-                    context.queue.write_buffer(
+                    c.context.queue.write_buffer(
                         buffer,
                         0,
                         bytemuck::cast_slice(&[*default_value]),
@@ -188,5 +194,5 @@ pub fn get_or_create_pipeline<'a>(
         }
     }
 
-    mesh_pipeline
+    name
 }
