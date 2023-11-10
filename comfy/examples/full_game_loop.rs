@@ -9,6 +9,10 @@ pub struct MyGame {
 
 // Everything interesting happens here.
 impl GameLoop for MyGame {
+    fn new(_c: &mut EngineState) -> Self {
+        Self { x: 2, y: 3 }
+    }
+
     fn update(&mut self, _c: &mut EngineContext) {
         draw_text(
             &format!(
@@ -52,9 +56,9 @@ pub async fn run() {
         _comfy_default_config,
     );
 
-    let engine = EngineState::new();
+    let mut engine = EngineState::new();
     // We can do whatever initialization we want in this case.
-    let game = MyGame { x: 2, y: 3 };
+    let game = MyGame::new(&mut engine);
 
     run_comfy_main_async(game, engine).await;
 }

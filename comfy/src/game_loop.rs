@@ -106,6 +106,7 @@ pub async fn run_comfy_main_async(
                     let mut c = engine.make_context();
                     run_early_update_stages(&mut c);
                     game.update(&mut c);
+                    update_perf_counters(&mut c, &game);
                     run_late_update_stages(&mut c, delta);
                 }
 

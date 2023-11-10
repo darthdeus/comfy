@@ -11,20 +11,15 @@ pub struct GameState {
 }
 
 impl GameState {
-    // We could use `EngineContext` to do additional engine setup,
-    // or to initialize our state based on the engine context.
-    //
-    // For this example we don't need to use it, and just initialize
-    // to a default value.
-    pub fn new(_c: &mut EngineContext) -> Self {
+    pub fn new(_c: &mut EngineState) -> Self {
         Self { music_playing: false }
     }
 }
 
 // When we pass `GameState` to `simple_game` we now also have to accept
 // it as a parameter in `setup` and `update`.
-fn setup(_state: &mut GameState, c: &mut EngineContext) {
-    c.load_sound_from_bytes(
+fn setup(_state: &mut GameState, _c: &mut EngineContext) {
+    load_sound_from_bytes(
         "comfy-music",
         include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),

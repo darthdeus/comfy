@@ -37,8 +37,6 @@ pub struct EngineContext<'a> {
 
     pub meta: &'a mut AnyMap,
 
-    pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
-
     pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
