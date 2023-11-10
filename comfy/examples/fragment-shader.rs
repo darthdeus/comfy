@@ -8,7 +8,7 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(_c: &mut EngineContext) -> Self {
+    pub fn new(_c: &mut EngineState) -> Self {
         Self { my_shader_id: None, intensity: 2.0 }
     }
 }

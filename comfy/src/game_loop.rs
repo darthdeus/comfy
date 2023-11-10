@@ -2,7 +2,10 @@ use winit::event_loop::ControlFlow;
 
 use crate::*;
 
-pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
+pub async fn run_comfy_main_async(
+    mut game: impl GameLoop + 'static,
+    mut engine: EngineState,
+) {
     let _tracy = maybe_setup_tracy();
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -15,8 +18,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
     let resolution = game_config().resolution;
 
     let event_loop = winit::event_loop::EventLoop::new();
-    let window =
-        winit::window::WindowBuilder::new().with_title(game.engine().title());
+    let window = winit::window::WindowBuilder::new().with_title(engine.title());
 
     let window = match resolution {
         ResolutionConfig::Physical(w, h) => {
@@ -75,8 +77,8 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
 
     let renderer = WgpuRenderer::new(window, egui_winit).await;
 
-    game.engine().texture_creator = Some(renderer.texture_creator.clone());
-    game.engine().renderer = Some(renderer);
+    engine.texture_creator = Some(renderer.texture_creator.clone());
+    engine.renderer = Some(renderer);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -90,17 +92,22 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                 set_time(get_time() + delta as f64);
                 use_default_shader();
 
-                if game.engine().quit_flag() {
+                if engine.quit_flag() {
                     *control_flow = ControlFlow::Exit;
                 }
 
                 {
                     span_with_timing!("frame");
-                    let engine = game.engine();
                     engine.renderer.as_mut().unwrap().begin_frame(egui());
 
-                    game.engine().frame += 1;
-                    game.update();
+                    engine.frame += 1;
+
+                    // All internal engine code expect an `EngineContext`.
+                    let mut c = engine.make_context();
+                    run_early_update_stages(&mut c);
+                    game.update(&mut c);
+                    update_perf_counters(&mut c, &game);
+                    run_late_update_stages(&mut c, delta);
                 }
 
                 {
@@ -126,7 +133,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if game.engine().on_event(event) {
+                if engine.on_event(event) {
                     return;
                 }
 
@@ -221,7 +228,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                         if physical_size.width > min_resolution.0 &&
                             physical_size.height > min_resolution.1
                         {
-                            game.engine().resize(uvec2(
+                            engine.resize(uvec2(
                                 physical_size.width,
                                 physical_size.height,
                             ));
@@ -231,7 +238,7 @@ pub async fn run_comfy_main_async(mut game: impl GameLoop + 'static) {
                     WindowEvent::ScaleFactorChanged {
                         new_inner_size, ..
                     } => {
-                        game.engine().resize(uvec2(
+                        engine.resize(uvec2(
                             new_inner_size.width,
                             new_inner_size.height,
                         ));

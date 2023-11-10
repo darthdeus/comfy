@@ -2,8 +2,8 @@ use comfy::*;
 
 simple_game!("Cooldowns example", setup, update);
 
-fn setup(c: &mut EngineContext) {
-    c.load_sound_from_bytes(
+fn setup(_c: &mut EngineContext) {
+    load_sound_from_bytes(
         // Every sound gets a string name later used to reference it.
         "comfy-bell",
         include_bytes!(concat!(

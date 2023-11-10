@@ -15,7 +15,7 @@ fn config(config: GameConfig) -> GameConfig {
 pub struct GameState {}
 
 impl GameState {
-    pub fn new(_c: &EngineContext) -> Self {
+    pub fn new(_c: &EngineState) -> Self {
         Self {}
     }
 }

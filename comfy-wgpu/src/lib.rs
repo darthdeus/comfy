@@ -46,16 +46,6 @@ pub use crate::y_sort::*;
 pub use wgpu;
 pub use wgpu_types;
 
-// TODO: delete & cleanup remains
-// pub trait RunGameLoop {
-//     fn one_frame(&mut self, delta: f32);
-//     fn title(&self) -> String;
-//     fn set_renderer(&mut self, renderer: WgpuRenderer);
-//     fn renderer(&mut self) -> &mut WgpuRenderer;
-//     fn resize(&mut self, new_size: UVec2);
-//     fn quit_flag(&mut self) -> bool;
-// }
-
 pub trait Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
 }

@@ -13,7 +13,7 @@
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
-EXAMPLE=fragment-shader
+# EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
@@ -22,7 +22,7 @@ EXAMPLE=fragment-shader
 # EXAMPLE=post_processing
 # EXAMPLE=sprite
 # EXAMPLE=shapes
-# EXAMPLE=sound
+EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version

@@ -37,8 +37,6 @@ pub struct EngineContext<'a> {
 
     pub meta: &'a mut AnyMap,
 
-    pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
-
     pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
@@ -82,15 +80,6 @@ impl<'a> EngineContext<'a> {
         );
     }
 
-    pub fn load_sound_from_bytes(
-        &self,
-        name: &str,
-        bytes: &[u8],
-        settings: StaticSoundSettings,
-    ) {
-        ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
-    }
-
     pub fn load_fonts_from_bytes(&self, fonts: &[(&str, &[u8])]) {
         let mut font_defs = egui::FontDefinitions::default();
 
@@ -126,4 +115,12 @@ impl<'a> EngineContext<'a> {
     pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
         self.draw.borrow_mut()
     }
+}
+
+pub fn load_sound_from_bytes(
+    name: &str,
+    bytes: &[u8],
+    settings: StaticSoundSettings,
+) {
+    ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
 }

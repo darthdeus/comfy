@@ -1,5 +1,74 @@
 # v0.3.0
 
+**This release contains breaking changes, most notably around the
+`GameContext` and setup of the main game loop.** It's likely most games will
+be affected, but the changes needed are very small and should help us a
+lot in the long run.
+
+If you run into any issues, please either create an issue on GitHub, or ping
+@darth on Discord.
+
+**Read the section about `GameContext` below for more information.** But
+in practice you should be able to just figure out how to fix things from
+the compile errors and finding a relevant example. The new game setup is
+quite a bit simpler and more ergonomic.
+
+[The full game loop
+example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/full_game_loop.rs)
+contains a detailed description of how the main loop of Comfy is setup and
+shows what the macros expand to. With `v0.3.0` there is no need for lifetimes
+or `GameContext` and users are now much more easily able to define their own `main`
+without macros.
+
+## No more `GameContext` and lifetimes around `comfy_game!(...)`
+
+One of the most controversial topics after Comfy's release was
+`GameContext` vs `EngineContext`, and the the associated lifetimes with
+`make_context` and overall the amount of boilerplate.
+
+The initial stance was that `GameContext` is a good thing, as it allows more
+flexibility and allows users to pass around a single struct. But things have
+changed.
+
+**In Comfy `v0.2.0` we moved a lot of things into globals, which made almost all
+use cases around `EngineContext` obsolete and unnecessary.** As it is right now,
+users shouldn't really need to pass around `EngineContext` anymore unless they
+need something highly specific, such as disabling window resizing or changing
+mouse behavior throught `winit`'s `Window` that can be accessed through
+`c.renderer`. Everything else should be accessible through globals.
+
+There are a few fields left on `EngineContext` that are mainly for internal use
+and are mostly pending refactoring/deletion. We haven't odne this yet because
+we're using some of it in our games, and doing it slowly allows us to keep our
+games running against Comfy's `master` branch basically at all times. This
+might seem like a selfish reason, but a big benefit users get from Comfy is
+that we're using it to build games, and we're not locked to some older or
+special fork version of the engine. In fact, with almost every change I make to
+the engine I also update our games (most of the time just using `path` override
+at all times) to ensure nothing serious broke, as the examples don't
+necessarily cover everything.
+
+TL;DR:
+
+- `simple_game!(...)` should remain largely unaffected.
+- Your `comfy_game!(...)` now works around a single type that acts both as a
+  state object, as well as the game loop, and that can be passed around.
+- `comfy_game!(...)` no longer requires `GameContext`
+- `comfy_game!(...)` now accepts a single parameter, a type that implements a
+  `GameLoop` trait. [The physics
+  example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/physics.rs)
+  is a good starting point on how to implement this trait, but it should be
+  mostly self-evident.
+- `GameLoop` requires `new(c: &mut EngineState) -> Self` constructor, which
+  acts as early game initialization.
+- `GameLoop` implements a single `update(c: &mut EngineContext)` that ticks every frame.
+
+Note that the `GameLoop` trait requires a `fn new(c: &mut EngineState) -> Self`
+constructor, even though it is not theoretically needed if the user defines
+their own `main` and doesn't use any macros. This is so that the
+`comfy_game!(...)` macro wouldn't fail with cryptic error messages and users
+can simply rely on implementing all functions of the `GameLoop` trait.
+
 ## User defined fragment shaders with uniforms
 
 Starting from this version Comfy now supports user defined fragment shaders
