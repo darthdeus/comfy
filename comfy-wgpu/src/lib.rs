@@ -12,11 +12,13 @@ pub use winit::event::{
 mod batching;
 mod blood_canvas;
 mod bloom;
+mod debug;
 mod device;
 mod egui_integration;
 #[cfg(not(target_arch = "wasm32"))]
 mod hot_reload;
 mod instance;
+mod pipelines;
 mod post_processing;
 mod render_pass;
 mod renderer;
@@ -24,8 +26,6 @@ mod screenshot;
 mod texture;
 mod utils;
 mod y_sort;
-// idk what to call this, so magic it is for now ...
-mod debug;
 
 pub use crate::batching::*;
 pub use crate::blood_canvas::*;
@@ -36,6 +36,7 @@ pub use crate::egui_integration::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use crate::hot_reload::*;
 pub use crate::instance::*;
+pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
