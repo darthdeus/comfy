@@ -46,7 +46,7 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
             Some(create_render_target(c.renderer, &RenderTargetParams {
                 label: "my-render-target".to_string(),
                 size: uvec2(128, 128),
-                filter_mode: wgpu_types::FilterMode::Nearest,
+                filter_mode: wgpu::FilterMode::Nearest,
             }));
     }
 

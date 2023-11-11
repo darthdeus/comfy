@@ -111,6 +111,16 @@ New shader related functions (see their individual docstrings & [fragment shader
   to have official `mlua` bindings I'd rather that be done in a more principled approach
   where we make sure things are exported in a consistent way.
 
+We're also introducing experimental render targets. This is a feature that
+isn't yet complete, and there are some issues with it, but since merging it
+doesn't really affect/break existing code it'll be included in v0.3 so that we
+don't end up with long running feature branches for no reason. [There is an
+example showcasing how this feature will
+work](https://github.com/darthdeus/comfy/blob/render-targets/comfy/examples/render-target.rs),
+but it's very likely we'll have breaking changes around this API, and would
+like to discourage people from depending on this functionality in any way for
+now. But do feel free to play around with it!
+
 # v0.2.0
 
 The main change in this release is that `EngineContext` is not necessary to
