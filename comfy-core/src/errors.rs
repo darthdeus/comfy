@@ -13,10 +13,13 @@ impl Errors {
     }
 }
 
-pub fn clear_error(id: impl Into<Cow<'static, str>>) {
-    ERRORS.borrow_mut().data.remove(&id.into());
-}
-
+/// Stores an error message with the given ID. This is useful for immediate mode error reporting
+/// when you don't want to pollute the log on every frame.
+///
+/// When `--features dev` is active, errors will show in an egui window in game.
+///
+/// The `id` parameter can be any string. We're using `Cow<'static, str>` to save on allocations
+/// for ids/errors that can be represented as `&'static str`.
 pub fn report_error(
     id: impl Into<Cow<'static, str>>,
     error: impl Into<Cow<'static, str>>,
@@ -24,8 +27,7 @@ pub fn report_error(
     ERRORS.borrow_mut().data.insert(id.into(), error.into());
 }
 
-// pub fn reported_errors_iter(
-// ) -> impl Deref<Target = impl Iterator<Item = (&Cow<'static, str>, &Cow<'static, str>)>>
-// {
-//     AtomicRef::map(ERRORS.borrow(), |x| x.data.iter())
-// }
+/// Clears a previously set error. Use the same ID as when calling `report_error`.
+pub fn clear_error(id: impl Into<Cow<'static, str>>) {
+    ERRORS.borrow_mut().data.remove(&id.into());
+}

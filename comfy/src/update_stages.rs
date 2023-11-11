@@ -485,6 +485,7 @@ fn process_notifications(_c: &mut EngineContext) {
                 });
                 ui.add_space(28.0);
 
+                // TODO: lol, this really shouldn't be here anymore
                 // let bg = nine_patch_rect_ex(
                 //     egui::Rect::from_min_size(
                 //         ui.clip_rect().left_top(),
