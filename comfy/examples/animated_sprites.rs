@@ -86,4 +86,71 @@ fn update(_c: &mut EngineContext) {
             },
         );
     }
+
+    // Sprite alignment using draw_sprite_pro
+    for i in 0..9 {
+        let step = 1.5;
+
+        let x_off = (i % 3) as f32 * step;
+        let y_off = (i / 3) as f32 * step;
+
+        let position = vec2(-8.0 + x_off, -3.0 + y_off);
+        let sprite_size = vec2(0.8, 0.8);
+
+        let z_index = 0;
+
+        draw_rect_outline(position, sprite_size, 0.1, RED, 0);
+        draw_circle(position, 0.1, RED, z_index + 1);
+
+        draw_sprite_pro(
+            texture_id("player"),
+            position,
+            WHITE,
+            0,
+            DrawTextureProParams {
+                source_rect: Some(src_rect),
+                align: match i {
+                    0 => SpriteAlign::TopLeft,
+                    1 => SpriteAlign::TopCenter,
+                    2 => SpriteAlign::TopRight,
+                    3 => SpriteAlign::CenterLeft,
+                    4 => SpriteAlign::Center,
+                    5 => SpriteAlign::CenterRight,
+                    6 => SpriteAlign::BottomLeft,
+                    7 => SpriteAlign::BottomCenter,
+                    8 => SpriteAlign::BottomRight,
+                    _ => unreachable!(),
+                },
+                pivot: Some(vec2(0.0, 0.0)),
+                // Rotation and size are applied relative to the alignment point
+                size: sprite_size + t.sin().abs() * 0.3,
+                rotation: t,
+                flip_x: false,
+                flip_y: false,
+                blend_mode: BlendMode::Alpha,
+            },
+        )
+    }
+
+    // Using the rotation pivot to rotate around a point
+    {
+        let position = vec2(0.0, -6.0);
+        let pivot = vec2(0.25*t.sin(), 0.25*t.cos());
+
+        draw_circle_outline(position, 1.0, 0.1, RED, 0);
+        draw_circle(position, 0.1, RED, 1);
+        draw_circle(position + pivot, 0.1, GREEN, 1);
+        draw_sprite_pro(
+            texture_id("player"),
+            position,
+            WHITE,
+            0,
+            DrawTextureProParams {
+                source_rect: Some(src_rect),
+                pivot: Some(pivot),
+                rotation: t,
+                ..Default::default()
+            },
+        )
+    }
 }

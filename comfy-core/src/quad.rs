@@ -173,6 +173,21 @@ pub struct DrawTextureProParams {
     pub blend_mode: BlendMode,
 }
 
+impl Default for DrawTextureProParams {
+    fn default() -> Self {
+        Self {
+            source_rect: None,
+            align: SpriteAlign::Center,
+            pivot: None,
+            size: Vec2::ONE,
+            rotation: 0.0,
+            flip_x: false,
+            flip_y: false,
+            blend_mode: Default::default(),
+        }
+    }
+}
+
 pub fn draw_sprite_pro(
     texture: TextureHandle,
     position: Vec2,
