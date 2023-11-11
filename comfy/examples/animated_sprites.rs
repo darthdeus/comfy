@@ -135,7 +135,7 @@ fn update(_c: &mut EngineContext) {
     // Using the rotation pivot to rotate around a point
     {
         let position = vec2(0.0, -6.0);
-        let pivot = vec2(0.25*t.sin(), 0.25*t.cos());
+        let pivot = vec2(0.25 * t.sin(), 0.25 * t.cos());
 
         draw_circle_outline(position, 1.0, 0.1, RED, 0);
         draw_circle(position, 0.1, RED, 1);
