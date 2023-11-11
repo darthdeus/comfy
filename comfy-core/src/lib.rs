@@ -542,6 +542,7 @@ pub struct MeshDraw {
     pub mesh: Mesh,
     pub texture_params: TextureParams,
     pub shader: Option<ShaderInstance>,
+    pub render_target: Option<RenderTargetId>,
 }
 
 pub struct DrawParams<'a> {

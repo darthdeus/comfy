@@ -34,9 +34,9 @@ pub fn run_batched_render_passes(
         .group_by(|p| p.z_index);
 
     for (_, z_index_group) in &grouped_render_passes {
-        for ((blend_mode, shader), blend_group) in &z_index_group
+        for ((blend_mode, shader, render_target), blend_group) in &z_index_group
             .sorted_by_key(|x| x.blend_mode)
-            .group_by(|x| (x.blend_mode, x.shader.clone()))
+            .group_by(|x| (x.blend_mode, x.shader.clone(), x.render_target))
         {
             let (meshes, particles) = blend_group.into_iter().fold(
                 (vec![], vec![]),
@@ -46,6 +46,7 @@ pub fn run_batched_render_passes(
                             acc.0.push(MeshDrawData {
                                 blend_mode,
                                 shader: shader.clone(),
+                                render_target,
                                 texture: pass_data.texture,
                                 data: mesh_draw,
                             })
@@ -63,10 +64,10 @@ pub fn run_batched_render_passes(
                 },
             );
 
-            for ((blend_mode, texture, shader), mesh_group) in &meshes
-                .into_iter()
-                .sorted_by_key(|x| x.texture)
-                .group_by(|x| (x.blend_mode, x.texture, x.shader.clone()))
+            for ((blend_mode, texture, shader, render_target), mesh_group) in
+                &meshes.into_iter().sorted_by_key(|x| x.texture).group_by(|x| {
+                    (x.blend_mode, x.texture, x.shader.clone(), x.render_target)
+                })
             {
                 render_meshes(
                     c,
@@ -76,6 +77,7 @@ pub fn run_batched_render_passes(
                         blend_mode,
                         texture,
                         shader: shader.clone(),
+                        render_target,
                         data: mesh_group
                             .flat_map(|x| x.data)
                             .collect_vec()
