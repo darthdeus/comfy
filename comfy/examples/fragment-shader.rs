@@ -27,13 +27,12 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
             //
             // Note that currently hot reloading an invalid shader will log the error in the
             // terminal, but will automatically fall back to the previous shader that compiled.
-            create_reloadable_shader(
+            create_reloadable_sprite_shader(
                 &mut c.renderer.shaders.borrow_mut(),
                 "my-shader",
                 ReloadableShaderSource {
-                    static_source: sprite_shader_from_fragment(include_str!(
-                        "fragment-shader.wgsl"
-                    )),
+                    static_source: include_str!("fragment-shader.wgsl")
+                        .to_string(),
                     path: "comfy/examples/fragment-shader.wgsl".to_string(),
                 },
                 // Uniforms can have default values. When we switch to this shader we'll have to

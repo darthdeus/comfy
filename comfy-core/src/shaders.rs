@@ -2,11 +2,10 @@ use crate::*;
 use std::sync::atomic::AtomicU64;
 
 static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
-static GENERATED_RENDER_TARGET_IDS: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug)]
 pub struct ShaderMap {
-    shaders: HashMap<ShaderId, Shader>,
+    pub shaders: HashMap<ShaderId, Shader>,
     pub watched_paths: HashMap<String, ShaderId>,
 }
 
@@ -77,6 +76,21 @@ pub enum Uniform {
     Custom(Vec<u8>),
 }
 
+static CURRENT_RENDER_TARGET: Lazy<AtomicRefCell<Option<RenderTargetId>>> =
+    Lazy::new(|| AtomicRefCell::new(None));
+
+pub fn use_render_target(id: RenderTargetId) {
+    *CURRENT_RENDER_TARGET.borrow_mut() = Some(id);
+}
+
+pub fn use_default_render_target() {
+    *CURRENT_RENDER_TARGET.borrow_mut() = None;
+}
+
+pub fn get_current_render_target() -> Option<RenderTargetId> {
+    *CURRENT_RENDER_TARGET.borrow()
+}
+
 static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
     Lazy::new(|| AtomicRefCell::new(None));
 
@@ -135,16 +149,19 @@ pub fn create_shader(
 ) -> Result<ShaderId> {
     let id = gen_shader_id();
 
+    if !source.contains("@vertex") {
+        panic!(
+            "Missing @vertex function in shader passed to `create_shader`.
+
+             Did you forget to call `sprite_shader_from_fragment`?"
+        );
+    }
+
     if shaders.exists(id) {
         bail!("Shader with name '{}' already exists", name);
     }
 
-    let bindings = uniform_defs
-        .iter()
-        .sorted_by_key(|x| x.0)
-        .enumerate()
-        .map(|(i, (name, _))| (name.clone(), i as u32))
-        .collect::<HashMap<String, u32>>();
+    let bindings = uniform_defs_to_bindings(&uniform_defs);
 
     shaders.insert_shader(id, Shader {
         id,
@@ -157,6 +174,17 @@ pub fn create_shader(
     Ok(id)
 }
 
+pub fn uniform_defs_to_bindings(
+    uniform_defs: &UniformDefs,
+) -> HashMap<String, u32> {
+    uniform_defs
+        .iter()
+        .sorted_by_key(|x| x.0)
+        .enumerate()
+        .map(|(i, (name, _))| (name.clone(), i as u32))
+        .collect::<HashMap<String, u32>>()
+}
+
 /// Stores both a static source code for a shader as well as path to its file in development. This
 /// is used for automatic shader hot reloading.
 pub struct ReloadableShaderSource {
@@ -164,23 +192,7 @@ pub struct ReloadableShaderSource {
     pub path: String,
 }
 
-/// Update the shader source for the given shader ID. This can be used by users who with to
-/// implement their own shader hot reloading.
-pub fn update_shader(
-    shaders: &mut ShaderMap,
-    id: ShaderId,
-    fragment_source: &str,
-) {
-    if let Some(shader) = shaders.shaders.get_mut(&id) {
-        shader.source = build_shader_source(
-            fragment_source,
-            &shader.bindings,
-            &shader.uniform_defs,
-        );
-    }
-}
-
-fn build_shader_source(
+pub fn build_shader_source(
     fragment_source: &str,
     bindings: &HashMap<String, u32>,
     uniform_defs: &UniformDefs,
@@ -202,20 +214,8 @@ fn build_shader_source(
     format!("{}\n{}", uniforms_src, fragment_source)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum RenderTargetId {
-    Named(String),
+    Named(&'static str),
     Generated(u64),
-}
-
-/// Allocates a new render target for later use. If a label is provided
-/// it'll be used to set the debug name so graphic debuggers like RenderDoc
-/// can display it properly.
-pub fn gen_render_target(_label: Option<&str>) -> RenderTargetId {
-    // TODO: use the label
-    //
-    let id = GENERATED_RENDER_TARGET_IDS
-        .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-
-    RenderTargetId::Generated(id)
 }

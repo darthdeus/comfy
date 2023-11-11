@@ -62,7 +62,6 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     process_temp_draws(c);
     combat_text_system();
     process_notifications(c);
-    show_errors(c);
     show_lighting_ui(c);
 
     c.draw.borrow_mut().marks.retain_mut(|mark| {
@@ -98,6 +97,7 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     }
 
     main_camera_mut().update(delta);
+    show_errors(c);
     commands().run_on(&mut world_mut());
     world_mut().flush();
 }
@@ -485,6 +485,7 @@ fn process_notifications(_c: &mut EngineContext) {
                 });
                 ui.add_space(28.0);
 
+                // TODO: lol, this really shouldn't be here anymore
                 // let bg = nine_patch_rect_ex(
                 //     egui::Rect::from_min_size(
                 //         ui.clip_rect().left_top(),
@@ -501,9 +502,7 @@ fn process_notifications(_c: &mut EngineContext) {
 }
 
 fn show_errors(_c: &mut EngineContext) {
-    if cfg!(feature = "dev") &&
-        game_config().dev.recording_mode == RecordingMode::None
-    {
+    if cfg!(feature = "dev") {
         let errors = ERRORS.borrow();
 
         if !errors.data.is_empty() {

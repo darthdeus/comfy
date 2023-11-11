@@ -273,7 +273,7 @@ impl AnimatedSpriteBuilder {
         );
 
         self.state = Some(
-            animations.get(0).expect("animations can't be empty").to_state(),
+            animations.first().expect("animations can't be empty").to_state(),
         );
 
         for animation in animations.into_iter() {

@@ -20,13 +20,16 @@ macro_rules! reloadable_shader_source {
 }
 
 /// Similar to `create_shader` but automatically hot reloads the shader on change.
+/// Note that `create_reloadable_sprite_shader` will automatically call
+/// `sprite_shader_from_fragment`, meaning your source should only contain the fragment part.
+///
 /// The user needs to provide a `ReloadableShaderSource` which contains the static source to be
 /// embedded in the binary, as well as the path to the shader file path for hot reloading.
 ///
 /// The [fragment_shader
 /// example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/fragment-shader.rs#L24-L57)
 /// contains a full working example of how works.
-pub fn create_reloadable_shader(
+pub fn create_reloadable_sprite_shader(
     shaders: &mut ShaderMap,
     name: &str,
     reloadable_source: ReloadableShaderSource,
@@ -35,7 +38,7 @@ pub fn create_reloadable_shader(
     let id = create_shader(
         shaders,
         name,
-        &reloadable_source.static_source,
+        &sprite_shader_from_fragment(&reloadable_source.static_source),
         uniform_defs,
     )?;
 
@@ -127,12 +130,11 @@ impl HotReload {
                         let fragment_source =
                             &sprite_shader_from_fragment(&source);
 
-                        if check_shader_with_naga(fragment_source)
-                            .log_err_ok()
-                            .is_some()
-                        {
-                            update_shader(shaders, *shader_id, fragment_source);
-                        }
+                        checked_update_shader(
+                            shaders,
+                            *shader_id,
+                            fragment_source,
+                        );
                     }
 
                     Err(error) => {
@@ -167,4 +169,33 @@ pub fn check_shader_with_naga(source: &str) -> Result<()> {
     validator.validate(&module)?;
 
     Ok(())
+}
+
+/// Update the shader source for the given shader ID. This can be used by users who with to
+/// implement their own shader hot reloading.
+pub fn checked_update_shader(
+    shaders: &mut ShaderMap,
+    id: ShaderId,
+    fragment_source: &str,
+) {
+    let shader_error_id = format!("{}-shader", id);
+
+    if let Some(shader) = shaders.shaders.get_mut(&id) {
+        let final_source = build_shader_source(
+            fragment_source,
+            &shader.bindings,
+            &shader.uniform_defs,
+        );
+
+        match check_shader_with_naga(&final_source) {
+            Ok(()) => {
+                clear_error(shader_error_id);
+                shader.source = final_source;
+            }
+            Err(err) => {
+                report_error(shader_error_id, format!("SHADER ERROR: {}", err));
+                error!("SHADER COMPILE ERROR:\n{:?}", err);
+            }
+        }
+    }
 }

@@ -6,8 +6,8 @@ use image::Rgba;
 use winit::window::Window;
 
 pub enum RenderPipeline<'a> {
-    User(&'a mut UserRenderPipeline),
-    Wgpu(&'a mut wgpu::RenderPipeline),
+    User(&'a UserRenderPipeline),
+    Wgpu(&'a wgpu::RenderPipeline),
 }
 
 pub struct UserRenderPipeline {
@@ -20,6 +20,7 @@ pub struct UserRenderPipeline {
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type UserPipelineMap = HashMap<String, UserRenderPipeline>;
 pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
+pub type RenderTargetMap = HashMap<RenderTargetId, UserRenderTarget>;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -56,6 +57,7 @@ pub struct WgpuRenderer {
     pub pipelines: PipelineMap,
     pub user_pipelines: UserPipelineMap,
     pub shaders: RefCell<ShaderMap>,
+    pub render_targets: RefCell<RenderTargetMap>,
 
     pub egui_winit: egui_winit::State,
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
@@ -480,6 +482,8 @@ impl WgpuRenderer {
             user_pipelines: HashMap::new(),
 
             shaders: RefCell::new(shaders),
+            render_targets: RefCell::new(HashMap::new()),
+
             #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
             hot_reload: HotReload::new(),
 

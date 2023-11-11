@@ -129,6 +129,7 @@ impl Texture {
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor {
+            label: Some(&format!("{} View", label)),
             // TODO: fix this and move it to the pp layer instead
             mip_level_count: if mip_level_count > 0 { Some(1) } else { None },
             // base_mip_level: 0,
@@ -137,6 +138,7 @@ impl Texture {
         });
 
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some(&format!("{} Sampler", label)),
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,

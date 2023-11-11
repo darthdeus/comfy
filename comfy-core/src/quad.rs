@@ -1348,6 +1348,7 @@ pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
         mesh,
         texture_params,
         shader: get_current_shader(),
+        render_target: get_current_render_target(),
     });
 }
 

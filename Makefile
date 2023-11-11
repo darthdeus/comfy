@@ -20,9 +20,10 @@
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
+EXAMPLE=render-target
 # EXAMPLE=sprite
 # EXAMPLE=shapes
-EXAMPLE=sound
+# EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
@@ -58,6 +59,7 @@ lint:
 timings:
 	cargo clean
 	cargo build --timings --example sprite
+	# RUSTFLAGS="-Z threads=8" cargo build --timings --example sprite
 
 serve:
 	simple-http-server target/generated -c wasm,html,js -i

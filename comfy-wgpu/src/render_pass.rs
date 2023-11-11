@@ -4,6 +4,7 @@ pub struct MeshDrawData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
     pub shader: Option<ShaderInstance>,
+    pub render_target: Option<RenderTargetId>,
     pub data: smallvec::SmallVec<[MeshDraw; 1]>,
 }
 
@@ -20,17 +21,7 @@ pub struct RenderPassData {
     pub texture: TextureHandle,
     pub data: DrawData,
     pub shader: Option<ShaderInstance>,
-    // Meshes {
-    //     meshes: Vec<MeshDraw>,
-    // },
-    //
-    // Particles {
-    //     z_index: i32,
-    //     blend_mode: BlendMode,
-    //     draw_mode: DrawMode,
-    //     texture: TextureHandle,
-    //     particles: Vec<ParticleDraw>,
-    // },
+    pub render_target: Option<RenderTargetId>,
 }
 
 // TODO: enum has a large difference between member sizes
@@ -51,10 +42,14 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         span_with_timing!("prepare meshes");
 
         // Meshes
-        for ((blend_mode, shader), group) in &params
-            .mesh_queue
-            .iter()
-            .group_by(|draw| (draw.texture_params.blend_mode, &draw.shader))
+        for ((blend_mode, shader, render_target), group) in
+            &params.mesh_queue.iter().group_by(|draw| {
+                (
+                    draw.texture_params.blend_mode,
+                    &draw.shader,
+                    draw.render_target,
+                )
+            })
         {
             let _span = span!("blend_mode");
 
@@ -94,6 +89,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                         z_index: draw.mesh.z_index,
                         blend_mode,
                         shader: shader.clone(),
+                        render_target,
                         texture: tex_handle,
                         data: DrawData::Meshes([draw.clone()].into()),
                     });
@@ -118,6 +114,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                         blend_mode,
                         texture: tex_handle,
                         shader: None,
+                        render_target: None,
                         data: DrawData::Particles(vec![*draw]),
                     });
                 }
@@ -131,6 +128,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
             blend_mode: BlendMode::Alpha,
             texture: white_px,
             shader: None,
+            render_target: None,
             data: DrawData::Meshes(SmallVec::new()),
         }]
     } else {
