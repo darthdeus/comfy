@@ -88,7 +88,7 @@ pub fn use_default_render_target() {
 }
 
 pub fn get_current_render_target() -> Option<RenderTargetId> {
-    CURRENT_RENDER_TARGET.borrow().clone()
+    *CURRENT_RENDER_TARGET.borrow()
 }
 
 static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
