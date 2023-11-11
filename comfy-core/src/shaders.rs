@@ -76,6 +76,21 @@ pub enum Uniform {
     Custom(Vec<u8>),
 }
 
+static CURRENT_RENDER_TARGET: Lazy<AtomicRefCell<Option<RenderTargetId>>> =
+    Lazy::new(|| AtomicRefCell::new(None));
+
+pub fn use_render_target(id: RenderTargetId) {
+    *CURRENT_RENDER_TARGET.borrow_mut() = Some(id);
+}
+
+pub fn use_default_render_target() {
+    *CURRENT_RENDER_TARGET.borrow_mut() = None;
+}
+
+pub fn get_current_render_target() -> Option<RenderTargetId> {
+    CURRENT_RENDER_TARGET.borrow().clone()
+}
+
 static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
     Lazy::new(|| AtomicRefCell::new(None));
 
@@ -199,8 +214,8 @@ pub fn build_shader_source(
     format!("{}\n{}", uniforms_src, fragment_source)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum RenderTargetId {
-    Named(String),
+    Named(&'static str),
     Generated(u64),
 }

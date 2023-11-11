@@ -4,12 +4,82 @@ use crate::*;
 
 static GENERATED_RENDER_TARGET_IDS: AtomicU64 = AtomicU64::new(0);
 
-/// Allocates a new render target for later use. If a label is provided
-/// it'll be used to set the debug name so graphic debuggers like RenderDoc
-/// can display it properly.
-pub fn gen_render_target(_label: Option<&str>) -> RenderTargetId {
-    // TODO: use the label
-    //
+#[derive(Clone, Debug)]
+pub struct RenderTargetParams {
+    pub label: String,
+    pub size: UVec2,
+    pub filter_mode: wgpu::FilterMode,
+}
+
+/// Creates a new render target with given dimensions. Among other parameters a label is
+/// required so that graphic debuggers like RenderDoc can display its name properly.
+pub fn create_render_target(
+    renderer: &mut WgpuRenderer,
+    params: &RenderTargetParams,
+) -> RenderTargetId {
+    let id = gen_render_target();
+
+    let c = &renderer.context;
+
+    let size = wgpu::Extent3d {
+        width: params.size.x,
+        height: params.size.y,
+        depth_or_array_layers: 1,
+    };
+
+    let texture = c.device.create_texture(&wgpu::TextureDescriptor {
+        label: Some(&params.label),
+        size,
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Rgba16Float,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING |
+            wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+
+    let view = texture.create_view(&wgpu::TextureViewDescriptor {
+        label: Some(&format!("{} View", params.label)),
+        format: None,
+        dimension: None,
+        aspect: wgpu::TextureAspect::All,
+        base_mip_level: 0,
+        mip_level_count: None,
+        base_array_layer: 0,
+        array_layer_count: None,
+    });
+
+    let sampler = c.device.create_sampler(&wgpu::SamplerDescriptor {
+        label: Some(&format!("{} Sampler", params.label)),
+        address_mode_u: wgpu::AddressMode::ClampToEdge,
+        address_mode_v: wgpu::AddressMode::ClampToEdge,
+        address_mode_w: wgpu::AddressMode::ClampToEdge,
+        mag_filter: params.filter_mode,
+        min_filter: params.filter_mode,
+        mipmap_filter: params.filter_mode,
+        ..Default::default()
+    });
+
+    renderer.render_targets.borrow_mut().insert(id, UserRenderTarget {
+        creation_params: params.clone(),
+        texture,
+        view,
+        sampler,
+    });
+
+    id
+}
+
+pub struct UserRenderTarget {
+    pub creation_params: RenderTargetParams,
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+}
+
+/// Allocates a new render target id
+fn gen_render_target() -> RenderTargetId {
     let id = GENERATED_RENDER_TARGET_IDS
         .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
