@@ -22,17 +22,6 @@ pub struct RenderPassData {
     pub data: DrawData,
     pub shader: Option<ShaderInstance>,
     pub render_target: Option<RenderTargetId>,
-    // Meshes {
-    //     meshes: Vec<MeshDraw>,
-    // },
-    //
-    // Particles {
-    //     z_index: i32,
-    //     blend_mode: BlendMode,
-    //     draw_mode: DrawMode,
-    //     texture: TextureHandle,
-    //     particles: Vec<ParticleDraw>,
-    // },
 }
 
 // TODO: enum has a large difference between member sizes

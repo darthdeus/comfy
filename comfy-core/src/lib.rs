@@ -879,6 +879,7 @@ impl Sound {
 pub enum TextureHandle {
     Path(u64),
     Raw(u64),
+    RenderTarget(RenderTargetId)
 }
 
 impl TextureHandle {

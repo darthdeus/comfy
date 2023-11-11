@@ -108,6 +108,7 @@ impl DebugDraw {
     }
 }
 
+// TODO: replace & get rid of this
 // pub fn render_colliders(c: &mut Context) {
 //     let mut to_draw = vec![];
 //

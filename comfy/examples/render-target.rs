@@ -23,8 +23,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var final_color: vec4<f32> = tex * in.color;
 
     final_color.r = final_color.r;
-    final_color.g = 0.0;
-    final_color.b = 0.0;
+    final_color.g = final_color.g * 0.2;
+    final_color.b = final_color.b * 0.2;
 
     return final_color;
 }
@@ -55,19 +55,29 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
 
     use_render_target(render_target_id);
 
-    // First draw with a default shader.
-    draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
-
-    // When we switch a shader the uniforms will get their default value
+    draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(4.0));
     use_shader(shader_id);
-
-    draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
+    draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(2.0));
+    draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
+    use_default_shader();
+    draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
 
     use_default_render_target();
 
-    draw_comfy(vec2(2.0, 0.0), WHITE, 0, splat(1.0));
-
-    // We can also easily switch back to the default sprite shader.
+    use_shader(shader_id);
+    draw_sprite(
+        TextureHandle::RenderTarget(render_target_id),
+        vec2(0.0, 5.0),
+        WHITE,
+        0,
+        splat(4.0),
+    );
     use_default_shader();
-    draw_comfy(vec2(4.0, 0.0), WHITE, 0, splat(1.0));
+    draw_sprite(
+        TextureHandle::RenderTarget(render_target_id),
+        vec2(2.0, 2.0),
+        WHITE,
+        0,
+        splat(3.0),
+    );
 }

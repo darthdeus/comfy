@@ -61,11 +61,27 @@ pub fn create_render_target(
         ..Default::default()
     });
 
+    let bind_group = c.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some(&format!("{} Bind Group", params.label)),
+        layout: &c.texture_layout,
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: wgpu::BindingResource::Sampler(&sampler),
+            },
+        ],
+    });
+
     renderer.render_targets.borrow_mut().insert(id, UserRenderTarget {
         creation_params: params.clone(),
         texture,
         view,
         sampler,
+        bind_group,
     });
 
     id
@@ -76,6 +92,7 @@ pub struct UserRenderTarget {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
+    pub bind_group: wgpu::BindGroup,
 }
 
 /// Allocates a new render target id

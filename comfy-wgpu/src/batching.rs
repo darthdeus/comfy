@@ -161,19 +161,23 @@ pub fn render_meshes(
     );
 
     let textures = c.textures.lock();
+    let render_targets = c.render_targets.borrow();
 
     let mut encoder = c.context.device.simple_encoder("Mesh Render Encoder");
 
     {
         let clear_color = if is_first { Some(clear_color) } else { None };
 
-        let target_view =
-            if c.post_processing_effects.borrow().iter().any(|x| x.enabled) {
-                &c.first_pass_texture.view
-            } else {
-                surface_view
-            };
-
+        let target_view = if let Some(render_target) = pass_data.render_target {
+            &render_targets
+                .get(&render_target)
+                .expect("user render target must exist when used")
+                .view
+        } else if c.post_processing_effects.borrow().iter().any(|x| x.enabled) {
+            &c.first_pass_texture.view
+        } else {
+            surface_view
+        };
 
         let mut render_pass =
             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -221,10 +225,19 @@ pub fn render_meshes(
             );
         }
 
-        let tex_bind_group = &textures
-            .get(&tex_handle)
-            .unwrap_or_else(|| textures.get(&texture_id("error")).unwrap())
-            .0;
+        let tex_bind_group = match tex_handle {
+            TextureHandle::RenderTarget(render_target_id) => {
+                &render_targets.get(&render_target_id).unwrap().bind_group
+            }
+            _ => {
+                &textures
+                    .get(&tex_handle)
+                    .unwrap_or_else(|| {
+                        textures.get(&texture_id("error")).unwrap()
+                    })
+                    .0
+            }
+        };
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);

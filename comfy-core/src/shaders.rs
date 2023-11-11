@@ -214,7 +214,7 @@ pub fn build_shader_source(
     format!("{}\n{}", uniforms_src, fragment_source)
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum RenderTargetId {
     Named(&'static str),
     Generated(u64),
