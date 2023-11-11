@@ -271,11 +271,7 @@ pub fn draw_sprite_pro(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams {
-        // TODO: shader
-        shader: None,
-        blend_mode: params.blend_mode,
-    });
+    draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
 }
 
 
