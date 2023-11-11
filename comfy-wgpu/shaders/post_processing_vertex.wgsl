@@ -44,5 +44,9 @@ var r_color: texture_2d<f32>;
 @group(0) @binding(1)
 var r_sampler: sampler;
 
-@group(1) @binding(0)
-var<uniform> params: GlobalLightingParams;
+// TODO: unify this with frag-shader-prefix to avoid dupes
+
+@group(0) @binding(0)
+var t_diffuse: texture_2d<f32>;
+@group(0)@binding(1)
+var s_diffuse: sampler;

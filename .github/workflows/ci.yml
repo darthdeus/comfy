@@ -14,48 +14,112 @@ jobs:
   build:
     strategy:
       matrix:
-        # os: [windows-latest, ubuntu-latest, macos-latest]
-        os: [ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        # os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v3
 
-      - name: Remove cargo config for incremental builds
+      - name: Remove cargo config for incremental builds (Linux & macOS)
         run: rm -f .cargo/config.toml
+        if: runner.os != 'windows'
 
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-build-nightly-${{ hashFiles('**/Cargo.toml') }}
+      - name: Remove cargo config for incremental builds (Windows)
+        run: Remove-Item .cargo\config.toml -Force -ErrorAction SilentlyContinue
+        if: runner.os == 'windows'
 
       - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: clippy, rustfmt
 
       - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
         if: runner.os == 'linux'
 
       - name: Cache rust modules
-        uses: Swatinem/rust-cache@v2.0.1
+        uses: Swatinem/rust-cache@v2.7.0
         with:
           cache-on-failure: true
-          shared-key: ubuntu-build
+          shared-key: ${{matrix.os}}-build
 
-      - name: Build & run tests
+      - name: Build tests
+        run: cargo test --features blobs --no-run
+
+      - name: Run tests
         run: cargo test --features blobs
 
       - name: Build all examples
         run: ./build-examples.sh
 
-      - name: Clippy
-        run: cargo clippy
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
 
-      - name: Rustfmt check
-        run: cargo fmt --check
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
+
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+
+      - name: Cache rust modules
+        uses: Swatinem/rust-cache@v2.7.0
+        with:
+          cache-on-failure: true
+          shared-key: ubuntu-build
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+        if: runner.os == 'linux'
+
+      - run: cargo clippy --features wayland
+
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove cargo config for incremental builds
+        run: rm -f .cargo/config.toml
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache rust modules
+        uses: Swatinem/rust-cache@v2.7.0
+        with:
+          cache-on-failure: true
+          shared-key: ubuntu-build
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends g++ pkg-config libx11-dev libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+        if: runner.os == 'linux'
+
+      - name: doc
+        run: cargo doc --no-deps --features wayland
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+
+  cargo-machete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Install cargo-machete"
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: cargo-machete
+          version: "0.6.0"
+
+      - name: "Use machete to cut down dependencies"
+        run: cargo machete

@@ -70,24 +70,12 @@ pub struct Bloom {
 impl Bloom {
     pub fn new(
         context: &GraphicsContext,
-        config: &wgpu::SurfaceConfiguration,
+        shaders: &mut ShaderMap,
         format: wgpu::TextureFormat,
         lighting_params: Arc<wgpu::BindGroup>,
         lighting_params_layout: &wgpu::BindGroupLayout,
     ) -> Self {
-        // let threshold = PostProcessingEffect::new_with_mip(
-        //     "Bloom Threshold",
-        //     device,
-        //     &layout,
-        //     config,
-        //     format,
-        //     simple_fragment_shader(
-        //         "bloom-threshold",
-        //         include_str!("../../assets/shaders/bloom-threshold.wgsl"),
-        //     ),
-        //     BLOOM_MIP_LEVEL_COUNT,
-        //     wgpu::BlendState::REPLACE,
-        // );
+        let config = context.config.borrow();
 
         let device = &context.device;
         let texture_layout = &context.texture_layout;
@@ -95,40 +83,42 @@ impl Bloom {
         let threshold_render_texture =
             Texture::create_scaled_mip_surface_texture(
                 device,
-                config,
+                &config,
                 format,
                 1.0,
                 BLOOM_MIP_LEVEL_COUNT,
                 "Bloom Threshold Texture",
             );
 
-        let threshold = PostProcessingEffect {
-            name: "Bloom Threshold".into(),
-            enabled: true,
-            bind_group: device.simple_bind_group(
-                "Bloom Threshold Bind Group",
-                &threshold_render_texture,
-                texture_layout,
-            ),
-            render_texture: threshold_render_texture,
-            pipeline: create_post_processing_pipeline(
-                "Bloom Threshold",
-                device,
-                format,
-                &[texture_layout, lighting_params_layout],
-                reloadable_wgsl_fragment_shader!("bloom-threshold"),
-                wgpu::BlendState::REPLACE,
-            ),
-        };
+        let threshold = {
+            let shader = create_engine_post_processing_shader!(
+                shaders,
+                "bloom-threshold"
+            );
 
-        // simple_fragment_shader(
-        //     "bloom-threshold",
-        //     include_str!("../../assets/shaders/bloom-threshold.wgsl"),
-        // ),
+            PostProcessingEffect {
+                id: shader.id,
+                name: "Bloom Threshold".into(),
+                enabled: true,
+                bind_group: device.simple_bind_group(
+                    "Bloom Threshold Bind Group",
+                    &threshold_render_texture,
+                    texture_layout,
+                ),
+                render_texture: threshold_render_texture,
+                pipeline: create_post_processing_pipeline(
+                    "Bloom Threshold",
+                    device,
+                    format,
+                    &[texture_layout, lighting_params_layout],
+                    shader,
+                    wgpu::BlendState::REPLACE,
+                ),
+            }
+        };
 
         // let use_hdr = true;
         // let hdr_format = wgpu::TextureFormat::Rgba16Float;
-
 
         // let blur_bind_group_layout = device.simple_bind_group("Bloom Blur", texture, layout)
         // let blur_bind_group_layout =
@@ -164,7 +154,7 @@ impl Bloom {
 
         let blur_texture = Texture::create_scaled_mip_filter_surface_texture(
             device,
-            config,
+            &config,
             format,
             1.0,
             1,
@@ -183,13 +173,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout],
-            simple_fragment_shader(
-                "bloom-mip-blur",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-mip-blur.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-mip-blur"),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
@@ -205,13 +189,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout],
-            simple_fragment_shader(
-                "bloom-mip-blur",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-merge.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-merge"),
             wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
@@ -228,14 +206,14 @@ impl Bloom {
             FrameBuffer::new(
                 "Bloom Ping Pong 0",
                 device,
-                config,
+                &config,
                 format,
                 texture_layout,
             ),
             FrameBuffer::new(
                 "Bloom Ping Pong 1",
                 device,
-                config,
+                &config,
                 format,
                 texture_layout,
             ),
@@ -299,13 +277,7 @@ impl Bloom {
             device,
             format,
             &[texture_layout, lighting_params_layout, &blur_direction_layout],
-            simple_fragment_shader(
-                "bloom-gauss",
-                include_str!(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/shaders/bloom-gauss.wgsl"
-                )),
-            ),
+            create_engine_post_processing_shader!(shaders, "bloom-gauss"),
             wgpu::BlendState::REPLACE,
         );
 
@@ -637,7 +609,7 @@ fn compute_blend_factor(
 /// Often used in conjunction with `bevy_pbr::StandardMaterial::emissive` for 3d meshes.
 ///
 /// Bloom is best used alongside a tonemapping function that desaturates bright colors,
-/// such as [`crate::tonemapping::Tonemapping::TonyMcMapface`].
+/// such as `TonyMcMapface`.
 ///
 /// Bevy's implementation uses a parametric curve to blend between a set of
 /// blurred (lower frequency) images generated from the camera's view.

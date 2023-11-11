@@ -37,8 +37,6 @@ pub struct EngineContext<'a> {
 
     pub meta: &'a mut AnyMap,
 
-    pub game_loop: &'a mut Option<Arc<Mutex<dyn GameLoop>>>,
-
     pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
@@ -82,15 +80,6 @@ impl<'a> EngineContext<'a> {
         );
     }
 
-    pub fn load_sound_from_bytes(
-        &self,
-        name: &str,
-        bytes: &[u8],
-        settings: StaticSoundSettings,
-    ) {
-        ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
-    }
-
     pub fn load_fonts_from_bytes(&self, fonts: &[(&str, &[u8])]) {
         let mut font_defs = egui::FontDefinitions::default();
 
@@ -126,63 +115,12 @@ impl<'a> EngineContext<'a> {
     pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
         self.draw.borrow_mut()
     }
+}
 
-    pub fn insert_post_processing_effect(
-        &self,
-        index: i32,
-        name: &str,
-        shader: Shader,
-    ) {
-        let effect = PostProcessingEffect::new(
-            name.to_string(),
-            &self.renderer.context.device,
-            &[&self.renderer.context.texture_layout],
-            &self.renderer.config,
-            self.renderer.render_texture_format,
-            shader.clone(),
-        );
-
-        if index == -1 {
-            self.renderer.post_processing_effects.borrow_mut().push(effect);
-        } else if index >= 0 {
-            self.renderer
-                .post_processing_effects
-                .borrow_mut()
-                .insert(index as usize, effect);
-        } else {
-            panic!("Invalid index = {}, must be -1 or non-negative.", index);
-        }
-
-        self.renderer
-            .shaders
-            .borrow_mut()
-            .insert(name.to_string().into(), shader);
-    }
-
-    // pub fn early_update(&mut self) {
-    //     let _span = span!("context.early_update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().early_update(self);
-    //     }
-    // }
-
-    // pub fn update(&mut self) {
-    //     let _span = span!("context.update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().update(self);
-    //     }
-    // }
-    //
-    // pub fn late_update(&mut self) {
-    //     let _span = span!("context.late_update");
-    //
-    //     if let Some(game_loop) = &mut self.game_loop {
-    //         let game_loop = game_loop.clone();
-    //         game_loop.lock().late_update(self);
-    //     }
-    // }
+pub fn load_sound_from_bytes(
+    name: &str,
+    bytes: &[u8],
+    settings: StaticSoundSettings,
+) {
+    ASSETS.borrow_mut().load_sound_from_bytes(name, bytes, settings);
 }

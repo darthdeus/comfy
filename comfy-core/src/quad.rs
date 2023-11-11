@@ -135,11 +135,7 @@ pub fn draw_sprite_ex(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams {
-        // TODO: shader
-        shader: None,
-        blend_mode: params.blend_mode,
-    });
+    draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
 }
 
 pub enum SpriteAlign {
@@ -738,7 +734,6 @@ pub fn draw_circle(center: Vec2, r: f32, color: Color, z_index: i32) {
     // let _span = span!("circle");
     draw_poly_z(center, 40, r, 0.0, color, z_index, TextureParams {
         blend_mode: BlendMode::Alpha,
-        ..Default::default()
     });
 }
 
@@ -1327,17 +1322,15 @@ pub fn draw_revs(position: Vec2, r: f32, rev: f32, color: Color, z_index: i32) {
 }
 
 pub fn draw_mesh(mesh: Mesh) {
-    GLOBAL_STATE
-        .borrow_mut()
-        .mesh_queue
-        .push(MeshDraw { mesh, texture_params: TextureParams::default() });
+    draw_mesh_ex(mesh, TextureParams::default());
 }
 
 pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
-    GLOBAL_STATE
-        .borrow_mut()
-        .mesh_queue
-        .push(MeshDraw { mesh, texture_params });
+    GLOBAL_STATE.borrow_mut().mesh_queue.push(MeshDraw {
+        mesh,
+        texture_params,
+        shader: get_current_shader(),
+    });
 }
 
 #[derive(Copy, Clone, Debug)]

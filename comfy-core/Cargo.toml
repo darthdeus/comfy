@@ -10,14 +10,17 @@ repository = "https://github.com/darthdeus/comfy"
 
 [features]
 default = []
+
+dev = []
 ci-release = ["file_logger"]
 
 file_logger = ["log4rs", "chrono"]
 
+git-version = ["dep:comfy-git-version"]
+
 tracy = ["tracy-client"]
 jemalloc = ["jemalloc-ctl", "jemallocator"]
 memprof = ["tracy"]
-lua = ["mlua"]
 blobs = ["dep:blobs"]
 
 wayland = ["winit/wayland"]
@@ -32,20 +35,22 @@ log4rs = { version = "1.2.0", optional = true, default-features = false, feature
 ] }
 chrono = { version = "0.4.23", optional = true }
 
+anyhow = "1.0.40"
+
 blobs = { version = "0.2.1", optional = true }
 
-mlua = { version = "0.8.9", features = ["lua54", "vendored"], optional = true }
 backtrace = "0.3"
 
 # Few forks with minor tweaks. Crates.io doesn't allow git deps, so these have to be republished.
 comfy-color-backtrace = "0.6.0"
-comfy-git-version = "0.4.0"
+comfy-git-version = { version = "0.4.0", optional = true }
 comfy_include_dir = "0.7.3"
 
 glam = { version = "0.24.1" }
-egui = "0.22.0"
-epaint = "0.22.0"
-egui-winit = { version = "0.22.0", default-features = false, features = [] }
+egui = "0.23.0"
+egui_plot = "0.23.0"
+epaint = "0.23.0"
+egui-winit = { version = "0.23.0", default-features = false, features = [] }
 
 num-traits = "0.2.16"
 

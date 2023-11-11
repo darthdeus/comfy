@@ -9,11 +9,14 @@ pub use winit::event::{
     WindowEvent,
 };
 
+mod batching;
 mod blood_canvas;
 mod bloom;
+mod device;
 mod egui_integration;
+#[cfg(not(target_arch = "wasm32"))]
+mod hot_reload;
 mod instance;
-mod pipelines;
 mod post_processing;
 mod render_pass;
 mod renderer;
@@ -21,12 +24,18 @@ mod screenshot;
 mod texture;
 mod utils;
 mod y_sort;
+// idk what to call this, so magic it is for now ...
+mod debug;
 
+pub use crate::batching::*;
 pub use crate::blood_canvas::*;
 pub use crate::bloom::*;
+pub use crate::debug::*;
+pub use crate::device::*;
 pub use crate::egui_integration::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::hot_reload::*;
 pub use crate::instance::*;
-pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
@@ -36,16 +45,6 @@ pub use crate::y_sort::*;
 
 pub use wgpu;
 pub use wgpu_types;
-
-// TODO: delete & cleanup remains
-// pub trait RunGameLoop {
-//     fn one_frame(&mut self, delta: f32);
-//     fn title(&self) -> String;
-//     fn set_renderer(&mut self, renderer: WgpuRenderer);
-//     fn renderer(&mut self) -> &mut WgpuRenderer;
-//     fn resize(&mut self, new_size: UVec2);
-//     fn quit_flag(&mut self) -> bool;
-// }
 
 pub trait Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
@@ -341,10 +340,23 @@ pub fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
-) -> wgpu::RenderPipeline {
-    let shader = device.create_shader_module(shader.to_wgpu());
+) -> Result<wgpu::RenderPipeline> {
+    // let module = naga::front::wgsl::parse_str(&shader.source)?;
+    //
+    // let mut validator = naga::valid::Validator::new(
+    //     naga::valid::ValidationFlags::all(),
+    //     naga::valid::Capabilities::all(),
+    // );
+    //
+    // validator.validate(&module)?;
+
+    let wgpu_shader = shader_to_wgpu(shader);
+
+    let shader = device.create_shader_module(wgpu_shader);
+
+    println!("CREATED SHADER, GOT {:?}", shader);
 
     let blend_state = match blend_mode {
         BlendMode::Alpha => Some(wgpu::BlendState::ALPHA_BLENDING),
@@ -393,56 +405,59 @@ pub fn create_render_pipeline(
     //     },
     // });
 
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some(label),
-        layout: Some(layout),
-        vertex: wgpu::VertexState {
-            module: &shader,
-            entry_point: "vs_main",
-            buffers: vertex_layouts,
-        },
-        fragment: Some(wgpu::FragmentState {
-            module: &shader,
-            entry_point: "fs_main",
-            targets: &[Some(wgpu::ColorTargetState {
-                format: color_format,
-                blend: blend_state,
-                write_mask: wgpu::ColorWrites::ALL,
-            })],
-        }),
+    let pipeline =
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some(label),
+            layout: Some(layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: "vs_main",
+                buffers: vertex_layouts,
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: "fs_main",
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: color_format,
+                    blend: blend_state,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
 
-        primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
-            strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            // cull_mode: Some(wgpu::Face::Back),
-            cull_mode: None,
-            // Settings this to anything other than Fill requires
-            // Features::NON_FILL_POLYGON_MODE
-            polygon_mode: wgpu::PolygonMode::Fill,
-            // Requires Features::DEPTH_CLIP_CONTROL
-            unclipped_depth: false,
-            // Requires Features::CONSERVATIVE_RASTERIZATION
-            conservative: false,
-        },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                // cull_mode: Some(wgpu::Face::Back),
+                cull_mode: None,
+                // Settings this to anything other than Fill requires
+                // Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+                // Requires Features::DEPTH_CLIP_CONTROL
+                unclipped_depth: false,
+                // Requires Features::CONSERVATIVE_RASTERIZATION
+                conservative: false,
+            },
 
-        depth_stencil: depth_format.map(|format| {
-            wgpu::DepthStencilState {
-                format,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
-            }
-        }),
+            depth_stencil: depth_format.map(|format| {
+                wgpu::DepthStencilState {
+                    format,
+                    depth_write_enabled: true,
+                    depth_compare: wgpu::CompareFunction::Less,
+                    stencil: wgpu::StencilState::default(),
+                    bias: wgpu::DepthBiasState::default(),
+                }
+            }),
 
-        multisample: wgpu::MultisampleState {
-            count: 1,
-            mask: !0,
-            alpha_to_coverage_enabled: false,
-        },
-        multiview: None,
-    })
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+        });
+
+    Ok(pipeline)
 }
 
 pub fn create_render_pipeline_with_layout(
@@ -451,17 +466,16 @@ pub fn create_render_pipeline_with_layout(
     color_format: wgpu::TextureFormat,
     bind_group_layouts: &[&wgpu::BindGroupLayout],
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    shader: Shader,
+    shader: &Shader,
     blend_mode: BlendMode,
     enable_z_buffer: bool,
-) -> wgpu::RenderPipeline {
+) -> Result<wgpu::RenderPipeline> {
     let layout =
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some(&format!("{} Pipeline Layout", name)),
             bind_group_layouts,
             push_constant_ranges: &[],
         });
-
 
     create_render_pipeline(
         &format!("{} Pipeline", name),

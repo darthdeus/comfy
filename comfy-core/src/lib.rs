@@ -14,15 +14,13 @@ mod events;
 mod fast_sprite;
 mod global_state;
 #[cfg(not(target_arch = "wasm32"))]
-mod hot_reload;
 mod input;
 mod lighting;
-#[cfg(feature = "lua")]
-mod lua_export;
 mod math;
 mod perf_counters;
 mod quad;
 pub mod random;
+mod shaders;
 pub mod spatial_hash;
 mod task_timer;
 mod text;
@@ -41,16 +39,13 @@ pub use crate::errors::*;
 pub use crate::events::*;
 pub use crate::fast_sprite::*;
 pub use crate::global_state::*;
-#[cfg(not(target_arch = "wasm32"))]
-pub use crate::hot_reload::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
-#[cfg(feature = "lua")]
-pub use crate::lua_export::*;
 pub use crate::math::*;
 pub use crate::perf_counters::*;
 pub use crate::quad::*;
 pub use crate::random::*;
+pub use crate::shaders::*;
 pub use crate::task_timer::*;
 pub use crate::text::*;
 pub use crate::timer::*;
@@ -81,6 +76,9 @@ pub use rand::seq::SliceRandom;
 
 pub use smallvec::{self, SmallVec};
 
+pub use anyhow;
+pub use anyhow::{bail, Result};
+
 pub use bimap::BiHashMap;
 pub use fxhash;
 pub use num_traits;
@@ -110,6 +108,7 @@ pub use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 pub use bytemuck;
 pub use cfg_if::cfg_if;
 pub use egui;
+pub use egui_plot;
 pub use egui_winit;
 pub use env_logger;
 pub use epaint;
@@ -193,6 +192,7 @@ pub use lazy_static::lazy_static;
 pub use ordered_float::OrderedFloat;
 
 pub use comfy_color_backtrace as color_backtrace;
+#[cfg(feature = "git-version")]
 pub use comfy_git_version as git_version;
 pub use comfy_include_dir as include_dir;
 
@@ -535,13 +535,13 @@ pub enum BlendMode {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextureParams {
     pub blend_mode: BlendMode,
-    pub shader: Option<String>,
 }
 
 #[derive(Clone, Debug)]
 pub struct MeshDraw {
     pub mesh: Mesh,
     pub texture_params: TextureParams,
+    pub shader: Option<ShaderInstance>,
 }
 
 pub struct DrawParams<'a> {
@@ -1015,9 +1015,6 @@ pub trait Vec2Extensions {
     fn as_transform(&self) -> Transform;
     fn egui(&self) -> egui::Vec2;
     fn egui_pos(&self) -> egui::Pos2;
-
-    #[cfg(feature = "lua")]
-    fn lua(&self) -> LuaVec2;
 }
 
 impl Vec2Extensions for Vec2 {
@@ -1058,11 +1055,6 @@ impl Vec2Extensions for Vec2 {
     fn egui_pos(&self) -> egui::Pos2 {
         egui::pos2(self.x, self.y)
     }
-
-    #[cfg(feature = "lua")]
-    fn lua(&self) -> LuaVec2 {
-        LuaVec2(*self)
-    }
 }
 
 // pub trait ColorExtensions {
@@ -1090,7 +1082,8 @@ impl std::fmt::Display for SemanticVer {
 #[macro_export]
 macro_rules! define_versions {
     () => {
-        // pub const GIT_VERSION: &str = git_version::git_version!();
+        #[cfg(feature = "git-version")]
+        pub const GIT_VERSION: &str = git_version::git_version!();
 
         $crate::lazy_static! {
             pub static ref VERSION: $crate::SemanticVer = $crate::SemanticVer {
@@ -1100,6 +1093,7 @@ macro_rules! define_versions {
             };
         }
 
+        #[cfg(not(feature = "git-version"))]
         pub fn version_str() -> &'static str {
             concat!(
                 "v",
@@ -1108,9 +1102,21 @@ macro_rules! define_versions {
                 env!("CARGO_PKG_VERSION_MINOR"),
                 ".",
                 env!("CARGO_PKG_VERSION_PATCH"),
-                // "(",
-                // git_version::git_version!(),
-                // ")"
+            )
+        }
+
+        #[cfg(feature = "git-version")]
+        pub fn version_str() -> &'static str {
+            concat!(
+                "v",
+                env!("CARGO_PKG_VERSION_MAJOR"),
+                ".",
+                env!("CARGO_PKG_VERSION_MINOR"),
+                ".",
+                env!("CARGO_PKG_VERSION_PATCH"),
+                " (",
+                git_version::git_version!(),
+                ")"
             )
         }
     };

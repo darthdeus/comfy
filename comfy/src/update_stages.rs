@@ -6,7 +6,7 @@ pub fn run_early_update_stages(c: &mut EngineContext) {
     {
         let mut state = GLOBAL_STATE.borrow_mut();
 
-        state.fps = (1.0 / delta) as i32;
+        state.fps = (1.0 / delta).round() as i32;
         state.egui_scale_factor = egui().pixels_per_point();
     }
 
@@ -63,7 +63,6 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     combat_text_system();
     process_notifications(c);
     show_errors(c);
-    update_perf_counters(c);
     show_lighting_ui(c);
 
     c.draw.borrow_mut().marks.retain_mut(|mark| {
@@ -77,10 +76,7 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
             0.1,
             mark.color,
             90,
-            TextureParams {
-                blend_mode: BlendMode::Alpha,
-                ..Default::default()
-            },
+            TextureParams { blend_mode: BlendMode::Alpha },
         );
     }
 
@@ -524,7 +520,8 @@ fn show_errors(_c: &mut EngineContext) {
     }
 }
 
-fn update_perf_counters(c: &mut EngineContext) {
+#[doc(hidden)]
+pub fn update_perf_counters(c: &mut EngineContext, game_loop: &impl GameLoop) {
     if cfg!(not(feature = "ci-release")) && game_config().dev.show_fps {
         let _span = span!("perf counters");
 
@@ -564,9 +561,8 @@ fn update_perf_counters(c: &mut EngineContext) {
                 ui.label(format!("   99th: {:.0}", fps.percentile_99));
 
                 ui.separator();
-                if let Some(game_loop) = c.game_loop {
-                    game_loop.lock().performance_metrics(&mut world_mut(), ui);
-                }
+
+                game_loop.performance_metrics(&mut world_mut(), ui);
 
                 ui.separator();
 

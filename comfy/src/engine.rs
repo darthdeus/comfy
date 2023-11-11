@@ -2,10 +2,11 @@ use comfy_wgpu::WgpuRenderer;
 
 use crate::*;
 
-pub trait GameLoop {
+pub trait GameLoop: Sized {
+    fn new(c: &mut EngineState) -> Self;
+
     fn performance_metrics(&self, _world: &mut World, _ui: &mut egui::Ui) {}
-    fn engine(&mut self) -> &mut EngineState;
-    fn update(&mut self);
+    fn update(&mut self, c: &mut EngineContext);
 }
 
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
@@ -25,8 +26,6 @@ pub struct EngineState {
     pub meta: AnyMap,
 
     pub notifications: RefCell<Notifications>,
-
-    pub game_loop: Option<Arc<Mutex<dyn GameLoop>>>,
 
     pub is_paused: RefCell<bool>,
     pub show_pause_menu: bool,
@@ -80,8 +79,6 @@ impl EngineState {
 
             notifications: RefCell::new(Notifications::new()),
 
-            game_loop: None,
-
             is_paused: RefCell::new(false),
             show_pause_menu: false,
             quit_flag: false,
@@ -126,8 +123,6 @@ impl EngineState {
 
             meta: &mut self.meta,
 
-            game_loop: &mut self.game_loop,
-
             // post_processing_effects: &renderer.post_processing_effects,
             // shaders: &renderer.shaders,
             is_paused: &mut self.is_paused,
@@ -161,9 +156,13 @@ impl EngineState {
         self.quit_flag
     }
 
-    // TODO: this really needs a cleanup
     pub fn title(&self) -> String {
-        // TODO: make this configurable
-        format!("{} (COMFY ENGINE)", game_config().game_name)
+        cfg_if! {
+            if #[cfg(feature = "dev")] {
+                format!("{} (Comfy Engine DEV BUILD)", game_config().game_name)
+            } else {
+                game_config().game_name.clone()
+            }
+        }
     }
 }
