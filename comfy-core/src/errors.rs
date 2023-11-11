@@ -13,6 +13,10 @@ impl Errors {
     }
 }
 
+pub fn clear_error(id: impl Into<Cow<'static, str>>) {
+    ERRORS.borrow_mut().data.remove(&id.into());
+}
+
 pub fn report_error(
     id: impl Into<Cow<'static, str>>,
     error: impl Into<Cow<'static, str>>,

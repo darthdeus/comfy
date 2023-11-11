@@ -35,10 +35,10 @@ pub use crate::egui_utils::*;
 pub use crate::engine::*;
 pub use crate::game::*;
 pub use crate::game_loop::*;
-pub use crate::macros::*;
+// pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
-pub use crate::shaders::*;
+// pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
 pub use crate::update_stages::*;
@@ -55,9 +55,7 @@ pub use std::{
     },
 };
 
-pub use comfy_core;
-pub use comfy_core::*;
-pub use comfy_core::{Assets, *};
+pub use comfy_core::{self, Assets, *};
 
 pub use std::path::Path;
 
