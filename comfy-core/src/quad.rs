@@ -231,13 +231,20 @@ pub fn draw_sprite_pro(
         size: IVec2::new(texture_size.x as i32, texture_size.y as i32),
     });
 
+    let dims = IRect {
+        size: source_rect.size,
+        offset: ivec2(
+            source_rect.offset.x,
+            texture_size.y as i32 - source_rect.offset.y - source_rect.size.y,
+        ),
+    };
 
-    let mut tex_0_x = source_rect.offset.x as f32 / texture_size.x as f32;
-    let mut tex_0_y = source_rect.offset.y as f32 / texture_size.y as f32;
-    let mut tex_1_x = (source_rect.offset.x + source_rect.size.x) as f32 /
-        texture_size.x as f32;
-    let mut tex_1_y = (source_rect.offset.y + source_rect.size.y) as f32 /
-        texture_size.y as f32;
+    let mut tex_0_x = dims.offset.x as f32 / texture_size.x as f32;
+    let mut tex_0_y = dims.offset.y as f32 / texture_size.y as f32;
+    let mut tex_1_x =
+        (dims.offset.x + dims.size.x) as f32 / texture_size.x as f32;
+    let mut tex_1_y =
+        (dims.offset.y + dims.size.y) as f32 / texture_size.y as f32;
 
     if params.flip_x {
         std::mem::swap(&mut tex_0_x, &mut tex_1_x);
