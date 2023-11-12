@@ -235,7 +235,7 @@ pub fn render_meshes(
                     .unwrap_or_else(|| {
                         textures.get(&texture_id("error")).unwrap()
                     })
-                    .0
+                    .bind_group
             }
         };
 
@@ -405,7 +405,7 @@ pub fn render_particles(
         let tex_bind_group = &textures
             .get(&pass_data.texture)
             .unwrap_or_else(|| textures.get(&texture_id("error")).unwrap())
-            .0;
+            .bind_group;
 
         render_pass.set_bind_group(0, tex_bind_group, &[]);
         render_pass.set_bind_group(1, &c.camera_bind_group, &[]);

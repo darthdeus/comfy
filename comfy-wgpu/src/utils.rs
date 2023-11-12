@@ -67,7 +67,7 @@ pub fn load_texture_from_engine_bytes(
     let handle = texture_path(name);
 
     let img = image::load_from_memory(bytes).expect("must be valid image");
-    let error_texture = Texture::from_image_ex(
+    let texture = Texture::from_image_ex(
         &context.device,
         &context.queue,
         &img,
@@ -77,15 +77,15 @@ pub fn load_texture_from_engine_bytes(
     )
     .unwrap();
 
-    let error_bind_group = context.device.simple_bind_group(
+    let bind_group = context.device.simple_bind_group(
         Some(&format!("{}_bind_group", name)),
-        &error_texture,
+        &texture,
         &context.texture_layout,
     );
 
     ASSETS.borrow_mut().insert_handle(name, handle);
     ASSETS.borrow_mut().texture_image_map.lock().insert(handle, img);
-    textures.insert(handle, (error_bind_group, error_texture));
+    textures.insert(handle, BindableTexture { bind_group, texture });
 }
 
 pub struct MipmapGenerator {

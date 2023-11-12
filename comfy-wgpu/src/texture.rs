@@ -31,6 +31,7 @@ impl Default for TextureCreationParams<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct BindableTexture {
     pub texture: Texture,
     pub bind_group: wgpu::BindGroup,

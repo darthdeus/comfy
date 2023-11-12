@@ -19,7 +19,7 @@ pub struct UserRenderPipeline {
 
 pub type PipelineMap = HashMap<String, wgpu::RenderPipeline>;
 pub type UserPipelineMap = HashMap<String, UserRenderPipeline>;
-pub type TextureMap = HashMap<TextureHandle, (wgpu::BindGroup, Texture)>;
+pub type TextureMap = HashMap<TextureHandle, BindableTexture>;
 pub type RenderTargetMap = HashMap<RenderTargetId, UserRenderTarget>;
 
 #[repr(C)]
@@ -778,7 +778,7 @@ impl WgpuRenderer {
             while let Ok(loaded_image) = self.loaded_image_recv.try_recv() {
                 let context = self.context.clone();
                 let textures = self.textures.clone();
-                let tbgl = self.texture_layout.clone();
+                let layout = self.texture_layout.clone();
 
                 let load_image_texture = move || {
                     let texture = Texture::from_image(
@@ -793,12 +793,13 @@ impl WgpuRenderer {
                     let bind_group = context.device.simple_bind_group(
                         Some(&format!("{}_bind_group", loaded_image.path)),
                         &texture,
-                        &tbgl,
+                        &layout,
                     );
 
-                    textures
-                        .lock()
-                        .insert(loaded_image.handle, (bind_group, texture));
+                    textures.lock().insert(
+                        loaded_image.handle,
+                        BindableTexture { bind_group, texture },
+                    );
                 };
 
                 #[cfg(target_arch = "wasm32")]
