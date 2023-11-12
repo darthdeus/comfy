@@ -50,6 +50,8 @@ necessarily cover everything.
 
 TL;DR:
 
+- Make sure to run your game with `--features dev` in development if you're using shaders
+  to get hot reload errors displayed in game.
 - `simple_game!(...)` should remain largely unaffected.
 - Your `comfy_game!(...)` now works around a single type that acts both as a
   state object, as well as the game loop, and that can be passed around.
