@@ -6,7 +6,7 @@ use image::ImageResult;
 
 #[derive(Debug)]
 pub struct TextureCreationParams<'a> {
-    pub label: String,
+    pub label: Option<&'a str>,
     pub width: u32,
     pub height: u32,
     pub format: wgpu::TextureFormat,
@@ -14,6 +14,43 @@ pub struct TextureCreationParams<'a> {
     pub filter_mode: wgpu::FilterMode,
     pub render_scale: f32,
     pub view_formats: &'a [wgpu::TextureFormat],
+}
+
+impl Default for TextureCreationParams<'_> {
+    fn default() -> Self {
+        Self {
+            label: None,
+            width: 0,
+            height: 0,
+            format: wgpu::TextureFormat::Rgba16Float,
+            mip_level_count: 1,
+            filter_mode: wgpu::FilterMode::Linear,
+            render_scale: 1.0,
+            view_formats: &[],
+        }
+    }
+}
+
+pub struct BindableTexture {
+    pub texture: Texture,
+    pub bind_group: wgpu::BindGroup,
+}
+
+impl BindableTexture {
+    pub fn new(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        params: &TextureCreationParams,
+    ) -> Self {
+        let texture = Texture::create_with_params(device, params);
+
+        let label = params.label.map(|x| format!("{} Bind Group", x));
+
+        let bind_group =
+            device.simple_bind_group(label.as_deref(), &texture, layout);
+
+        Self { texture, bind_group }
+    }
 }
 
 #[derive(Debug)]
@@ -75,7 +112,7 @@ impl Texture {
 
     pub fn create_with_params(
         device: &wgpu::Device,
-        params: TextureCreationParams,
+        params: &TextureCreationParams,
     ) -> Self {
         let size = wgpu::Extent3d {
             width: ((params.width as f32) * params.render_scale.sqrt()).round()
@@ -86,7 +123,7 @@ impl Texture {
         };
 
         let texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some(&params.label),
+            label: params.label,
             size,
             mip_level_count: params.mip_level_count,
             sample_count: 1,
@@ -98,8 +135,10 @@ impl Texture {
             view_formats: params.view_formats,
         });
 
+        let view_label = params.label.map(|x| format!("{} View", x));
+
         let view = texture.create_view(&wgpu::TextureViewDescriptor {
-            label: Some(&format!("{} View", params.label)),
+            label: view_label.as_deref(),
             // TODO: fix this and move it to the pp layer instead
             mip_level_count: if params.mip_level_count > 0 {
                 Some(1)
@@ -109,8 +148,10 @@ impl Texture {
             ..Default::default()
         });
 
+        let sampler_label = params.label.map(|x| format!("{} Sampler", x));
+
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: Some(&format!("{} Sampler", params.label)),
+            label: sampler_label.as_deref(),
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,
@@ -137,8 +178,8 @@ impl Texture {
         filter_mode: wgpu::FilterMode,
         label: &str,
     ) -> Self {
-        Self::create_with_params(device, TextureCreationParams {
-            label: label.to_string(),
+        Self::create_with_params(device, &TextureCreationParams {
+            label: Some(label),
             width: config.width,
             height: config.height,
             format,

@@ -59,7 +59,7 @@ impl PostProcessingEffect {
         );
 
         let bind_group = device.simple_bind_group(
-            &format!("{} Post Processing Bind Group", name),
+            Some(&format!("{} Post Processing Bind Group", name)),
             &render_texture,
             bind_group_layouts[0],
         );

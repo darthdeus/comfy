@@ -174,7 +174,7 @@ pub fn render_meshes(
                 .expect("user render target must exist when used")
                 .view
         } else if c.post_processing_effects.borrow().iter().any(|x| x.enabled) {
-            &c.first_pass_texture.view
+            &c.first_pass_texture.texture.view
         } else {
             surface_view
         };
@@ -271,7 +271,7 @@ pub fn render_particles(
 
     let target_view =
         if c.post_processing_effects.borrow().iter().any(|x| x.enabled) {
-            &c.first_pass_texture.view
+            &c.first_pass_texture.texture.view
         } else {
             surface_view
         };

@@ -207,7 +207,7 @@ pub trait DeviceExtensions {
     fn simple_encoder(&self, label: &str) -> wgpu::CommandEncoder;
     fn simple_bind_group(
         &self,
-        label: &str,
+        label: Option<&str>,
         texture: &Texture,
         layout: &wgpu::BindGroupLayout,
     ) -> wgpu::BindGroup;
@@ -222,12 +222,12 @@ impl DeviceExtensions for wgpu::Device {
 
     fn simple_bind_group(
         &self,
-        label: &str,
+        label: Option<&str>,
         texture: &Texture,
         layout: &wgpu::BindGroupLayout,
     ) -> wgpu::BindGroup {
         self.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some(label),
+            label,
             layout,
             entries: &[
                 wgpu::BindGroupEntry {

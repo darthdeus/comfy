@@ -75,7 +75,7 @@ impl TextureCreator for WgpuTextureCreator {
                 .unwrap();
 
         let bind_group =
-            self.device.simple_bind_group(name, &texture, &self.layout);
+            self.device.simple_bind_group(Some(name), &texture, &self.layout);
 
         let handle = texture_path(name);
         self.textures.lock().insert(handle, (bind_group, texture));

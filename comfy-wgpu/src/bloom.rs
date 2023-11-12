@@ -32,7 +32,7 @@ impl FrameBuffer {
         );
 
         let bind_group = device.simple_bind_group(
-            &format!("{} Bind Group", name),
+            Some(&format!("{} Bind Group", name)),
             &texture,
             layout,
         );
@@ -102,7 +102,7 @@ impl Bloom {
                 name: "Bloom Threshold".into(),
                 enabled: true,
                 bind_group: device.simple_bind_group(
-                    "Bloom Threshold Bind Group",
+                    Some("Bloom Threshold Bind Group"),
                     &threshold_render_texture,
                     texture_layout,
                 ),
@@ -164,7 +164,7 @@ impl Bloom {
         );
 
         let blur_bind_group = device.simple_bind_group(
-            "Bloom Blur Bind Group",
+            Some("Bloom Blur Bind Group"),
             &blur_texture,
             texture_layout,
         );

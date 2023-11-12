@@ -75,8 +75,7 @@ pub struct WgpuRenderer {
 
     pub depth_texture: Arc<Texture>,
 
-    pub first_pass_texture: Texture,
-    pub first_pass_bind_group: wgpu::BindGroup,
+    pub first_pass_texture: BindableTexture,
 
     pub lights_buffer: wgpu::Buffer,
     pub global_lighting_params_buffer: wgpu::Buffer,
@@ -86,8 +85,7 @@ pub struct WgpuRenderer {
 
     pub render_texture_format: wgpu::TextureFormat,
 
-    pub tonemapping_texture: Texture,
-    pub tonemapping_bind_group: wgpu::BindGroup,
+    pub tonemapping_texture: BindableTexture,
 
     pub camera_uniform: CameraUniform,
     pub camera_buffer: wgpu::Buffer,
@@ -377,38 +375,31 @@ impl WgpuRenderer {
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
-        let first_pass_texture =
-            Texture::create_scaled_mip_filter_surface_texture(
-                &context.device,
-                &context.config.borrow(),
-                wgpu::TextureFormat::Rgba16Float,
-                1.0,
-                1,
-                wgpu::FilterMode::Linear,
-                "First Pass Texture",
-            );
+        let (width, height) = {
+            let config = context.config.borrow();
+            (config.width, config.height)
+        };
 
-        let first_pass_bind_group = context.device.simple_bind_group(
-            "First Pass Bind Group",
-            &first_pass_texture,
+        let first_pass_texture = BindableTexture::new(
+            &context.device,
             &context.texture_layout,
+            &TextureCreationParams {
+                label: Some("First Pass Texture"),
+                width,
+                height,
+                ..Default::default()
+            },
         );
 
-        let tonemapping_texture =
-            Texture::create_scaled_mip_filter_surface_texture(
-                &context.device,
-                &context.config.borrow(),
-                wgpu::TextureFormat::Rgba16Float,
-                1.0,
-                1,
-                wgpu::FilterMode::Linear,
-                "Tonemapping",
-            );
-
-        let tonemapping_bind_group = context.device.simple_bind_group(
-            "Tonemapping Bind Group",
-            &tonemapping_texture,
+        let tonemapping_texture = BindableTexture::new(
+            &context.device,
             &context.texture_layout,
+            &TextureCreationParams {
+                label: Some("Tonemapping"),
+                width,
+                height,
+                ..Default::default()
+            },
         );
 
         let quad = QuadUniform { clip_position: [0.0, 0.0], size: [0.2, 0.2] };
@@ -505,7 +496,6 @@ impl WgpuRenderer {
             egui_render_routine: RefCell::new(egui_render_routine),
 
             first_pass_texture,
-            first_pass_bind_group,
 
             lights_buffer,
 
@@ -516,7 +506,6 @@ impl WgpuRenderer {
             texture_layout: context.texture_layout.clone(),
 
             tonemapping_texture,
-            tonemapping_bind_group,
 
             camera_uniform,
             camera_buffer,
@@ -565,13 +554,13 @@ impl WgpuRenderer {
         let mut encoder =
             self.context.device.simple_encoder("Post Processing Encoder");
 
-        let mut input_bind_group = &self.first_pass_bind_group;
+        let mut input_bind_group = &self.first_pass_texture.bind_group;
 
         if game_config.bloom_enabled {
             self.bloom.draw(
                 &self.context.device,
                 &self.texture_layout,
-                &self.first_pass_bind_group,
+                input_bind_group,
                 &mut encoder,
             );
         }
@@ -583,7 +572,7 @@ impl WgpuRenderer {
 
         for (i, effect) in enabled_effects.iter().enumerate() {
             let output_texture_view = if i == enabled_effects.len() - 1 {
-                &self.tonemapping_texture.view
+                &self.tonemapping_texture.texture.view
             } else {
                 &effect.render_texture.view
             };
@@ -637,7 +626,7 @@ impl WgpuRenderer {
         if game_config.bloom_enabled {
             self.bloom.blit_final(
                 &mut encoder,
-                &self.tonemapping_texture.view,
+                &self.tonemapping_texture.texture.view,
                 &game_config.lighting,
             );
         }
@@ -689,7 +678,11 @@ impl WgpuRenderer {
                 });
 
             render_pass.set_pipeline(tonemapping_pipeline);
-            render_pass.set_bind_group(0, &self.tonemapping_bind_group, &[]);
+            render_pass.set_bind_group(
+                0,
+                &self.tonemapping_texture.bind_group,
+                &[],
+            );
             render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 
             render_pass.draw(0..3, 0..1);
@@ -798,7 +791,7 @@ impl WgpuRenderer {
                     .unwrap();
 
                     let bind_group = context.device.simple_bind_group(
-                        &format!("{}_bind_group", loaded_image.path),
+                        Some(&format!("{}_bind_group", loaded_image.path)),
                         &texture,
                         &tbgl,
                     );
@@ -926,7 +919,7 @@ impl WgpuRenderer {
         if params.config.dev.show_buffers {
             let pp = self.post_processing_effects.borrow();
 
-            let mut bind_groups = vec![&self.first_pass_bind_group];
+            let mut bind_groups = vec![&self.first_pass_texture.bind_group];
             bind_groups.push(&self.bloom.threshold.bind_group);
             bind_groups.push(&self.bloom.blur_bind_group);
 

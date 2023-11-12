@@ -78,7 +78,7 @@ pub fn load_texture_from_engine_bytes(
     .unwrap();
 
     let error_bind_group = context.device.simple_bind_group(
-        &format!("{}_bind_group", name),
+        Some(&format!("{}_bind_group", name)),
         &error_texture,
         &context.texture_layout,
     );
