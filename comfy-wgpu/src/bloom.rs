@@ -82,40 +82,6 @@ impl Bloom {
             }
         };
 
-        // let use_hdr = true;
-        // let hdr_format = wgpu::TextureFormat::Rgba16Float;
-
-        // let blur_bind_group_layout = device.simple_bind_group("Bloom Blur", texture, layout)
-        // let blur_bind_group_layout =
-        //     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        //         label: Some("Bloom Blur Bind Group Layout"),
-        //         entries: &[
-        //             wgpu::BindGroupLayoutEntry {
-        //                 binding: 0,
-        //                 visibility: wgpu::ShaderStages::FRAGMENT,
-        //                 ty: wgpu::BindingType::Texture {
-        //                     sample_type: wgpu::TextureSampleType::Float {
-        //                         filterable: true, // !use_hdr,
-        //                     },
-        //                     view_dimension: wgpu::TextureViewDimension::D2,
-        //                     multisampled: false,
-        //                 },
-        //                 count: None,
-        //             },
-        //             wgpu::BindGroupLayoutEntry {
-        //                 binding: 1,
-        //                 visibility: wgpu::ShaderStages::FRAGMENT,
-        //                 ty: wgpu::BindingType::Sampler(
-        //                     // if false && use_hdr {
-        //                     //     wgpu::SamplerBindingType::NonFiltering
-        //                     // } else {
-        //                     wgpu::SamplerBindingType::Filtering, // },
-        //                 ),
-        //                 count: None,
-        //             },
-        //         ],
-        //     });
-
         let (width, height) = {
             let config = context.config.borrow();
             (config.width, config.height)
