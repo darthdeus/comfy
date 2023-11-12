@@ -92,7 +92,7 @@ pub async fn run_comfy_main_async(
                 set_time(get_time() + delta as f64);
                 use_default_shader();
 
-                if engine.quit_flag() {
+                if engine.quit_flag {
                     *control_flow = ControlFlow::Exit;
                 }
 

@@ -56,11 +56,11 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         .await
         .expect("failed to create wgpu adapter");
 
-    // device.on_uncaptured_error(Box::new(|err| {
-    //     error!("WGPU ERROR: {:?}", err);
-    //     #[cfg(fature = "ci-release")]
-    //     panic!("Exiting due to wgpu error: {:?}", err);
-    // }));
+    #[cfg(fature = "ci-release")]
+    device.on_uncaptured_error(Box::new(|err| {
+        error!("WGPU ERROR: {:?}", err);
+        panic!("Exiting due to wgpu error: {:?}", err);
+    }));
 
     let caps = surface.get_capabilities(&adapter);
     let supported_formats = caps.formats;

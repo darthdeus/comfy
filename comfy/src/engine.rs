@@ -141,19 +141,11 @@ impl EngineState {
     //     .secondary_frame_mark(tracy_client::frame_name!("update"));
 
 
-    // TODO: this really needs a cleanup
-    pub fn renderer(&mut self) -> &mut WgpuRenderer {
-        self.renderer.as_mut().expect("renderer must be initialized")
-    }
-
-    // TODO: this really needs a cleanup
     pub fn resize(&mut self, new_size: UVec2) {
-        self.renderer.as_mut().unwrap().resize(new_size);
-    }
-
-    // TODO: this really needs a cleanup
-    pub fn quit_flag(&mut self) -> bool {
-        self.quit_flag
+        self.renderer
+            .as_mut()
+            .expect("renderer must be initialized")
+            .resize(new_size);
     }
 
     pub fn title(&self) -> String {
