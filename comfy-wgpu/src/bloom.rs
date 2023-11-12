@@ -47,9 +47,7 @@ pub struct Bloom {
     pub format: wgpu::TextureFormat,
     pub threshold: PostProcessingEffect,
     pub mipmap_generator: MipmapGenerator,
-    // pub blur_bind_group_layout: wgpu::BindGroupLayout,
-    pub blur_texture: Texture,
-    pub blur_bind_group: wgpu::BindGroup,
+    pub blur_texture: BindableTexture,
     pub mip_blur_pipeline: wgpu::RenderPipeline,
 
     pub merge_pipeline: wgpu::RenderPipeline,
@@ -152,21 +150,21 @@ impl Bloom {
         //         ],
         //     });
 
+        let (width, height) = {
+            let config = context.config.borrow();
+            (config.width, config.height)
+        };
 
-        let blur_texture = Texture::create_scaled_mip_filter_surface_texture(
+        let blur_texture = BindableTexture::new(
             device,
-            &config,
-            format,
-            1.0,
-            1,
-            wgpu::FilterMode::Linear,
-            "Bloom Blur Texture",
-        );
-
-        let blur_bind_group = device.simple_bind_group(
-            Some("Bloom Blur Bind Group"),
-            &blur_texture,
             texture_layout,
+            &TextureCreationParams {
+                label: Some("Bloom Blue Texture"),
+                width,
+                height,
+                format,
+                ..Default::default()
+            },
         );
 
         let mip_blur_pipeline = create_post_processing_pipeline(
@@ -293,7 +291,6 @@ impl Bloom {
 
             // blur_bind_group_layout,
             blur_texture,
-            blur_bind_group,
             mip_blur_pipeline,
 
             blur_direction_buffer_0,
@@ -482,7 +479,7 @@ impl Bloom {
                     &self.mip_blur_pipeline,
                     &mip_bind_group,
                     &self.lighting_params,
-                    &self.blur_texture.view,
+                    &self.blur_texture.texture.view,
                     i == 0,
                     Some(blend),
                 );
@@ -501,7 +498,7 @@ impl Bloom {
             encoder,
             &self.merge_pipeline,
             if GlobalParams::get_int("bloom_alg") == 0 {
-                &self.blur_bind_group
+                &self.blur_texture.bind_group
             } else {
                 &self.pingpong[0].bind_group
             },

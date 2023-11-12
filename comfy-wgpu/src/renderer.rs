@@ -922,7 +922,7 @@ impl WgpuRenderer {
 
             let mut bind_groups = vec![&self.first_pass_texture.bind_group];
             bind_groups.push(&self.bloom.threshold.bind_group);
-            bind_groups.push(&self.bloom.blur_bind_group);
+            bind_groups.push(&self.bloom.blur_texture.bind_group);
 
             for effect in pp.iter() {
                 if effect.enabled {
