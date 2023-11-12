@@ -263,7 +263,6 @@ impl Bloom {
             threshold,
             mipmap_generator,
             // mipmaps, mipmaps_bind_group,
-
             blur_texture,
             mip_blur_pipeline,
 
