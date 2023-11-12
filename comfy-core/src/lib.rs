@@ -232,7 +232,7 @@ impl Name {
     }
 }
 
-pub fn default_hash<T: Hash>(value: &T) -> u64 {
+pub fn default_hash(value: &impl std::hash::Hash) -> u64 {
     let mut hasher = DefaultHasher::new();
     value.hash(&mut hasher);
     hasher.finish()
@@ -875,8 +875,7 @@ pub struct Sound {
 
 impl Sound {
     pub fn from_path(path: &str) -> Sound {
-        // TODO: use default hasher
-        Sound { id: egui::util::hash(path) }
+        Sound { id: simple_hash(path) }
     }
 }
 
@@ -887,16 +886,18 @@ pub enum TextureHandle {
     RenderTarget(RenderTargetId),
 }
 
+pub fn simple_hash(value: impl std::hash::Hash) -> u64 {
+    ahash::RandomState::with_seeds(1, 2, 3, 4).hash_one(value)
+}
+
 impl TextureHandle {
     // TODO: rename to something like "unchecked_id"
     pub fn from_path(path: &str) -> Self {
-        // TODO: hash with simple_hash
-        TextureHandle::Path(egui::util::hash(path))
+        TextureHandle::Path(simple_hash(path))
     }
 
     pub fn key_unchecked(key: &str) -> Self {
-        // TODO: hash with simple_hash
-        TextureHandle::Path(egui::util::hash(key))
+        TextureHandle::Path(simple_hash(key))
     }
 }
 

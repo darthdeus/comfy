@@ -28,6 +28,7 @@ wayland = ["winit/wayland"]
 [dependencies]
 smallvec = "1.10.0"
 
+ahash = "0.8.3"
 hecs = "0.10.3"
 log4rs = { version = "1.2.0", optional = true, default-features = false, features = [
   "console_appender",
