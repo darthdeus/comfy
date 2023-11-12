@@ -532,6 +532,7 @@ pub enum BlendMode {
     Alpha,
 }
 
+// TODO: ... get rid of this
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextureParams {
     pub blend_mode: BlendMode,
@@ -702,6 +703,10 @@ pub struct Color {
 impl Color {
     pub const fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self { r, g, b, a }
+    }
+
+    pub const fn gray(value: f32) -> Self {
+        Self { r: value, g: value, b: value, a: 1.0 }
     }
 
     pub const fn rgb(r: f32, g: f32, b: f32) -> Self {

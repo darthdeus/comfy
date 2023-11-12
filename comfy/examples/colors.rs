@@ -41,7 +41,7 @@ static COLOR_PALETTE: AtomicRefCell<ColorPalette> =
     AtomicRefCell::new(ColorPalette::Comfy);
 
 fn update(_c: &mut EngineContext) {
-    clear_background(DARKGRAY);
+    clear_background(Color::gray(0.1));
 
     egui::Window::new("Color palette")
         .anchor(egui::Align2::RIGHT_TOP, egui::vec2(-60.0, 60.0))

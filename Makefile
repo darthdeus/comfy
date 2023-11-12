@@ -8,7 +8,7 @@
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
-# EXAMPLE=colors
+EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
@@ -20,7 +20,7 @@
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
-EXAMPLE=render-target
+# EXAMPLE=render-target
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound

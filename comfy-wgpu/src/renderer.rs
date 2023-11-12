@@ -377,10 +377,12 @@ impl WgpuRenderer {
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
-        let first_pass_texture = Texture::create_scaled_surface_texture(
+        let first_pass_texture = Texture::create_scaled_mip_surface_texture(
             &context.device,
             &context.config.borrow(),
+            wgpu::TextureFormat::Rgba16Float,
             1.0,
+            1,
             "First Pass Texture",
         );
 
