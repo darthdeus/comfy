@@ -6,6 +6,7 @@ use std::{
 use crate::*;
 use notify::{event::AccessKind, Event, EventKind, RecursiveMode, Watcher};
 
+// #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
 static HOT_RELOAD: Lazy<Mutex<HotReload>> =
     Lazy::new(|| Mutex::new(HotReload::new()));
 

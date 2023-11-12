@@ -51,9 +51,6 @@ pub struct GraphicsContext {
 pub struct WgpuRenderer {
     pub context: GraphicsContext,
 
-    #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
-    pub hot_reload: HotReload,
-
     pub pipelines: PipelineMap,
     pub user_pipelines: UserPipelineMap,
     pub shaders: RefCell<ShaderMap>,
@@ -480,9 +477,6 @@ impl WgpuRenderer {
 
             shaders: RefCell::new(shaders),
             render_targets: RefCell::new(HashMap::new()),
-
-            #[cfg(not(any(feature = "ci-release", target_arch = "wasm32")))]
-            hot_reload: HotReload::new(),
 
             screenshot_buffer,
 
