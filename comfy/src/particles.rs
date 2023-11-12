@@ -242,17 +242,6 @@ pub struct Particle {
     pub trail: TrailRef,
 }
 
-// fn map_circle_point_to_rectangle(
-//     point_in_circle: Vec2,
-//     circle_radius: f32,
-//     rectangle_size: Vec2,
-// ) -> Vec2 {
-//     let normalized = point_in_circle / circle_radius;
-//
-//     let half_rect = rectangle_size * 0.5;
-//     (normalized * half_rect) + half_rect
-// }
-
 impl Particle {
     pub fn initialize(&mut self, position: Vec2, size: Option<Vec2>) {
         if let Some(size) = size {
@@ -290,11 +279,20 @@ impl Particle {
         self.update_animation(delta);
     }
 
+    // pub fn current_velocity(&self) -> Vec2 {
+    //     let t = 1.0 - self.lifetime_pct();
+    //     self.direction.normalize_or_right() *
+    //         self.velocity *
+    //         (self.velocity_curve)(t)
+    // }
+
     pub fn current_velocity(&self) -> Vec2 {
-        let t = 1.0 - self.lifetime_pct();
-        self.direction.normalize_or_right() *
-            self.velocity *
-            (self.velocity_curve)(t)
+        let t = self.lifetime_pct();
+
+        let interpolated_velocity =
+            self.velocity.lerp(self.velocity_end, (self.velocity_curve)(t));
+
+        self.direction.normalize_or_right() * interpolated_velocity
     }
 
     // pub fn current_size(&self) -> Vec2 {
@@ -475,7 +473,6 @@ impl Default for Particle {
 
             size: splat(1.0),
 
-            // velocity_curve: |_t| 1.0,
             velocity_curve: quad_in,
             size_curve: DEFAULT_EASE,
             color_curve: DEFAULT_EASE,
@@ -537,3 +534,14 @@ pub fn spawn_particle_fan(
         spawn_particle(particle);
     }
 }
+
+// fn map_circle_point_to_rectangle(
+//     point_in_circle: Vec2,
+//     circle_radius: f32,
+//     rectangle_size: Vec2,
+// ) -> Vec2 {
+//     let normalized = point_in_circle / circle_radius;
+//
+//     let half_rect = rectangle_size * 0.5;
+//     (normalized * half_rect) + half_rect
+// }

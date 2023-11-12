@@ -13,6 +13,8 @@ fn update(_c: &mut EngineContext) {
         spawn_particle(Particle {
             position: random_circle(5.0),
             size: splat(1.0),
+            velocity: 0.0,
+            velocity_end: 20.0,
             ..Default::default()
         });
     }

@@ -3,7 +3,7 @@
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
-EXAMPLE=bloom
+# EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
@@ -16,7 +16,7 @@ EXAMPLE=bloom
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=lighting
-# EXAMPLE=single_particle
+EXAMPLE=single_particle
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
