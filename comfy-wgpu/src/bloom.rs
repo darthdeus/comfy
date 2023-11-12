@@ -81,12 +81,13 @@ impl Bloom {
         let texture_layout = &context.texture_layout;
 
         let threshold_render_texture =
-            Texture::create_scaled_mip_surface_texture(
+            Texture::create_scaled_mip_filter_surface_texture(
                 device,
                 &config,
                 format,
                 1.0,
                 BLOOM_MIP_LEVEL_COUNT,
+                wgpu::FilterMode::Linear,
                 "Bloom Threshold Texture",
             );
 

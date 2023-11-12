@@ -377,14 +377,16 @@ impl WgpuRenderer {
             .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
-        let first_pass_texture = Texture::create_scaled_mip_surface_texture(
-            &context.device,
-            &context.config.borrow(),
-            wgpu::TextureFormat::Rgba16Float,
-            1.0,
-            1,
-            "First Pass Texture",
-        );
+        let first_pass_texture =
+            Texture::create_scaled_mip_filter_surface_texture(
+                &context.device,
+                &context.config.borrow(),
+                wgpu::TextureFormat::Rgba16Float,
+                1.0,
+                1,
+                wgpu::FilterMode::Linear,
+                "First Pass Texture",
+            );
 
         let first_pass_bind_group = context.device.simple_bind_group(
             "First Pass Bind Group",
@@ -392,14 +394,16 @@ impl WgpuRenderer {
             &context.texture_layout,
         );
 
-        let tonemapping_texture = Texture::create_scaled_mip_surface_texture(
-            &context.device,
-            &context.config.borrow(),
-            wgpu::TextureFormat::Rgba16Float,
-            1.0,
-            1,
-            "Tonemapping",
-        );
+        let tonemapping_texture =
+            Texture::create_scaled_mip_filter_surface_texture(
+                &context.device,
+                &context.config.borrow(),
+                wgpu::TextureFormat::Rgba16Float,
+                1.0,
+                1,
+                wgpu::FilterMode::Linear,
+                "Tonemapping",
+            );
 
         let tonemapping_bind_group = context.device.simple_bind_group(
             "Tonemapping Bind Group",

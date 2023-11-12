@@ -91,8 +91,6 @@ impl Texture {
             mip_level_count: params.mip_level_count,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            // format: wgpu::TextureFormat::Rgba16Float,
-            // format: wgpu::TextureFormat::Rgba8UnormSrgb,
             format: params.format,
             usage: wgpu::TextureUsages::TEXTURE_BINDING |
                 wgpu::TextureUsages::COPY_DST |
@@ -128,25 +126,6 @@ impl Texture {
             sampler,
             // size,
         }
-    }
-
-    pub fn create_scaled_mip_surface_texture(
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
-        format: wgpu::TextureFormat,
-        render_scale: f32,
-        mip_level_count: u32,
-        label: &str,
-    ) -> Self {
-        Self::create_scaled_mip_filter_surface_texture(
-            device,
-            config,
-            format,
-            render_scale,
-            mip_level_count,
-            wgpu::FilterMode::Linear,
-            label,
-        )
     }
 
     pub fn create_scaled_mip_filter_surface_texture(

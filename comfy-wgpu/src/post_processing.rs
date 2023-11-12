@@ -48,12 +48,13 @@ impl PostProcessingEffect {
         mip_level_count: u32,
         blend: wgpu::BlendState,
     ) -> Self {
-        let render_texture = Texture::create_scaled_mip_surface_texture(
+        let render_texture = Texture::create_scaled_mip_filter_surface_texture(
             device,
             config,
             format,
             1.0,
             mip_level_count,
+            wgpu::FilterMode::Linear,
             &name,
         );
 
