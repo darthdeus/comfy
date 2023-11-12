@@ -3,12 +3,12 @@
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
-# EXAMPLE=bloom
+EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
-EXAMPLE=colors
+# EXAMPLE=colors
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop

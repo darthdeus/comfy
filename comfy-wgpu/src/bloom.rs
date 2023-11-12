@@ -7,40 +7,6 @@ pub const BLOOM_MIP_LEVEL_COUNT: u32 = 10;
 const BLUR_DIR_ZERO: [u32; 4] = [0, 0, 0, 0];
 const BLUR_DIR_ONE: [u32; 4] = [1, 0, 0, 0];
 
-
-pub struct FrameBuffer {
-    pub texture: Texture,
-    pub bind_group: wgpu::BindGroup,
-}
-
-impl FrameBuffer {
-    pub fn new(
-        name: &str,
-        device: &wgpu::Device,
-        config: &wgpu::SurfaceConfiguration,
-        format: wgpu::TextureFormat,
-        layout: &wgpu::BindGroupLayout,
-    ) -> Self {
-        let texture = Texture::create_scaled_mip_filter_surface_texture(
-            device,
-            config,
-            format,
-            1.0,
-            1,
-            wgpu::FilterMode::Linear,
-            &format!("{} Texture", name),
-        );
-
-        let bind_group = device.simple_bind_group(
-            Some(&format!("{} Bind Group", name)),
-            &texture,
-            layout,
-        );
-
-        Self { texture, bind_group }
-    }
-}
-
 pub struct Bloom {
     pub context: GraphicsContext,
 
@@ -60,7 +26,7 @@ pub struct Bloom {
     pub blur_direction_group_1: wgpu::BindGroup,
     pub blur_direction_layout: wgpu::BindGroupLayout,
 
-    pub pingpong: [FrameBuffer; 2],
+    pub pingpong: [BindableTexture; 2],
 
     pub lighting_params: Arc<wgpu::BindGroup>,
 }
@@ -201,20 +167,30 @@ impl Bloom {
 
         let mipmap_generator = MipmapGenerator::new(device, format);
 
+        let params = TextureCreationParams {
+            label: Some("Bloom Ping Pong 0"),
+            width,
+            height,
+            format,
+            ..Default::default()
+        };
+
         let pingpong = [
-            FrameBuffer::new(
-                "Bloom Ping Pong 0",
+            BindableTexture::new(
                 device,
-                &config,
-                format,
                 texture_layout,
+                &TextureCreationParams {
+                    label: Some("Bloom Ping Pong 0"),
+                    ..params
+                },
             ),
-            FrameBuffer::new(
-                "Bloom Ping Pong 1",
+            BindableTexture::new(
                 device,
-                &config,
-                format,
                 texture_layout,
+                &TextureCreationParams {
+                    label: Some("Bloom Ping Pong 1"),
+                    ..params
+                },
             ),
         ];
 
@@ -270,7 +246,6 @@ impl Bloom {
                 }],
             });
 
-
         let gaussian_pipeline = create_post_processing_pipeline(
             "Bloom Gaussian",
             device,
@@ -289,7 +264,6 @@ impl Bloom {
             mipmap_generator,
             // mipmaps, mipmaps_bind_group,
 
-            // blur_bind_group_layout,
             blur_texture,
             mip_blur_pipeline,
 
