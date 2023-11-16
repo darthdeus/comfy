@@ -1,5 +1,6 @@
 use crate::*;
 pub use comfy_core::*;
+use image::GenericImageView;
 
 pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
 
@@ -55,6 +56,7 @@ pub fn blood_canvas_blit_at(
     );
 }
 
+// TODO: move this out of blood_canvas
 #[derive(Debug)]
 pub struct WgpuTextureCreator {
     pub device: Arc<wgpu::Device>,
@@ -64,13 +66,39 @@ pub struct WgpuTextureCreator {
 }
 
 impl TextureCreator for WgpuTextureCreator {
+    // TODO: rename this to uninit ... also have an init variant?
     fn handle_from_image(
         &self,
         name: &str,
         image: &DynamicImage,
     ) -> TextureHandle {
+        error!(
+            "TODO: make sure to create a handle_from_image_init/uninit \
+             separately"
+        );
+        error!(
+            "TODO: make sure to create a handle_from_image_init/uninit \
+             separately"
+        );
+        error!(
+            "TODO: make sure to create a handle_from_image_init/uninit \
+             separately"
+        );
+        error!(
+            "TODO: make sure to create a handle_from_image_init/uninit \
+             separately"
+        );
+        error!(
+            "TODO: make sure to create a handle_from_image_init/uninit \
+             separately"
+        );
+
+        let dims = image.dimensions();
+        assert!(dims.0 > 0 && dims.1 > 0);
+
         let texture =
-            Texture::from_image_uninit(&self.device, image, Some(name))
+            // Texture::from_image_uninit(&self.device, image, Some(name))
+            Texture::from_image(&self.device, &self.queue, image, Some(name), false)
                 .unwrap();
 
         let bind_group =

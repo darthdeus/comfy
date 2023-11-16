@@ -167,7 +167,7 @@ fn process_asset_queues(c: &mut EngineContext) {
     // }
 }
 
-fn render_text(_c: &mut EngineContext) {
+fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
     let painter = egui().layer_painter(egui::LayerId::new(
@@ -179,25 +179,85 @@ fn render_text(_c: &mut EngineContext) {
         GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
 
     for text in text_queue {
-        let align = match text.align {
-            TextAlign::TopLeft => egui::Align2::LEFT_TOP,
-            TextAlign::Center => egui::Align2::CENTER_CENTER,
-            TextAlign::TopRight => egui::Align2::RIGHT_TOP,
-            TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
-            TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
-        };
+        if text.pro {
+            let mut t = c.renderer.text.borrow_mut();
 
-        // TODO: maybe better way of doing this?
-        let screen_pos =
-            text.position.as_world().to_screen() / egui_scale_factor();
+            let layout = t.layout_text(
+                &text.text,
+                32.0,
+                &fontdue::layout::LayoutSettings {
+                    vertical_align: fontdue::layout::VerticalAlign::Middle,
+                    horizontal_align: fontdue::layout::HorizontalAlign::Center,
+                    // max_width: Some(120.0),
+                    // max_width: Some(16.0),
+                    ..Default::default()
+                },
+            );
 
-        painter.text(
-            egui::pos2(screen_pos.x, screen_pos.y),
-            align,
-            text.text,
-            text.font,
-            text.color.egui(),
-        );
+            // let offset = c.to_world(pos);
+
+            for glyph in layout.iter() {
+                if glyph.parent == ' ' {
+                    continue;
+                }
+
+                let pos = vec2(glyph.x, glyph.y) * px() +
+                    text.position +
+                    vec2(-5.0, 0.0);
+
+                // let pos = vec2(i as f32, 0.0) + text.position;
+
+                // println!("pos: {:?} {}", pos, glyph.parent);
+
+                // TODO: this makes it delayed!
+                draw_sprite_ex(
+                    t.get_glyph(glyph.parent),
+                    pos,
+                    text.color,
+                    100,
+                    DrawTextureParams {
+                        dest_size: Some(Size::screen(
+                            glyph.width as f32,
+                            glyph.height as f32,
+                        )),
+                        ..Default::default() // source_rect: (),
+                                             // scroll_offset: (),
+                                             // rotation: (),
+                                             // flip_x: (),
+                                             // flip_y: (),
+                                             // pivot: (),
+                                             // blend_mode: (),
+                    },
+                    //     dest_size: DestSize::Fixed(Vec2::new(
+                    //         glyph.width as f32,
+                    //         glyph.height as f32,
+                    //     )),
+                    //     layer: params.layer,
+                    //     ..Default::default()
+                    // },
+                );
+            }
+        } else {
+            let align = match text.align {
+                TextAlign::TopLeft => egui::Align2::LEFT_TOP,
+                TextAlign::Center => egui::Align2::CENTER_CENTER,
+                TextAlign::TopRight => egui::Align2::RIGHT_TOP,
+                TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
+                TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
+            };
+
+            // TODO: maybe better way of doing this?
+            let screen_pos =
+                text.position.as_world().to_screen() / egui_scale_factor();
+
+            painter.text(
+                egui::pos2(screen_pos.x, screen_pos.y),
+                align,
+                text.text,
+                text.font,
+                text.color.egui(),
+            );
+        }
     }
 }
 

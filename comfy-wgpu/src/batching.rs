@@ -233,7 +233,9 @@ pub fn render_meshes(
                 &textures
                     .get(&tex_handle)
                     .unwrap_or_else(|| {
-                        textures.get(&texture_id("error")).unwrap()
+                        textures
+                            .get(&texture_id("error"))
+                            .expect("error texture must exist")
                     })
                     .bind_group
             }

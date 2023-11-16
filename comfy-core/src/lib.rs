@@ -1671,3 +1671,42 @@ impl AABB {
         vec2(self.min.x, self.max.y)
     }
 }
+
+pub trait VecExtensions {
+    fn flip(&self, width: usize) -> Self;
+    fn flip_inplace(&mut self, width: usize);
+}
+
+impl<T: Clone> VecExtensions for Vec<T> {
+    fn flip(&self, width: usize) -> Self {
+        let mut res = self.clone();
+        res.flip_inplace(width);
+        res
+    }
+
+    fn flip_inplace(&mut self, width: usize) {
+        assert!(self.len() % width == 0);
+
+        let height = self.len() / width;
+
+        for y in 0..(height / 2) {
+            for x in 0..width {
+                self.swap(y * width + x, (height - y - 1) * width + x)
+            }
+        }
+    }
+}
+
+#[test]
+fn test_vec_flip_h() {
+    assert_eq!(vec![0, 0, 1, 1].flip(2), vec![1, 1, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(3), vec![1, 1, 2, 0, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(2), vec![1, 2, 0, 1, 0, 0]);
+
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(2), vec![
+        3, 3, 1, 2, 0, 1, 0, 0
+    ]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(4), vec![
+        1, 2, 3, 3, 0, 0, 0, 1
+    ]);
+}

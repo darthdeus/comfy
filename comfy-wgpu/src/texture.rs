@@ -297,6 +297,7 @@ impl Texture {
         label: Option<&str>,
     ) -> ImageResult<Self> {
         let dimensions = img.dimensions();
+        assert!(dimensions.0 > 0 && dimensions.1 > 0);
         Self::create_uninit(device, dimensions.0, dimensions.1, label)
     }
 

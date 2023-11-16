@@ -1,5 +1,15 @@
 use crate::*;
 
+pub struct DrawText {
+    pub text: String,
+    pub position: Vec2,
+    pub font: egui::FontId,
+    pub color: Color,
+    pub align: TextAlign,
+    // Temporarily to allow both egui and comfy rasterization
+    pub pro: bool,
+}
+
 #[derive(Clone, Debug)]
 pub struct TextParams {
     pub font: egui::FontId,
@@ -31,6 +41,7 @@ pub fn draw_text_ex(
         color: params.color,
         font: params.font,
         align,
+        pro: false,
     });
 }
 
@@ -41,15 +52,24 @@ pub fn draw_text(text: &str, position: Vec2, color: Color, align: TextAlign) {
         color,
         font: TextParams::default().font,
         align,
+        pro: false,
     });
 }
 
-pub struct DrawText {
-    pub text: String,
-    pub position: Vec2,
-    pub font: egui::FontId,
-    pub color: Color,
-    pub align: TextAlign,
+pub fn draw_text_pro(
+    text: &str,
+    position: Vec2,
+    color: Color,
+    align: TextAlign,
+) {
+    GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
+        text: text.to_string(),
+        position,
+        color,
+        font: TextParams::default().font,
+        align,
+        pro: true,
+    });
 }
 
 #[derive(Copy, Clone, Debug)]

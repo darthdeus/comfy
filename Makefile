@@ -16,7 +16,7 @@
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=lighting
-EXAMPLE=single_particle
+# EXAMPLE=single_particle
 # EXAMPLE=particle_systems
 # EXAMPLE=physics
 # EXAMPLE=post_processing
@@ -24,7 +24,7 @@ EXAMPLE=single_particle
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
-# EXAMPLE=text
+EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
