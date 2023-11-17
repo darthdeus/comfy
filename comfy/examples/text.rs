@@ -7,7 +7,7 @@ fn update(_c: &mut EngineContext) {
 
     let text = "comfy has comfy text rendering with egui";
 
-    draw_text_pro(text, vec2(0.0, 1.0), WHITE, TextAlign::Center);
+    draw_text_pro(text, vec2(-5.0, 1.0), WHITE, TextAlign::Center);
 
     draw_text_ex(
         "with configurable fonts",

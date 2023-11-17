@@ -1,5 +1,6 @@
 use crate::*;
 
+use etagere::AtlasAllocator;
 use fontdue::{layout::*, *};
 use image::{Rgba, RgbaImage};
 
@@ -7,16 +8,25 @@ use image::{Rgba, RgbaImage};
 pub struct Glyph {
     pub metrics: fontdue::Metrics,
     pub bitmap: Vec<u8>,
-    pub texture: TextureHandle,
+    // pub texture: TextureHandle,
+    pub allocation: etagere::Allocation,
+}
+
+fn make_layout() -> fontdue::layout::Layout {
+    fontdue::layout::Layout::new(fontdue::layout::CoordinateSystem::PositiveYUp)
 }
 
 // TODO: rename :derp:
 pub struct TextHandler {
     pub context: GraphicsContext,
     font: Font,
-    layout: Layout,
 
     glyphs: HashMap<char, Glyph>,
+    atlas: etagere::AtlasAllocator,
+
+    texture: TextureHandle,
+
+    pub atlas_size: u32,
 }
 
 impl TextHandler {
@@ -34,24 +44,42 @@ impl TextHandler {
         )
         .unwrap();
 
-        let layout = fontdue::layout::Layout::new(
-            fontdue::layout::CoordinateSystem::PositiveYUp,
-        );
-
         let glyphs = HashMap::new();
+
+        const TEXT_ATLAS_SIZE: u32 = 512;
+        let size = uvec2(TEXT_ATLAS_SIZE, TEXT_ATLAS_SIZE);
+
+        let texture = context.texture_creator.borrow_mut().handle_from_size(
+            "Font Atlas",
+            size,
+            TRANSPARENT,
+        );
 
         // for c in " 0123456789\n\t!@#$%^&*(){}[]<>/,.\\';:\"|ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".chars() {
         // }
 
-        Self { context, font, layout, glyphs }
+        Self {
+            context,
+            font,
+            glyphs,
+            atlas: AtlasAllocator::new(etagere::size2(
+                size.x as i32,
+                size.y as i32,
+            )),
+            texture,
+            atlas_size: TEXT_ATLAS_SIZE,
+        }
     }
 
-    pub fn get_glyph(&mut self, c: char) -> TextureHandle {
+    pub fn get_glyph(
+        &mut self,
+        c: char,
+    ) -> (TextureHandle, etagere::Allocation) {
         if !self.glyphs.contains_key(&c) {
             self.prepare_rasterize(c);
         }
 
-        self.glyphs[&c].texture
+        (self.texture, self.glyphs[&c].allocation)
     }
 
     pub fn prepare_rasterize(&mut self, c: char) {
@@ -76,9 +104,7 @@ impl TextHandler {
             metrics.width, metrics.height, c
         );
 
-        let texture = if metrics.width == 0 || metrics.height == 0 {
-            texture_id("1px")
-        } else {
+        if !(metrics.width == 0 || metrics.height == 0) {
             let mut image =
                 RgbaImage::new(metrics.width as u32, metrics.height as u32);
 
@@ -100,35 +126,30 @@ impl TextHandler {
                 }
             }
 
-            // let texture = Texture::from_image(
-            //     &self.context.device,
-            //     &self.context.queue,
-            //     &DynamicImage::ImageRgba8(image),
-            //     Some("Glyph Image"),
-            //     false,
-            // )
-            // .unwrap();
+            let image = DynamicImage::ImageRgba8(image).flipv();
 
-            let image = DynamicImage::ImageRgba8(image);
+            let allocation = self
+                .atlas
+                .allocate(etagere::size2(
+                    metrics.width as i32,
+                    metrics.height as i32,
+                ))
+                .unwrap_or_else(|| panic!("FAILED TO FIT GLYPH {}", c));
 
-            let handle = self
-                .context
-                .texture_creator
-                .borrow_mut()
-                .handle_from_image(&format!("glyph-{}", c), &image);
+            info!("still have {} free space", self.atlas.free_space());
 
-            // self.context
-            //     .texture_creator
-            //     .borrow_mut()
-            //     .update_texture(&image, handle);
+            self.context.texture_creator.borrow_mut().update_texture_region(
+                self.texture,
+                &image,
+                allocation.to_irect(),
+            );
 
-            handle
+            // handle
+
+            let glyph = Glyph { metrics, bitmap, allocation };
+
+            self.glyphs.insert(c, glyph);
         };
-
-
-        let glyph = Glyph { metrics, bitmap, texture };
-
-        self.glyphs.insert(c, glyph);
     }
 
     pub fn layout_text(
@@ -136,13 +157,14 @@ impl TextHandler {
         text: &str,
         size: f32,
         layout_settings: &LayoutSettings,
-    ) -> Vec<GlyphPosition> {
-        self.layout.reset(layout_settings);
+    ) -> fontdue::layout::Layout {
+        let mut layout = make_layout();
+        layout.reset(layout_settings);
 
         let fonts = &[self.font.clone()];
 
-        self.layout.append(fonts, &TextStyle::new(text, size, 0));
-        self.layout.glyphs().clone()
+        layout.append(fonts, &TextStyle::new(text, size, 0));
+        layout
     }
 
     #[allow(dead_code)]
@@ -162,13 +184,30 @@ impl TextHandler {
         //
         // layout.glyphs().clone()
 
-        self.layout.reset(&LayoutSettings { ..LayoutSettings::default() });
+        let mut layout = make_layout();
+
+        layout.reset(&LayoutSettings { ..LayoutSettings::default() });
 
         let fonts = &[self.font.clone()];
 
-        self.layout.append(fonts, &TextStyle::new("Hello\n", 16.0, 0));
-        self.layout.append(fonts, &TextStyle::new("\tworld!", 16.0, 0));
+        layout.append(fonts, &TextStyle::new("Hello\n", 16.0, 0));
+        layout.append(fonts, &TextStyle::new("\tworld!", 16.0, 0));
 
-        self.layout.glyphs().clone()
+        layout.glyphs().clone()
+    }
+}
+
+pub trait EtagereRectExtensions {
+    fn to_irect(&self) -> IRect;
+}
+
+impl EtagereRectExtensions for etagere::Allocation {
+    fn to_irect(&self) -> IRect {
+        let rect = self.rectangle.to_rect();
+
+        let offset = ivec2(rect.origin.x, rect.origin.y);
+        let size = ivec2(rect.size.width, rect.size.height);
+
+        IRect { offset, size }
     }
 }

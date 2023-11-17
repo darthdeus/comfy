@@ -137,6 +137,13 @@ impl BloodCanvas {
 }
 
 pub trait TextureCreator: Debug {
+    fn handle_from_size(
+        &self,
+        name: &str,
+        size: UVec2,
+        fill: Color,
+    ) -> TextureHandle;
+
     fn handle_from_image(
         &self,
         name: &str,
@@ -144,4 +151,10 @@ pub trait TextureCreator: Debug {
     ) -> TextureHandle;
 
     fn update_texture(&self, image: &DynamicImage, texture: TextureHandle);
+    fn update_texture_region(
+        &self,
+        handle: TextureHandle,
+        image: &DynamicImage,
+        region: IRect,
+    );
 }

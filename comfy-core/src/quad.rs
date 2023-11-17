@@ -115,7 +115,10 @@ pub fn draw_sprite_ex(
         pivot: params.pivot,
     };
 
-    let size = Assets::image_size(texture).unwrap_or(UVec2::ONE);
+    let size = Assets::image_size(texture).unwrap_or_else(|| {
+        error!("NO SIZE FOR TEXTURE {:?}", texture);
+        UVec2::ONE
+    });
 
     let vertices = rotated_rectangle(
         position.extend(z_index as f32),

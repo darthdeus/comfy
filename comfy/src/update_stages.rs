@@ -186,56 +186,113 @@ fn render_text(c: &mut EngineContext) {
                 &text.text,
                 32.0,
                 &fontdue::layout::LayoutSettings {
-                    vertical_align: fontdue::layout::VerticalAlign::Middle,
-                    horizontal_align: fontdue::layout::HorizontalAlign::Center,
-                    // max_width: Some(120.0),
-                    // max_width: Some(16.0),
+                    // vertical_align: fontdue::layout::VerticalAlign::Middle,
+                    // horizontal_align: fontdue::layout::HorizontalAlign::Center,
                     ..Default::default()
                 },
             );
 
-            // let offset = c.to_world(pos);
+            draw_rect_outline(
+                text.position,
+                Size::screen(20.0, layout.height()).to_world(),
+                0.1,
+                YELLOW,
+                200,
+            );
 
-            for glyph in layout.iter() {
+            for glyph in layout.glyphs().iter() {
                 if glyph.parent == ' ' {
                     continue;
                 }
 
-                let pos = vec2(glyph.x, glyph.y) * px() +
-                    text.position +
-                    vec2(-5.0, 0.0);
+                // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
+                //     text.position;
+                let pos = vec2(glyph.x, glyph.y) * px() + text.position;
 
-                // let pos = vec2(i as f32, 0.0) + text.position;
+                let (texture, allocation) = t.get_glyph(glyph.parent);
 
-                // println!("pos: {:?} {}", pos, glyph.parent);
+                // println!("{} {} {}", glyph.parent, glyph.x, glyph.y);
 
-                // TODO: this makes it delayed!
-                draw_sprite_ex(
-                    t.get_glyph(glyph.parent),
+                assert_ne!(texture, texture_id("1px"));
+
+                let mut source_rect = allocation.to_irect();
+                source_rect.offset = ivec2(
+                    source_rect.offset.x,
+                    t.atlas_size as i32 -
+                        source_rect.offset.y -
+                        source_rect.size.y,
+                );
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         source_rect: Some(source_rect),
+                //         // align: SpriteAlign::BottomLeft,
+                //         // dest_size: Some(splat(4.0).as_world_size()),
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default()
+                //     },
+                // );
+
+                let ratio =
+                    source_rect.size.x as f32 / source_rect.size.y as f32;
+
+                draw_sprite_pro(
+                    texture,
                     pos,
                     text.color,
                     100,
-                    DrawTextureParams {
-                        dest_size: Some(Size::screen(
+                    DrawTextureProParams {
+                        source_rect: Some(source_rect),
+                        align: SpriteAlign::BottomLeft,
+                        size: Size::screen(
                             glyph.width as f32,
-                            glyph.height as f32,
-                        )),
-                        ..Default::default() // source_rect: (),
-                                             // scroll_offset: (),
-                                             // rotation: (),
-                                             // flip_x: (),
-                                             // flip_y: (),
-                                             // pivot: (),
-                                             // blend_mode: (),
+                            glyph.width as f32 / ratio,
+                        )
+                        .to_world(),
+                        ..Default::default()
                     },
-                    //     dest_size: DestSize::Fixed(Vec2::new(
-                    //         glyph.width as f32,
-                    //         glyph.height as f32,
-                    //     )),
-                    //     layer: params.layer,
-                    //     ..Default::default()
-                    // },
                 );
+
+                // break;
+
+                // let pos = vec2(i as f32, 0.0) + text.position;
+                // // TODO: this makes it delayed!
+
+                // println!("pos: {:?} {}", pos, glyph.parent);
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default() // source_rect: (),
+                //                              // scroll_offset: (),
+                //                              // rotation: (),
+                //                              // flip_x: (),
+                //                              // flip_y: (),
+                //                              // pivot: (),
+                //                              // blend_mode: (),
+                //     },
+                //     //     dest_size: DestSize::Fixed(Vec2::new(
+                //     //         glyph.width as f32,
+                //     //         glyph.height as f32,
+                //     //     )),
+                //     //     layer: params.layer,
+                //     //     ..Default::default()
+                //     // },
+                // );
             }
         } else {
             let align = match text.align {

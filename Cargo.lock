@@ -577,6 +577,7 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "egui-winit",
+ "etagere",
  "fontdue",
  "futures-intrusive",
  "image",
@@ -976,6 +977,25 @@ checksum = "aa68f1b12764fab894d2755d2518754e71b4fd80ecfb822714a1206c2aab39bf"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "etagere"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "306960881d6c46bd0dd6b7f07442a441418c08d0d3e63d8d080b0f64c6343e4e"
+dependencies = [
+ "euclid",
+ "svg_fmt",
+]
+
+[[package]]
+name = "euclid"
+version = "0.22.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87f253bc5c813ca05792837a0ff4b3a580336b224512d48f7eda1d7dd9210787"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -2518,6 +2538,12 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "svg_fmt"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fb1df15f412ee2e9dfc1c504260fa695c1c3f10fe9f4a6ee2d2184d7d6450e2"
 
 [[package]]
 name = "symphonia"
