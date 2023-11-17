@@ -46,7 +46,7 @@ impl TextHandler {
 
         let glyphs = HashMap::new();
 
-        const TEXT_ATLAS_SIZE: u32 = 512;
+        const TEXT_ATLAS_SIZE: u32 = 4096;
         let size = uvec2(TEXT_ATLAS_SIZE, TEXT_ATLAS_SIZE);
 
         let texture = context.texture_creator.borrow_mut().handle_from_size(
