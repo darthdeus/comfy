@@ -35,25 +35,14 @@ pub fn draw_text_ex(
 ) {
     let _span = span!("draw_text_ex");
 
-    GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
-        text: text.to_string(),
-        position,
-        color: params.color,
-        font: params.font,
-        align,
-        pro: false,
-    });
+    draw_text_internal(text, position, align, false, params);
 }
 
 pub fn draw_text(text: &str, position: Vec2, color: Color, align: TextAlign) {
-    GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
-        text: text.to_string(),
-        position,
+    draw_text_internal(text, position, align, false, TextParams {
         color,
-        font: TextParams::default().font,
-        align,
-        pro: false,
-    });
+        ..Default::default()
+    })
 }
 
 pub fn draw_text_pro(
@@ -62,13 +51,26 @@ pub fn draw_text_pro(
     color: Color,
     align: TextAlign,
 ) {
+    draw_text_internal(text, position, align, true, TextParams {
+        color,
+        ..Default::default()
+    });
+}
+
+fn draw_text_internal(
+    text: &str,
+    position: Vec2,
+    align: TextAlign,
+    pro: bool,
+    params: TextParams,
+) {
     GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
         text: text.to_string(),
         position,
-        color,
-        font: TextParams::default().font,
+        color: params.color,
+        font: params.font,
         align,
-        pro: true,
+        pro,
     });
 }
 
