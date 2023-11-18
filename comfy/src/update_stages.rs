@@ -167,6 +167,52 @@ fn process_asset_queues(c: &mut EngineContext) {
     // }
 }
 
+struct StyledGlyph {
+    #[allow(dead_code)]
+    char: char,
+    wiggle: bool,
+    color: Color,
+}
+
+fn parse_text_style(text: &str) -> (String, Vec<StyledGlyph>) {
+    let mut i = 0;
+
+    let mut clean_text = String::new();
+    let mut styled_glyphs = vec![];
+
+    let chars = text.chars().collect_vec();
+
+    while i < chars.len() {
+        let mut c = chars[i];
+
+        if c == '*' {
+            i += 1;
+            if i == chars.len() {
+                break;
+            }
+
+            c = chars[i];
+            styled_glyphs.push(StyledGlyph {
+                char: c,
+                wiggle: true,
+                color: PINK.boost(4.0),
+            });
+        } else {
+            styled_glyphs.push(StyledGlyph {
+                char: c,
+                wiggle: false,
+                color: WHITE,
+            });
+        }
+
+        clean_text.push(c);
+
+        i += 1;
+    }
+
+    (clean_text, styled_glyphs)
+}
+
 fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
@@ -182,8 +228,10 @@ fn render_text(c: &mut EngineContext) {
         if text.pro {
             let mut t = c.renderer.text.borrow_mut();
 
+            let (clean_str, styled_str) = parse_text_style(&text.text);
+
             let layout = t.layout_text(
-                &text.text,
+                &clean_str,
                 32.0,
                 &fontdue::layout::LayoutSettings {
                     // vertical_align: fontdue::layout::VerticalAlign::Middle,
@@ -212,15 +260,23 @@ fn render_text(c: &mut EngineContext) {
             let layout_rect =
                 Rect::from_min_max(vec2(min_x, min_y), vec2(max_x, max_y));
 
-            draw_rect_outline(
-                text.position + layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
-                Size::screen(layout_rect.size.x, layout_rect.size.y).to_world(),
-                0.1,
-                YELLOW,
-                200,
-            );
+            let draw_outline = false;
 
-            for glyph in layout.glyphs().iter() {
+            if draw_outline {
+                draw_rect_outline(
+                    text.position +
+                        layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
+                    Size::screen(layout_rect.size.x, layout_rect.size.y)
+                        .to_world(),
+                    0.1,
+                    YELLOW,
+                    200,
+                );
+            }
+
+            for (i, glyph) in layout.glyphs().iter().enumerate() {
+                let style = &styled_str[i];
+
                 if glyph.parent == ' ' {
                     continue;
                 }
@@ -228,7 +284,15 @@ fn render_text(c: &mut EngineContext) {
                 // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
                 //     text.position;
 
-                let pos = vec2(glyph.x, glyph.y) * px() + text.position;
+                let mut pos = vec2(glyph.x, glyph.y) * px() + text.position;
+
+                if style.wiggle {
+                    pos += vec2(
+                        random_range(-0.02, 0.02),
+                        random_range(-0.035, 0.035),
+                    );
+                }
+
 
                 let (texture, allocation) = t.get_glyph(glyph.parent);
                 assert_ne!(texture, texture_id("1px"));
@@ -239,6 +303,28 @@ fn render_text(c: &mut EngineContext) {
                     t.atlas_size as i32 -
                         source_rect.offset.y -
                         source_rect.size.y,
+                );
+
+                let ratio =
+                    source_rect.size.x as f32 / source_rect.size.y as f32;
+
+                let color = style.color;
+
+                draw_sprite_pro(
+                    texture,
+                    pos,
+                    color,
+                    100,
+                    DrawTextureProParams {
+                        source_rect: Some(source_rect),
+                        align: SpriteAlign::BottomLeft,
+                        size: Size::screen(
+                            glyph.width as f32,
+                            glyph.width as f32 / ratio,
+                        )
+                        .to_world(),
+                        ..Default::default()
+                    },
                 );
 
                 // draw_sprite_ex(
@@ -257,26 +343,6 @@ fn render_text(c: &mut EngineContext) {
                 //         ..Default::default()
                 //     },
                 // );
-
-                let ratio =
-                    source_rect.size.x as f32 / source_rect.size.y as f32;
-
-                draw_sprite_pro(
-                    texture,
-                    pos,
-                    text.color,
-                    100,
-                    DrawTextureProParams {
-                        source_rect: Some(source_rect),
-                        align: SpriteAlign::BottomLeft,
-                        size: Size::screen(
-                            glyph.width as f32,
-                            glyph.width as f32 / ratio,
-                        )
-                        .to_world(),
-                        ..Default::default()
-                    },
-                );
 
                 // break;
 

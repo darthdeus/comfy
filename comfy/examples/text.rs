@@ -1,16 +1,23 @@
 use comfy::*;
 
-simple_game!("Text Example", update);
+simple_game!("Text Example", setup, update);
+
+fn setup(_c: &mut EngineContext) {
+    game_config_mut().bloom_enabled = true;
+}
 
 fn update(_c: &mut EngineContext) {
     clear_background(DARKBLUE);
 
-    let text = "comfy has comfy text rendering with egui";
-
-    draw_text_pro(text, vec2(-5.0, 1.0), WHITE, TextAlign::Center);
+    draw_text_pro(
+        "comfy has *c*o*m*f*y *t*e*x*t rendering",
+        vec2(-5.0, 1.0),
+        WHITE,
+        TextAlign::Center,
+    );
 
     draw_text_ex(
-        "with configurable fonts",
+        "with both builtin TTF rasterizer and with egui",
         vec2(0.0, -1.0),
         TextAlign::Center,
         TextParams {
