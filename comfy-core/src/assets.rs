@@ -106,6 +106,7 @@ pub struct Assets {
     pub sound_ids: HashMap<String, Sound>,
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
     pub sound_handles: HashMap<Sound, StaticSoundHandle>,
+    pub fonts: HashMap<FontHandle, fontdue::Font>,
 
     pub sound_groups: HashMap<String, Vec<Sound>>,
 }
@@ -127,7 +128,15 @@ impl Assets {
             sounds,
             sound_handles: HashMap::default(),
             sound_groups: HashMap::default(),
+
+            fonts: HashMap::default(),
         }
+    }
+
+    pub fn load_font(&mut self, font: fontdue::Font) -> FontHandle {
+        let handle = gen_font_handle();
+        self.fonts.insert(handle, font);
+        handle
     }
 
     pub fn load_sound_from_bytes(
@@ -345,6 +354,14 @@ impl Assets {
 
         println!("Failed to load textures image {}", path);
     }
+}
+
+pub fn load_font_from_bytes(font_bytes: &[u8]) -> FontHandle {
+    let font =
+        fontdue::Font::from_bytes(font_bytes, fontdue::FontSettings::default())
+            .unwrap();
+
+    ASSETS.borrow_mut().load_font(font)
 }
 
 pub fn load_multiple_sounds(pairs: Vec<(String, String)>) {

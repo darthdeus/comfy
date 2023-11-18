@@ -16,10 +16,8 @@ fn make_layout() -> fontdue::layout::Layout {
     fontdue::layout::Layout::new(fontdue::layout::CoordinateSystem::PositiveYUp)
 }
 
-// TODO: rename :derp:
-pub struct TextHandler {
+pub struct TextRasterizer {
     pub context: GraphicsContext,
-    font: Font,
 
     glyphs: HashMap<char, Glyph>,
     atlas: etagere::AtlasAllocator,
@@ -29,21 +27,8 @@ pub struct TextHandler {
     pub atlas_size: u32,
 }
 
-impl TextHandler {
+impl TextRasterizer {
     pub fn new(context: GraphicsContext) -> Self {
-        // let font_data =
-        //     include_bytes!("../assets/ArianaVioleta.ttf") as &[u8];
-        // let font_data =
-        //     include_bytes!("../../assets/ThaleahFat_TTF.ttf") as &[u8];
-        let font_data =
-            include_bytes!("../../assets/fonts/Orbitron-Black.ttf") as &[u8];
-
-        let font = fontdue::Font::from_bytes(
-            font_data,
-            fontdue::FontSettings::default(),
-        )
-        .unwrap();
-
         let glyphs = HashMap::new();
 
         const TEXT_ATLAS_SIZE: u32 = 4096;
@@ -60,7 +45,6 @@ impl TextHandler {
 
         Self {
             context,
-            font,
             glyphs,
             atlas: AtlasAllocator::new(etagere::size2(
                 size.x as i32,
@@ -73,18 +57,18 @@ impl TextHandler {
 
     pub fn get_glyph(
         &mut self,
+        font: &Font,
         c: char,
     ) -> (TextureHandle, etagere::Allocation) {
         if !self.glyphs.contains_key(&c) {
-            self.prepare_rasterize(c);
+            self.prepare_rasterize(font, c);
         }
 
         (self.texture, self.glyphs[&c].allocation)
     }
 
-    pub fn prepare_rasterize(&mut self, c: char) {
-        // println!("RASTERIZING: {}", c);
-        let (metrics, bitmap) = self.font.rasterize(c, 128.0);
+    pub fn prepare_rasterize(&mut self, font: &Font, c: char) {
+        let (metrics, bitmap) = font.rasterize(c, 128.0);
 
         // if metrics.width > 0 {
         //     bitmap.flip_inplace(metrics.width);
@@ -146,6 +130,7 @@ impl TextHandler {
 
     pub fn layout_text(
         &mut self,
+        font: &Font,
         text: &str,
         size: f32,
         layout_settings: &LayoutSettings,
@@ -153,14 +138,13 @@ impl TextHandler {
         let mut layout = make_layout();
         layout.reset(layout_settings);
 
-        let fonts = &[self.font.clone()];
-
-        layout.append(fonts, &TextStyle::new(text, size, 0));
+        layout
+            .append(std::slice::from_ref(font), &TextStyle::new(text, size, 0));
         layout
     }
 
     #[allow(dead_code)]
-    pub fn layout_text_demo(&mut self) -> Vec<GlyphPosition> {
+    pub fn layout_text_demo(&mut self, font: &Font) -> Vec<GlyphPosition> {
         // let mut layout = fontdue::layout::Layout::new(
         //     fontdue::layout::CoordinateSystem::PositiveYUp,
         // );
@@ -180,7 +164,7 @@ impl TextHandler {
 
         layout.reset(&LayoutSettings { ..LayoutSettings::default() });
 
-        let fonts = &[self.font.clone()];
+        let fonts = std::slice::from_ref(font);
 
         layout.append(fonts, &TextStyle::new("Hello\n", 16.0, 0));
         layout.append(fonts, &TextStyle::new("\tworld!", 16.0, 0));

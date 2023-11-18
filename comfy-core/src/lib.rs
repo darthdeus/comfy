@@ -136,6 +136,9 @@ pub use memory_stats;
 
 pub use num_complex::Complex;
 
+pub use etagere;
+pub use fontdue;
+
 #[cfg(feature = "tracy")]
 pub use tracy_client;
 pub use winit::{

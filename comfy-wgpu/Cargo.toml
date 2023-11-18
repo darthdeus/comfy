@@ -24,9 +24,6 @@ wgpu-types = "0.17.0"
 winit = { version = "0.28.3", default-features = false, features = ["x11"] }
 naga = { version = "0.13.0", features = ["wgsl-in"] }
 
-fontdue = "0.7.3"
-etagere = "0.2.10"
-
 egui = "0.23.0"
 egui-wgpu = "0.23.0"
 egui-winit = { version = "0.23.0", default-features = false, features = [] }

@@ -167,51 +167,6 @@ fn process_asset_queues(c: &mut EngineContext) {
     // }
 }
 
-struct StyledGlyph {
-    #[allow(dead_code)]
-    char: char,
-    wiggle: bool,
-    color: Color,
-}
-
-fn parse_text_style(text: &str) -> (String, Vec<StyledGlyph>) {
-    let mut i = 0;
-
-    let mut clean_text = String::new();
-    let mut styled_glyphs = vec![];
-
-    let chars = text.chars().collect_vec();
-
-    while i < chars.len() {
-        let mut c = chars[i];
-
-        if c == '*' {
-            i += 1;
-            if i == chars.len() {
-                break;
-            }
-
-            c = chars[i];
-            styled_glyphs.push(StyledGlyph {
-                char: c,
-                wiggle: true,
-                color: PINK.boost(4.0),
-            });
-        } else {
-            styled_glyphs.push(StyledGlyph {
-                char: c,
-                wiggle: false,
-                color: WHITE,
-            });
-        }
-
-        clean_text.push(c);
-
-        i += 1;
-    }
-
-    (clean_text, styled_glyphs)
-}
 
 fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
@@ -224,15 +179,28 @@ fn render_text(c: &mut EngineContext) {
     let text_queue =
         GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
 
+    let assets = ASSETS.borrow();
+
     for text in text_queue {
-        if text.pro {
+        if let Some(pro_params) = text.pro_params {
             let mut t = c.renderer.text.borrow_mut();
 
-            let (clean_str, styled_str) = parse_text_style(&text.text);
+            let (clean_text, styled_glyphs) = match text.text {
+                TextData::Raw(raw_text) => (raw_text, None),
+                TextData::Rich(rich_text) => {
+                    (rich_text.clean_text, Some(rich_text.styled_glyphs))
+                }
+            };
+
+            let font = assets.fonts.get(&pro_params.font).unwrap();
+
+            // let RichText { clean_text, styled_glyphs } =
+            //     simple_styled_text(&text.text);
 
             let layout = t.layout_text(
-                &clean_str,
-                32.0,
+                font,
+                &clean_text,
+                pro_params.font_size,
                 &fontdue::layout::LayoutSettings {
                     // vertical_align: fontdue::layout::VerticalAlign::Middle,
                     // horizontal_align: fontdue::layout::HorizontalAlign::Center,
@@ -275,26 +243,34 @@ fn render_text(c: &mut EngineContext) {
             }
 
             for (i, glyph) in layout.glyphs().iter().enumerate() {
-                let style = &styled_str[i];
+                let style = styled_glyphs.as_ref().map(|x| x[i]);
 
                 if glyph.parent == ' ' {
                     continue;
                 }
 
+                let mut pos = vec2(glyph.x, glyph.y) * px() + text.position;
+
+                let mut color = text.color;
+
+                if let Some(style) = style {
+                    if style.wiggle {
+                        pos += vec2(
+                            random_range(-0.02, 0.02),
+                            random_range(-0.035, 0.035),
+                        );
+                    }
+
+                    if let Some(override_color) = style.color {
+                        color = override_color;
+                    }
+                }
+
                 // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
                 //     text.position;
 
-                let mut pos = vec2(glyph.x, glyph.y) * px() + text.position;
 
-                if style.wiggle {
-                    pos += vec2(
-                        random_range(-0.02, 0.02),
-                        random_range(-0.035, 0.035),
-                    );
-                }
-
-
-                let (texture, allocation) = t.get_glyph(glyph.parent);
+                let (texture, allocation) = t.get_glyph(font, glyph.parent);
                 assert_ne!(texture, texture_id("1px"));
 
                 let mut source_rect = allocation.to_irect();
@@ -307,8 +283,6 @@ fn render_text(c: &mut EngineContext) {
 
                 let ratio =
                     source_rect.size.x as f32 / source_rect.size.y as f32;
-
-                let color = style.color;
 
                 draw_sprite_pro(
                     texture,
@@ -391,13 +365,17 @@ fn render_text(c: &mut EngineContext) {
             let screen_pos =
                 text.position.as_world().to_screen() / egui_scale_factor();
 
-            painter.text(
-                egui::pos2(screen_pos.x, screen_pos.y),
-                align,
-                text.text,
-                text.font,
-                text.color.egui(),
-            );
+            if let TextData::Raw(raw_text) = text.text {
+                painter.text(
+                    egui::pos2(screen_pos.x, screen_pos.y),
+                    align,
+                    raw_text,
+                    text.font,
+                    text.color.egui(),
+                );
+            } else {
+                panic!("TextData::RichText is not supported with egui");
+            }
         }
     }
 }

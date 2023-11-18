@@ -61,7 +61,7 @@ pub struct WgpuRenderer {
     pub shaders: RefCell<ShaderMap>,
     pub render_targets: RefCell<RenderTargetMap>,
 
-    pub text: RefCell<TextHandler>,
+    pub text: RefCell<TextRasterizer>,
 
     pub egui_winit: egui_winit::State,
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
@@ -466,7 +466,7 @@ impl WgpuRenderer {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
-            text: RefCell::new(TextHandler::new(context.clone())),
+            text: RefCell::new(TextRasterizer::new(context.clone())),
 
             sprite_shader_id,
             error_shader_id,
