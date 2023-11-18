@@ -112,16 +112,8 @@ impl TextHandler {
                 for y in 0..metrics.height {
                     let i = y * metrics.width + x;
 
-                    // if i + 3 >= bitmap.len() {
-                    //     error!(":O weird indexing");
-                    //     continue;
-                    // }
-
-                    let r = bitmap[i];
-                    let g = bitmap[i];
-                    let b = bitmap[i];
-                    let a = bitmap[i];
-                    let pixel = Rgba([r, g, b, a]);
+                    let v = bitmap[i];
+                    let pixel = Rgba([v, v, v, v]);
                     image.put_pixel(x as u32, y as u32, pixel);
                 }
             }
