@@ -480,15 +480,21 @@ impl IRect {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub center: Vec2,
+    pub size: Vec2,
 }
 
 impl Rect {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self { x, y, w, h }
+    pub fn new(center: Vec2, size: Vec2) -> Self {
+        Self { center, size }
+    }
+
+    pub fn from_min_max(min: Vec2, max: Vec2) -> Self {
+        Self { center: (min + max) / 2.0, size: max - min }
+    }
+
+    pub fn top_left(&self) -> Vec2 {
+        self.center - self.size / 2.0
     }
 }
 

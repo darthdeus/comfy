@@ -52,8 +52,8 @@ impl DebugDraw {
                         DrawTextureParams {
                             source_rect: rect.map(|r| {
                                 IRect::new(
-                                    ivec2(r.x as i32, r.y as i32),
-                                    ivec2(r.w as i32, r.h as i32),
+                                    r.top_left().as_ivec2(),
+                                    r.size.as_ivec2(),
                                 )
                             }),
                             ..Default::default()

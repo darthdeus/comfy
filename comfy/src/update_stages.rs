@@ -192,9 +192,29 @@ fn render_text(c: &mut EngineContext) {
                 },
             );
 
+            let mut min_x = f32::INFINITY;
+            let mut min_y = f32::INFINITY;
+            let mut max_x = f32::NEG_INFINITY;
+            let mut max_y = f32::NEG_INFINITY;
+
+            for glyph in layout.glyphs() {
+                let glyph_min_x = glyph.x;
+                let glyph_min_y = glyph.y;
+                let glyph_max_x = glyph.x + glyph.width as f32;
+                let glyph_max_y = glyph.y + glyph.height as f32;
+
+                min_x = min_x.min(glyph_min_x);
+                min_y = min_y.min(glyph_min_y);
+                max_x = max_x.max(glyph_max_x);
+                max_y = max_y.max(glyph_max_y);
+            }
+
+            let layout_rect =
+                Rect::from_min_max(vec2(min_x, min_y), vec2(max_x, max_y));
+
             draw_rect_outline(
-                text.position,
-                Size::screen(20.0, layout.height()).to_world(),
+                text.position + layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
+                Size::screen(layout_rect.size.x, layout_rect.size.y).to_world(),
                 0.1,
                 YELLOW,
                 200,
@@ -207,12 +227,10 @@ fn render_text(c: &mut EngineContext) {
 
                 // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
                 //     text.position;
+
                 let pos = vec2(glyph.x, glyph.y) * px() + text.position;
 
                 let (texture, allocation) = t.get_glyph(glyph.parent);
-
-                // println!("{} {} {}", glyph.parent, glyph.x, glyph.y);
-
                 assert_ne!(texture, texture_id("1px"));
 
                 let mut source_rect = allocation.to_irect();
