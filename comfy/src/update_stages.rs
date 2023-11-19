@@ -195,8 +195,6 @@ fn render_text(c: &mut EngineContext) {
             let font_handle = pro_params.font;
             let font = assets.fonts.get(&font_handle).unwrap();
 
-            println!("drawing font {:?}", pro_params.font);
-
             // let RichText { clean_text, styled_glyphs } =
             //     simple_styled_text(&text.text);
 
@@ -252,7 +250,9 @@ fn render_text(c: &mut EngineContext) {
                     continue;
                 }
 
-                let mut pos = vec2(glyph.x, glyph.y) * px() + text.position;
+                let mut pos = vec2(glyph.x, glyph.y) * px() +
+                    text.position +
+                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() / 2.0;
 
                 let mut color = text.color;
 

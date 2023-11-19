@@ -40,6 +40,8 @@ impl TextRasterizer {
             TRANSPARENT,
         );
 
+        // TODO: prepare ASCII
+
         // for c in " 0123456789\n\t!@#$%^&*(){}[]<>/,.\\';:\"|ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".chars() {
         // }
 

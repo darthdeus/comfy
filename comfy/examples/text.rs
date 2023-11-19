@@ -23,7 +23,7 @@ impl GameState {
                     "../../assets/fonts/Orbitron-Regular.ttf"
                 )),
             ],
-            font_size: 16.0,
+            font_size: 32.0,
         }
     }
 }
@@ -37,12 +37,13 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
 
     egui::Window::new("Font Controls").show(egui(), |ui| {
         // slider
-        ui.add(egui::Slider::new(&mut state.font_size, 8.0..=48.0));
+        ui.add(egui::Slider::new(&mut state.font_size, 12.0..=80.0));
     });
 
     draw_text_pro_experimental(
         simple_styled_text("comfy has *c*o*m*f*y *t*e*x*t rendering"),
-        vec2(-5.0, 1.0),
+        // mouse_world(),
+        vec2(0.0, 1.0),
         WHITE,
         TextAlign::Center,
         state.font_size,
