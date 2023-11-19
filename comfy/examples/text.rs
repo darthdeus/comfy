@@ -35,10 +35,11 @@ fn setup(_state: &mut GameState, _c: &mut EngineContext) {
 fn update(state: &mut GameState, _c: &mut EngineContext) {
     clear_background(DARKBLUE);
 
-    egui::Window::new("Font Controls").show(egui(), |ui| {
-        // slider
-        ui.add(egui::Slider::new(&mut state.font_size, 12.0..=80.0));
-    });
+    egui::Window::new("Font Controls")
+        .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, -160.0))
+        .show(egui(), |ui| {
+            ui.add(egui::Slider::new(&mut state.font_size, 12.0..=80.0));
+        });
 
     draw_text_pro_experimental(
         simple_styled_text("comfy has *c*o*m*f*y *t*e*x*t rendering"),
