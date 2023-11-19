@@ -9,6 +9,7 @@ pub struct QuadDraw {
     pub blend_mode: BlendMode,
     pub source_rect: Option<IRect>,
     pub dest_size: Vec2,
+    pub rotation_x: f32,
     pub flip_x: bool,
     pub flip_y: bool,
 }

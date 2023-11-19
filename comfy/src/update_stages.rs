@@ -252,7 +252,8 @@ fn render_text(c: &mut EngineContext) {
 
                 let mut pos = vec2(glyph.x, glyph.y) * px() +
                     text.position +
-                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() / 2.0;
+                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() /
+                        2.0;
 
                 let mut color = text.color;
 
@@ -584,14 +585,15 @@ fn process_sprite_queue() {
     {
         // for draw in group.sorted_by(|a, b| a.texture.cmp(&b.texture)) {
         for draw in group {
-            draw_sprite_ex(
+            draw_sprite_pro(
                 draw.texture,
                 draw.transform.position,
                 draw.color,
                 z_index,
-                DrawTextureParams {
+                DrawTextureProParams {
                     source_rect: draw.source_rect,
-                    dest_size: Some(draw.dest_size.as_world_size()),
+                    size: draw.dest_size,
+                    rotation_x: draw.rotation_x,
                     rotation: draw.transform.rotation,
                     blend_mode: draw.blend_mode,
                     flip_x: draw.flip_x,

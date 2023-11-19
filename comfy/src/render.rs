@@ -10,6 +10,7 @@ pub struct Sprite {
     pub source_rect: Option<IRect>,
 
     pub offset: Vec2,
+    pub rotation_x: f32,
 
     pub flip_x: bool,
     pub flip_y: bool,
@@ -30,6 +31,7 @@ impl Sprite {
             blend_mode: BlendMode::None,
             source_rect: None,
             offset: Vec2::ZERO,
+            rotation_x: 0.0,
             flip_x: false,
             flip_y: false,
         }
@@ -41,6 +43,10 @@ impl Sprite {
 
     pub fn with_rect(self, x: i32, y: i32, w: i32, h: i32) -> Self {
         Self { source_rect: Some(IRect::new(ivec2(x, y), ivec2(w, h))), ..self }
+    }
+
+    pub fn with_rotation_x(self, rotation_x: f32) -> Self {
+        Self { rotation_x, ..self }
     }
 
     pub fn set_rect(self, source_rect: Option<IRect>) -> Self {
@@ -56,6 +62,7 @@ impl Sprite {
             blend_mode: self.blend_mode,
             dest_size: self.size * transform.scale,
             source_rect: self.source_rect,
+            rotation_x: self.rotation_x,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
         }

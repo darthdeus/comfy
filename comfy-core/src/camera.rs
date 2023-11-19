@@ -97,7 +97,17 @@ impl DampedSpring {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
+struct HistoryStackValue {
+    pub center: Vec2,
+    pub desired_center: Vec2,
+    pub desired_zoom: f32,
+    pub zoom: f32,
+}
+
+pub type CameraMatrixFn =
+    Box<dyn (Fn(&MainCamera, Vec2) -> Mat4) + Send + Sync + 'static>;
+
 pub struct MainCamera {
     pub shake_timer: f32,
     pub shake_amount: f32,
@@ -115,15 +125,12 @@ pub struct MainCamera {
     pub zoom: f32,
     pub desired_zoom: f32,
 
-    history_stack: Vec<HistoryStackValue>,
-}
+    pub matrix_fn: Option<CameraMatrixFn>,
+    /// Override config allowing to disable matrix_fn even when one is provided.
+    /// Useful for debugging.
+    pub use_matrix_fn: bool,
 
-#[derive(Copy, Clone)]
-struct HistoryStackValue {
-    pub center: Vec2,
-    pub desired_center: Vec2,
-    pub desired_zoom: f32,
-    pub zoom: f32,
+    history_stack: Vec<HistoryStackValue>,
 }
 
 impl Default for MainCamera {
@@ -152,6 +159,9 @@ impl MainCamera {
             desired_zoom: zoom,
 
             history_stack: Vec::new(),
+
+            matrix_fn: None,
+            use_matrix_fn: true,
         }
     }
 
@@ -275,15 +285,35 @@ impl MainCamera {
 
         let center = self.center + vec2(sx, sy);
 
-        Mat4::orthographic_rh(
-            // let proj = Mat4::orthographic_lh(
-            center.x - hx,
-            center.x + hx,
-            center.y - hy,
-            center.y + hy,
-            -range,
-            range,
-        )
+        if let Some(matrix_fn) = self.matrix_fn.as_ref() {
+            matrix_fn(self, center)
+        } else {
+            Mat4::orthographic_rh(
+                center.x - hx,
+                center.x + hx,
+                center.y - hy,
+                center.y + hy,
+                -range,
+                range,
+            )
+        }
+
+        //     let fov = 70.0f32.to_radians(); // Field of view: 70 degrees
+        //     let aspect = aspect_ratio(); // Assuming this returns the correct aspect ratio
+        //     let near = 0.1; // Near clipping plane
+        //     let far = 1000.0; // Far clipping plane
+        //
+        //     let perspective_matrix =
+        //         Mat4::perspective_rh(fov, aspect, near, far);
+        //     let view_matrix = Mat4::look_to_rh(
+        //         vec3(0.0, 0.0, -10.0),
+        //         vec3(0.0, 0.0, 1.0),
+        //         vec3(0.0, 1.0, 0.0),
+        //     );
+        //
+        //     let camera_matrix = perspective_matrix * view_matrix;
+        //     camera_matrix
+        // }
     }
 
     pub fn screen_to_world(&self, position: Vec2) -> Vec2 {

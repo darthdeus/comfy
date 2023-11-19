@@ -24,4 +24,11 @@ fn update(_c: &mut EngineContext) {
         0,
         splat(5.0),
     );
+
+    egui::Window::new("Egui image").show(egui(), |ui| {
+        ui.image((
+            cached_loader_mut().image_or_err(egui(), "comfy"),
+            egui::vec2(16.0, 16.0),
+        ));
+    });
 }
