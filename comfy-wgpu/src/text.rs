@@ -19,7 +19,7 @@ fn make_layout() -> fontdue::layout::Layout {
 pub struct TextRasterizer {
     pub context: GraphicsContext,
 
-    glyphs: HashMap<char, Glyph>,
+    glyphs: HashMap<(FontHandle, OrderedFloat<f32>, char), Glyph>,
     atlas: etagere::AtlasAllocator,
 
     texture: TextureHandle,
@@ -57,18 +57,27 @@ impl TextRasterizer {
 
     pub fn get_glyph(
         &mut self,
+        font_handle: FontHandle,
         font: &Font,
+        font_size: f32,
         c: char,
     ) -> (TextureHandle, etagere::Allocation) {
-        if !self.glyphs.contains_key(&c) {
-            self.prepare_rasterize(font, c);
+        let key = (font_handle, OrderedFloat(font_size), c);
+        if !self.glyphs.contains_key(&key) {
+            self.prepare_rasterize(font_handle, font, font_size, c);
         }
 
-        (self.texture, self.glyphs[&c].allocation)
+        (self.texture, self.glyphs[&key].allocation)
     }
 
-    pub fn prepare_rasterize(&mut self, font: &Font, c: char) {
-        let (metrics, bitmap) = font.rasterize(c, 128.0);
+    pub fn prepare_rasterize(
+        &mut self,
+        font_handle: FontHandle,
+        font: &Font,
+        font_size: f32,
+        c: char,
+    ) {
+        let (metrics, bitmap) = font.rasterize(c, font_size);
 
         // if metrics.width > 0 {
         //     bitmap.flip_inplace(metrics.width);
@@ -124,7 +133,8 @@ impl TextRasterizer {
 
             let glyph = Glyph { metrics, bitmap, allocation };
 
-            self.glyphs.insert(c, glyph);
+            self.glyphs
+                .insert((font_handle, OrderedFloat(font_size), c), glyph);
         };
     }
 

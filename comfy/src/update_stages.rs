@@ -192,7 +192,10 @@ fn render_text(c: &mut EngineContext) {
                 }
             };
 
-            let font = assets.fonts.get(&pro_params.font).unwrap();
+            let font_handle = pro_params.font;
+            let font = assets.fonts.get(&font_handle).unwrap();
+
+            println!("drawing font {:?}", pro_params.font);
 
             // let RichText { clean_text, styled_glyphs } =
             //     simple_styled_text(&text.text);
@@ -270,7 +273,12 @@ fn render_text(c: &mut EngineContext) {
                 //     text.position;
 
 
-                let (texture, allocation) = t.get_glyph(font, glyph.parent);
+                let (texture, allocation) = t.get_glyph(
+                    font_handle,
+                    font,
+                    pro_params.font_size,
+                    glyph.parent,
+                );
                 assert_ne!(texture, texture_id("1px"));
 
                 let mut source_rect = allocation.to_irect();

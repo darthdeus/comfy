@@ -4,6 +4,7 @@ simple_game!("Text Example", GameState, setup, update);
 
 pub struct GameState {
     pub fonts: Vec<FontHandle>,
+    pub font_size: f32,
 }
 
 impl GameState {
@@ -22,6 +23,7 @@ impl GameState {
                     "../../assets/fonts/Orbitron-Regular.ttf"
                 )),
             ],
+            font_size: 16.0,
         }
     }
 }
@@ -33,13 +35,22 @@ fn setup(_state: &mut GameState, _c: &mut EngineContext) {
 fn update(state: &mut GameState, _c: &mut EngineContext) {
     clear_background(DARKBLUE);
 
+    egui::Window::new("Font Controls").show(egui(), |ui| {
+        // slider
+        ui.add(egui::Slider::new(&mut state.font_size, 8.0..=48.0));
+    });
+
     draw_text_pro_experimental(
         simple_styled_text("comfy has *c*o*m*f*y *t*e*x*t rendering"),
         vec2(-5.0, 1.0),
         WHITE,
         TextAlign::Center,
-        16.0,
-        *state.fonts.choose().unwrap(),
+        state.font_size,
+        if get_time() as i32 % 2 == 1 {
+            state.fonts[1]
+        } else {
+            state.fonts[0]
+        }, // *state.fonts.choose().unwrap(),
     );
 
     draw_text_ex(
@@ -49,7 +60,10 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
         TextParams {
             color: YELLOW,
             // Use egui fonts
-            font: egui::FontId::new(32.0, egui::FontFamily::Proportional),
+            font: egui::FontId::new(
+                state.font_size,
+                egui::FontFamily::Proportional,
+            ),
             ..Default::default()
         },
     );
