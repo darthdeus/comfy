@@ -48,11 +48,11 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
         WHITE,
         TextAlign::Center,
         state.font_size,
-        if get_time() as i32 % 2 == 1 {
-            state.fonts[1]
-        } else {
+        if get_time() as i32 % 2 == 0 {
             state.fonts[0]
-        }, // *state.fonts.choose().unwrap(),
+        } else {
+            state.fonts[1]
+        },
     );
 
     draw_text_ex(
