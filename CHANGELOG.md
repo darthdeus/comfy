@@ -1,9 +1,11 @@
 # v0.3.0
 
-**This release contains breaking changes, most notably around the
-`GameContext` and setup of the main game loop.** It's likely most games will
-be affected, but the changes needed are very small and should help us a
-lot in the long run.
+**This release contains breaking changes, most notably around the `GameContext`
+and setup of the main game loop.** It's likely most games will be affected, but
+the changes needed are very small and should help us a lot in the long run.
+**This release also includes new experimental features, which are made
+available a bit sooner before the API is stabilized to allow faster
+iteration.**
 
 If you run into any issues, please either create an issue on GitHub, or ping
 @darth on Discord.
