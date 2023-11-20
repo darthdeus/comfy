@@ -8,6 +8,8 @@ pub struct AnimatedSprite {
     pub size: Vec2,
     pub color: Color,
 
+    pub rotation_x: f32,
+
     pub flip_x: bool,
     pub flip_y: bool,
 
@@ -166,6 +168,7 @@ impl AnimatedSprite {
             blend_mode: self.blend_mode,
             dest_size: self.size * transform.scale,
             source_rect,
+            rotation_x: self.rotation_x,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
         }
@@ -210,6 +213,7 @@ pub struct AnimatedSpriteBuilder {
     pub color: Color,
     pub flip_x: bool,
     pub flip_y: bool,
+    pub rotation_x: f32,
     pub blend_mode: BlendMode,
     pub offset: Vec2,
     pub on_finished: Option<ContextFn>,
@@ -225,6 +229,7 @@ impl AnimatedSpriteBuilder {
             color: WHITE,
             flip_x: false,
             flip_y: false,
+            rotation_x: 0.0,
             blend_mode: BlendMode::None,
             offset: Vec2::ZERO,
             on_finished: None,
@@ -243,6 +248,11 @@ impl AnimatedSpriteBuilder {
 
     pub fn z_index(mut self, z_index: i32) -> Self {
         self.z_index = z_index;
+        self
+    }
+
+    pub fn rotation_x(mut self, rotation_x: f32) -> Self {
+        self.rotation_x = rotation_x;
         self
     }
 
@@ -335,6 +345,7 @@ impl AnimatedSpriteBuilder {
             color: self.color,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
+            rotation_x: self.rotation_x,
             blend_mode: self.blend_mode,
             offset: self.offset,
             on_finished: self.on_finished.unwrap_or_else(|| Box::new(|_| {})),

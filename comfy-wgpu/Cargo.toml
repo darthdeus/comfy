@@ -22,7 +22,7 @@ comfy-core = { path = "../comfy-core", version = "0.2.0" }
 wgpu = { version = "0.17.1", features = ["expose-ids"] }
 wgpu-types = "0.17.0"
 winit = { version = "0.28.3", default-features = false, features = ["x11"] }
-naga = { version = "0.14.0", features = ["wgsl-in"] }
+naga = { version = "0.13.0", features = ["wgsl-in"] }
 
 egui = "0.23.0"
 egui-wgpu = "0.23.0"

@@ -1,5 +1,7 @@
 use crate::*;
 
+const Z_DIV: f32 = 1000.0;
+
 pub fn splat(v: f32) -> Vec2 {
     Vec2::splat(v)
 }
@@ -115,10 +117,13 @@ pub fn draw_sprite_ex(
         pivot: params.pivot,
     };
 
-    let size = Assets::image_size(texture).unwrap_or(UVec2::ONE);
+    let size = Assets::image_size(texture).unwrap_or_else(|| {
+        error!("NO SIZE FOR TEXTURE {:?}", texture);
+        UVec2::ONE
+    });
 
     let vertices = rotated_rectangle(
-        position.extend(z_index as f32),
+        position.extend(z_index as f32 / Z_DIV),
         raw,
         size.x as f32,
         size.y as f32,
@@ -171,6 +176,8 @@ pub struct DrawTextureProParams {
     pub flip_y: bool,
     /// The blend mode to use when drawing the sprite.
     pub blend_mode: BlendMode,
+    /// Rotation around the x axis for creating a 3d effect.
+    pub rotation_x: f32,
 }
 
 impl Default for DrawTextureProParams {
@@ -184,6 +191,7 @@ impl Default for DrawTextureProParams {
             flip_x: false,
             flip_y: false,
             blend_mode: Default::default(),
+            rotation_x: 0.0,
         }
     }
 }
@@ -277,7 +285,12 @@ pub fn draw_sprite_pro(
 
     let vertices = [0, 1, 2, 3].map(|i| {
         SpriteVertex::new(
-            rotated_corners[i].extend(z_index as f32),
+            rotate_around_point(
+                rotated_corners[i].extend(z_index as f32 / Z_DIV),
+                position.extend(z_index as f32 / Z_DIV),
+                params.rotation_x,
+            ),
+            // m.transform_point3(),
             tex_coords[i],
             tint,
         )
@@ -296,6 +309,15 @@ pub fn draw_sprite_pro(
     draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
 }
 
+fn rotate_around_point(point: Vec3, pivot: Vec3, angle_rad: f32) -> Vec3 {
+    let translate_to_origin = Mat4::from_translation(-pivot);
+    let rotate_around_x = Mat4::from_rotation_x(angle_rad);
+    let translate_back = Mat4::from_translation(pivot);
+
+    let combined_transform =
+        translate_back * rotate_around_x * translate_to_origin;
+    combined_transform.transform_point3(point)
+}
 
 pub fn draw_rectangle_z_tex(
     position: Position,
@@ -311,7 +333,7 @@ pub fn draw_rectangle_z_tex(
     let hw = w / 2.0;
     let hh = h / 2.0;
 
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
 
     #[rustfmt::skip]
     let vertices = [
@@ -377,8 +399,6 @@ pub fn draw_rect_outline(
     let x = x - hw;
     let y = y - hh;
 
-    let z = z_index as f32;
-
     // let t = thickness / 2.;
     // #[rustfmt::skip]
     // let vertices = vec![
@@ -412,6 +432,8 @@ pub fn draw_rect_outline(
         &mut vertices,
         &mut indices,
     );
+
+    let z = z_index as f32 / Z_DIV;
 
     let vertices = vertices
         .into_iter()
@@ -495,7 +517,6 @@ pub fn draw_rect_corners(
     let y = y - hh;
 
     let c = corner_size;
-    let z = z_index as f32;
 
     let mut vertices = Vec::new();
     let mut indices = Vec::new();
@@ -531,6 +552,8 @@ pub fn draw_rect_corners(
         &mut vertices,
         &mut indices,
     );
+
+    let z = z_index as f32 / Z_DIV;
 
     let vertices = vertices
         .into_iter()
@@ -702,9 +725,9 @@ pub fn draw_rect_outline_rot(
     let x = x - hw;
     let y = y - hh;
 
-    let z = z_index as f32;
-
     let pivot = vec2(x + w / 2.0, y + h / 2.0);
+
+    let z = z_index as f32 / Z_DIV;
 
     #[rustfmt::skip]
     let mut vertices = [
@@ -792,7 +815,7 @@ pub fn draw_circle_outline(
             (prev_inner_point, prev_outer_point)
         {
             // Create two triangles
-            let z = z_index as f32;
+            let z = z_index as f32 / Z_DIV;
 
             vertices.push(SpriteVertex::new(
                 vec3(prev_inner.x, prev_inner.y, z),
@@ -904,7 +927,7 @@ pub fn draw_line_tex_y_uv_flex(
     let tx2 = nxn * end_thickness * 0.5;
     let ty2 = nyn * end_thickness * 0.5;
 
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
 
     // let wrapped_y_uv_start = uv_offset % 1.0;
     // let wrapped_y_uv_end = (uv_offset + uv_size) % 1.0;
@@ -1008,7 +1031,7 @@ pub fn draw_line_tex(
     //
     // 0 1      1 1
 
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
 
     let vertices = [
         SpriteVertex::new(vec3(x1 + tx, y1 + ty, z), vec2(0.0, 0.0), color),
@@ -1044,7 +1067,7 @@ pub fn draw_poly_z(
     texture_params: TextureParams,
 ) {
     let (x, y) = position.tuple();
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
 
     let mut vertices = Vec::<SpriteVertex>::with_capacity(sides as usize + 2);
     let mut indices = Vec::<u32>::with_capacity(sides as usize * 3);
@@ -1091,7 +1114,7 @@ pub fn draw_arc(
     z_index: i32,
 ) {
     let (x, y) = position.tuple();
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
     let segments = 40;
 
     let mut vertices =
@@ -1182,7 +1205,7 @@ pub fn draw_arc_outline(
         if let (Some(prev_inner), Some(prev_outer)) =
             (prev_inner_point, prev_outer_point)
         {
-            let z = z_index as f32;
+            let z = z_index as f32 / Z_DIV;
 
             vertices.push(SpriteVertex::new(
                 vec3(prev_inner.x, prev_inner.y, z),
@@ -1413,7 +1436,7 @@ pub fn draw_line_tex_y_uv(
     let tx = nx / tlen;
     let ty = ny / tlen;
 
-    let z = z_index as f32;
+    let z = z_index as f32 / Z_DIV;
 
     // 0 0      1 0
     //

@@ -167,7 +167,8 @@ fn process_asset_queues(c: &mut EngineContext) {
     // }
 }
 
-fn render_text(_c: &mut EngineContext) {
+
+fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
     let painter = egui().layer_painter(egui::LayerId::new(
@@ -178,26 +179,213 @@ fn render_text(_c: &mut EngineContext) {
     let text_queue =
         GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
 
+    let assets = ASSETS.borrow();
+
     for text in text_queue {
-        let align = match text.align {
-            TextAlign::TopLeft => egui::Align2::LEFT_TOP,
-            TextAlign::Center => egui::Align2::CENTER_CENTER,
-            TextAlign::TopRight => egui::Align2::RIGHT_TOP,
-            TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
-            TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
-        };
+        if let Some(pro_params) = text.pro_params {
+            let mut t = c.renderer.text.borrow_mut();
 
-        // TODO: maybe better way of doing this?
-        let screen_pos =
-            text.position.as_world().to_screen() / egui_scale_factor();
+            let (clean_text, styled_glyphs) = match text.text {
+                TextData::Raw(raw_text) => (raw_text, None),
+                TextData::Rich(rich_text) => {
+                    (rich_text.clean_text, Some(rich_text.styled_glyphs))
+                }
+            };
 
-        painter.text(
-            egui::pos2(screen_pos.x, screen_pos.y),
-            align,
-            text.text,
-            text.font,
-            text.color.egui(),
-        );
+            let font_handle = pro_params.font;
+            let font = assets.fonts.get(&font_handle).unwrap();
+
+            // let RichText { clean_text, styled_glyphs } =
+            //     simple_styled_text(&text.text);
+
+            let layout = t.layout_text(
+                font,
+                &clean_text,
+                pro_params.font_size,
+                &fontdue::layout::LayoutSettings {
+                    // vertical_align: fontdue::layout::VerticalAlign::Middle,
+                    // horizontal_align: fontdue::layout::HorizontalAlign::Center,
+                    ..Default::default()
+                },
+            );
+
+            let mut min_x = f32::INFINITY;
+            let mut min_y = f32::INFINITY;
+            let mut max_x = f32::NEG_INFINITY;
+            let mut max_y = f32::NEG_INFINITY;
+
+            for glyph in layout.glyphs() {
+                let glyph_min_x = glyph.x;
+                let glyph_min_y = glyph.y;
+                let glyph_max_x = glyph.x + glyph.width as f32;
+                let glyph_max_y = glyph.y + glyph.height as f32;
+
+                min_x = min_x.min(glyph_min_x);
+                min_y = min_y.min(glyph_min_y);
+                max_x = max_x.max(glyph_max_x);
+                max_y = max_y.max(glyph_max_y);
+            }
+
+            let layout_rect =
+                Rect::from_min_max(vec2(min_x, min_y), vec2(max_x, max_y));
+
+            let draw_outline = false;
+
+            if draw_outline {
+                draw_rect_outline(
+                    text.position +
+                        layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
+                    Size::screen(layout_rect.size.x, layout_rect.size.y)
+                        .to_world(),
+                    0.1,
+                    YELLOW,
+                    200,
+                );
+            }
+
+            for (i, glyph) in layout.glyphs().iter().enumerate() {
+                let style = styled_glyphs.as_ref().map(|x| x[i]);
+
+                if glyph.parent == ' ' {
+                    continue;
+                }
+
+                let mut pos = vec2(glyph.x, glyph.y) * px() +
+                    text.position +
+                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() /
+                        2.0;
+
+                let mut color = text.color;
+
+                if let Some(style) = style {
+                    if style.wiggle {
+                        pos += vec2(
+                            random_range(-0.02, 0.02),
+                            random_range(-0.035, 0.035),
+                        );
+                    }
+
+                    if let Some(override_color) = style.color {
+                        color = override_color;
+                    }
+                }
+
+                // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
+                //     text.position;
+
+
+                let (texture, allocation) = t.get_glyph(
+                    font_handle,
+                    font,
+                    pro_params.font_size,
+                    glyph.parent,
+                );
+                assert_ne!(texture, texture_id("1px"));
+
+                let mut source_rect = allocation.to_irect();
+                source_rect.offset = ivec2(
+                    source_rect.offset.x,
+                    t.atlas_size as i32 -
+                        source_rect.offset.y -
+                        source_rect.size.y,
+                );
+
+                let ratio =
+                    source_rect.size.x as f32 / source_rect.size.y as f32;
+
+                draw_sprite_pro(
+                    texture,
+                    pos,
+                    color,
+                    100,
+                    DrawTextureProParams {
+                        source_rect: Some(source_rect),
+                        align: SpriteAlign::BottomLeft,
+                        size: Size::screen(
+                            glyph.width as f32,
+                            glyph.width as f32 / ratio,
+                        )
+                        .to_world(),
+                        ..Default::default()
+                    },
+                );
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         source_rect: Some(source_rect),
+                //         // align: SpriteAlign::BottomLeft,
+                //         // dest_size: Some(splat(4.0).as_world_size()),
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default()
+                //     },
+                // );
+
+                // break;
+
+                // let pos = vec2(i as f32, 0.0) + text.position;
+                // // TODO: this makes it delayed!
+
+                // println!("pos: {:?} {}", pos, glyph.parent);
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default() // source_rect: (),
+                //                              // scroll_offset: (),
+                //                              // rotation: (),
+                //                              // flip_x: (),
+                //                              // flip_y: (),
+                //                              // pivot: (),
+                //                              // blend_mode: (),
+                //     },
+                //     //     dest_size: DestSize::Fixed(Vec2::new(
+                //     //         glyph.width as f32,
+                //     //         glyph.height as f32,
+                //     //     )),
+                //     //     layer: params.layer,
+                //     //     ..Default::default()
+                //     // },
+                // );
+            }
+        } else {
+            let align = match text.align {
+                TextAlign::TopLeft => egui::Align2::LEFT_TOP,
+                TextAlign::Center => egui::Align2::CENTER_CENTER,
+                TextAlign::TopRight => egui::Align2::RIGHT_TOP,
+                TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
+                TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
+            };
+
+            // TODO: maybe better way of doing this?
+            let screen_pos =
+                text.position.as_world().to_screen() / egui_scale_factor();
+
+            if let TextData::Raw(raw_text) = text.text {
+                painter.text(
+                    egui::pos2(screen_pos.x, screen_pos.y),
+                    align,
+                    raw_text,
+                    text.font,
+                    text.color.egui(),
+                );
+            } else {
+                panic!("TextData::RichText is not supported with egui");
+            }
+        }
     }
 }
 
@@ -397,14 +585,15 @@ fn process_sprite_queue() {
     {
         // for draw in group.sorted_by(|a, b| a.texture.cmp(&b.texture)) {
         for draw in group {
-            draw_sprite_ex(
+            draw_sprite_pro(
                 draw.texture,
                 draw.transform.position,
                 draw.color,
                 z_index,
-                DrawTextureParams {
+                DrawTextureProParams {
                     source_rect: draw.source_rect,
-                    dest_size: Some(draw.dest_size.as_world_size()),
+                    size: draw.dest_size,
+                    rotation_x: draw.rotation_x,
                     rotation: draw.transform.rotation,
                     blend_mode: draw.blend_mode,
                     flip_x: draw.flip_x,

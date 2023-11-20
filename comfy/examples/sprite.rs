@@ -24,4 +24,14 @@ fn update(_c: &mut EngineContext) {
         0,
         splat(5.0),
     );
+
+    // You might also want to use regular comfy sprites/textures within egui.
+    // This is a bit more advanced, and if you don't know what egui is don't worry
+    // about the following bit of code.
+    egui::Window::new("Egui image").show(egui(), |ui| {
+        ui.image((
+            cached_loader_mut().image_or_err(egui(), "comfy"),
+            egui::vec2(16.0, 16.0),
+        ));
+    });
 }

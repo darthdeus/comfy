@@ -106,6 +106,7 @@ pub use backtrace::Backtrace;
 
 pub use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 pub use bytemuck;
+pub use crossbeam::atomic::AtomicCell;
 pub use cfg_if::cfg_if;
 pub use egui;
 pub use egui_plot;
@@ -135,6 +136,9 @@ pub use blobs;
 pub use memory_stats;
 
 pub use num_complex::Complex;
+
+pub use etagere;
+pub use fontdue;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client;
@@ -480,15 +484,21 @@ impl IRect {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub center: Vec2,
+    pub size: Vec2,
 }
 
 impl Rect {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self { x, y, w, h }
+    pub fn new(center: Vec2, size: Vec2) -> Self {
+        Self { center, size }
+    }
+
+    pub fn from_min_max(min: Vec2, max: Vec2) -> Self {
+        Self { center: (min + max) / 2.0, size: max - min }
+    }
+
+    pub fn top_left(&self) -> Vec2 {
+        self.center - self.size / 2.0
     }
 }
 
@@ -1670,4 +1680,43 @@ impl AABB {
     pub fn top_left(&self) -> Vec2 {
         vec2(self.min.x, self.max.y)
     }
+}
+
+pub trait VecExtensions {
+    fn flip(&self, width: usize) -> Self;
+    fn flip_inplace(&mut self, width: usize);
+}
+
+impl<T: Clone> VecExtensions for Vec<T> {
+    fn flip(&self, width: usize) -> Self {
+        let mut res = self.clone();
+        res.flip_inplace(width);
+        res
+    }
+
+    fn flip_inplace(&mut self, width: usize) {
+        assert!(self.len() % width == 0);
+
+        let height = self.len() / width;
+
+        for y in 0..(height / 2) {
+            for x in 0..width {
+                self.swap(y * width + x, (height - y - 1) * width + x)
+            }
+        }
+    }
+}
+
+#[test]
+fn test_vec_flip_h() {
+    assert_eq!(vec![0, 0, 1, 1].flip(2), vec![1, 1, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(3), vec![1, 1, 2, 0, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(2), vec![1, 2, 0, 1, 0, 0]);
+
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(2), vec![
+        3, 3, 1, 2, 0, 1, 0, 0
+    ]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(4), vec![
+        1, 2, 3, 3, 0, 0, 0, 1
+    ]);
 }

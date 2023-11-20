@@ -9,6 +9,8 @@ pub use winit::event::{
     WindowEvent,
 };
 
+pub use fontdue;
+
 mod batching;
 mod blood_canvas;
 mod bloom;
@@ -23,6 +25,7 @@ mod post_processing;
 mod render_pass;
 mod renderer;
 mod screenshot;
+mod text;
 mod texture;
 mod utils;
 mod y_sort;
@@ -40,6 +43,7 @@ pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
+pub use crate::text::*;
 pub use crate::texture::*;
 pub use crate::utils::*;
 pub use crate::y_sort::*;

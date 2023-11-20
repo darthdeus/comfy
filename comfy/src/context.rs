@@ -44,6 +44,7 @@ pub struct EngineContext<'a> {
     pub quit_flag: &'a mut bool,
     pub flags: &'a mut RefCell<HashSet<String>>,
 
+    // TODO: remove this, can be passed through GraphicsContext or WgpuRenderer
     pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
 }
 
