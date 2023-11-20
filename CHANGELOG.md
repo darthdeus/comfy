@@ -93,6 +93,40 @@ New shader related functions (see their individual docstrings & [fragment shader
 - `use_default_shader`: Switch back to the default shader.
 - `set_uniform_f32`: Set a `f32` uniform value.
 
+## Experimental text rendering
+
+Starting with v0.3 comfy will now support its own text rendering in addition to
+the previous approach using `egui`'s painter on a fullscreen canvas.
+
+It should be noted that this is currently an experimental feature. It works
+fine and we're already starting to use it internally, but the API will most
+certainly change, and there are going to be some hardcoded limitations and
+bugs.
+
+If you do end up using this, please expect to that you'll have to either fork
+comfy or follow the `master` branch in case you run into any problems. The
+reason we're introducing this is to avoid perfectionism and keeping features
+hidden until they're 100% complete.
+
+Please note that this doesn't mean "shipping shitty features and leaving them
+shitty" like some commercial engines do. Think of it more like _beta_ or _early
+access_.
+
+## Experimental perspective camera & 3D/2.5D
+
+Much like text rendering, there's also now work towards supporting **very
+simple 3D**. By 3D we really mean 2.5D, and by 2.5D we really mean _rotate a
+sprite and use a perspective camera_.
+
+Comfy does have a quite flexible `draw_mesh_ex` API already, so those brave enough
+could in theory start working on 3D games. But realistically you probably want to hold on
+for a little while unless you're ready to dive into the internals.
+
+Right now we only have `rotation_x` for a 3d rotation around the `x` axis
+for `draw_sprite_pro/Sprite/AnimatedSprite`. This will be extended over
+time, and users can easily implement their own 3d objects with
+`draw_mesh`.
+
 ## Other changes
 
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
