@@ -60,6 +60,9 @@ pub use comfy_core::{self, Assets, *};
 pub use comfy_wgpu;
 pub use comfy_wgpu::*;
 
+#[cfg(feature = "ldtk")]
+pub use comfy_ldtk::*;
+
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};
 
