@@ -39,7 +39,7 @@ default: example
 # default: lint
 # default: test
 
-FLAGS=--features=blobs,git-version,dev
+FLAGS=--features=blobs,git-version,dev,ldtk
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:
