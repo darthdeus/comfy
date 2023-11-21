@@ -22,13 +22,14 @@
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
-EXAMPLE=sprite
+# EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
+EXAMPLE=ldtk
 
 # default: build-examples
 # default: wasm-build
