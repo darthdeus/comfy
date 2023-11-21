@@ -15,7 +15,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// This file is a JSON schema of files created by LDtk level editor (https://ldtk.io).
+/// This file is a JSON schema of files created by LDtk level editor <https://ldtk.io>.
 ///
 /// This is the root of any Project JSON file. It contains:  - the project settings, - an
 /// array of levels, - a group of definitions (that can probably be safely ignored for most
@@ -174,7 +174,7 @@ pub struct LdtkJson {
     /// pretty much only about moving the `levels` array to the `worlds` array, along with world
     /// layout related values (eg. `worldGridWidth` etc).<br/><br/>If you want to start
     /// supporting this future update easily, please refer to this documentation:
-    /// https://github.com/deepnight/ldtk/issues/231
+    /// <https://github.com/deepnight/ldtk/issues/231>
     pub worlds: Vec<World>,
 }
 
@@ -288,7 +288,7 @@ pub struct EntityDefinition {
 
     /// An array of 4 dimensions for the up/right/down/left borders (in this order) when using
     /// 9-slice mode for `tileRenderMode`.<br/>  If the tileRenderMode is not NineSlice, then
-    /// this array is empty.<br/>  See: https://en.wikipedia.org/wiki/9-slice_scaling
+    /// this array is empty.<br/>  See: <https://en.wikipedia.org/wiki/9-slice_scaling>
     pub nine_slice_borders: Vec<i64>,
 
     /// Pivot X coordinate (from 0 to 1.0)
