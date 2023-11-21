@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-crate-type = ["dylib"]
+# crate-type = ["dylib"]
 
 [dependencies]
 comfy-core = { path = "../comfy-core", version = "0.2.0" }

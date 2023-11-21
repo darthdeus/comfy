@@ -129,6 +129,51 @@ for `draw_sprite_pro/Sprite/AnimatedSprite`. This will be extended over
 time, and users can easily implement their own 3d objects with
 `draw_mesh`.
 
+## LDTK support
+
+Comfy now has a very simple builtin support for the [LDTK level
+editor](https://ldtk.io/). This isn't very comprehensive yet, and it probably
+does much less than you would expect it to do, but there are a few nice things!
+
+Firstly, LDTK officially provides a [generated `serde`
+parser](https://ldtk.io/files/quicktype/LdtkJson.rs) for its file format. This
+is great in some ways, but [`serde`](https://serde.rs/)'s procedural macros are
+_incredibly_ slow to compile, and could easily add seconds to your incremental
+builds if you end up triggering a rebuild of the quicktype file.
+
+This is especially noticable if you tried to do something like
+`serde_json::from_str::<LdtkJson>(...)` in your crate. In my testing this
+easily takes a <1s build to 3-5 seconds alone.
+
+A solution is surprisingly simple, we just need to define a non-generic
+function that wraps serde's generic deserializer and move it into its own
+crate, meaning all the ugliness that happens with serde's types happen in the
+crate, and it won't be triggered on incremental builds. Comfy can now define
+the following function which really just calls serde, and this takes the build
+time back to <1s quite comfortably. I haven't really noticed a significant
+measurable difference with using LDTK this way compared to not using it.
+
+```rust
+pub fn parse_ldtk_map(
+    map: &str,
+) -> Result<quicktype::LdtkJson, serde_json::Error> {
+    serde_json::from_str(map)
+}
+```
+
+It would be interesting to see how this would compare with
+[`nanoserde`](https://docs.rs/nanoserde/latest/nanoserde/), which is
+_significantly faster to compile than serde_, but it would require some changes
+to the generated LDTK file and we just haven't had the time to do those yet.
+That being said, Comfy would like to move away from serde in the near if at all
+possible.
+
+On top of this, we also provide a few extension traits for LDTK's types that
+make working with it a little more convenient. Please keep in mind that LDTK
+support is still very early, and you are expected to do digging into LDTK's
+file format if you are to use this. That being said, LDTK is very well documented
+and while it does have a learning curve it's realtively easy and simple.
+
 ## Other changes
 
 - Blood canvas z-index is now configurable in `GameConfig`.
