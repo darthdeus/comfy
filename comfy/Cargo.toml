@@ -33,9 +33,12 @@ wayland = ["comfy-core/wayland"]
 
 use-wgpu = ["comfy-wgpu"]
 
+ldtk = ["dep:comfy-ldtk"]
+
 [dependencies]
 comfy-wgpu = { path = "../comfy-wgpu", version = "0.2.0", optional = true }
 comfy-core = { path = "../comfy-core", version = "0.2.0" }
+comfy-ldtk = { path = "../comfy-ldtk", version = "0.1.0", optional = true }
 
 [[example]]
 name = "physics"

@@ -57,8 +57,6 @@ pub use std::{
 
 pub use comfy_core::{self, Assets, *};
 
-pub use std::path::Path;
-
 pub use comfy_wgpu;
 pub use comfy_wgpu::*;
 

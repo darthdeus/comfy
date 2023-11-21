@@ -96,6 +96,7 @@ pub use inline_tweak::tweak;
 pub use std::future::Future;
 pub use std::pin::Pin;
 pub use std::task::Poll;
+pub use std::path::Path;
 
 pub use hecs;
 pub use hecs::{CommandBuffer, DynamicBundle, Entity, World};
@@ -106,8 +107,8 @@ pub use backtrace::Backtrace;
 
 pub use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 pub use bytemuck;
-pub use crossbeam::atomic::AtomicCell;
 pub use cfg_if::cfg_if;
+pub use crossbeam::atomic::AtomicCell;
 pub use egui;
 pub use egui_plot;
 pub use egui_winit;
