@@ -575,7 +575,6 @@ checksum = "50eddb48ea406660a999cc6587f4cc858742f7f2dc9f70f7190efa7d570bee6f"
 name = "comfy-ldtk"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "comfy-core",
  "grids",
  "notify",
