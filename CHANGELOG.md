@@ -131,6 +131,7 @@ time, and users can easily implement their own 3d objects with
 
 ## Other changes
 
+- Blood canvas z-index is now configurable in `GameConfig`.
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
   where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
   window managers like i3 to automatically float windows with this title, e.g.

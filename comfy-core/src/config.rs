@@ -94,6 +94,7 @@ pub struct GameConfig {
     pub scroll_speed: f32,
 
     pub music_enabled: bool,
+    pub blood_canvas_z: i32,
 
     pub show_combat_text: bool,
     pub spawn_exp: bool,
@@ -131,6 +132,7 @@ impl Default for GameConfig {
 
             scroll_speed: 7.0,
             music_enabled: false,
+            blood_canvas_z: 4,
 
             show_combat_text: true,
             spawn_exp: true,

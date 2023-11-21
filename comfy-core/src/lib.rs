@@ -56,8 +56,6 @@ pub use std::collections::VecDeque;
 pub use std::hash::{Hash, Hasher};
 pub use std::num::NonZeroU32;
 
-pub const Z_BLOOD_CANVAS: i32 = 4;
-
 pub use std::ops::DerefMut;
 
 use std::ops::Add;
@@ -94,9 +92,9 @@ pub use inline_tweak;
 pub use inline_tweak::tweak;
 
 pub use std::future::Future;
+pub use std::path::Path;
 pub use std::pin::Pin;
 pub use std::task::Poll;
-pub use std::path::Path;
 
 pub use hecs;
 pub use hecs::{CommandBuffer, DynamicBundle, Entity, World};

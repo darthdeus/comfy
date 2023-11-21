@@ -394,11 +394,13 @@ fn update_blood_canvas(_c: &mut EngineContext) {
 
     // TODO: this really doesn't belong here
     blood_canvas_update_and_draw(|key, block| {
+        let z = game_config().blood_canvas_z;
+
         draw_sprite_ex(
             block.handle,
             (key.as_vec2() + splat(0.5)) * blood_block_world_size() as f32,
             WHITE,
-            Z_BLOOD_CANVAS,
+            z,
             DrawTextureParams {
                 dest_size: Some(
                     splat(blood_block_world_size() as f32).as_world_size(),

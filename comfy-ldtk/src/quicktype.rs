@@ -12,7 +12,7 @@
 //     let model: LdtkJson = serde_json::from_str(&json).unwrap();
 // }
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// This file is a JSON schema of files created by LDtk level editor (https://ldtk.io).
