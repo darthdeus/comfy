@@ -15,6 +15,7 @@
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
+# EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
@@ -25,11 +26,10 @@
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
-# EXAMPLE=text
+EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
-EXAMPLE=ldtk
 
 # default: build-examples
 # default: wasm-build

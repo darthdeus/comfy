@@ -481,13 +481,18 @@ impl IRect {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Rect {
     pub center: Vec2,
     pub size: Vec2,
 }
 
 impl Rect {
+    pub fn from_xywh(x: f32, y: f32, w: f32, h: f32) -> Self {
+        // impl
+        Self { center: vec2(x + w / 2.0, y + h / 2.0), size: vec2(w, h) }
+    }
+
     pub fn new(center: Vec2, size: Vec2) -> Self {
         Self { center, size }
     }
@@ -498,6 +503,22 @@ impl Rect {
 
     pub fn top_left(&self) -> Vec2 {
         self.center - self.size / 2.0
+    }
+
+    pub fn x(&self) -> f32 {
+        self.center.x - self.size.x / 2.0
+    }
+
+    pub fn y(&self) -> f32 {
+        self.center.y - self.size.y / 2.0
+    }
+
+    pub fn w(&self) -> f32 {
+        self.size.x
+    }
+
+    pub fn h(&self) -> f32 {
+        self.size.y
     }
 }
 
@@ -781,7 +802,6 @@ impl Color {
             (self.a * 255.0) as u8,
         ])
     }
-
 
     pub fn darken(&self, amount: f32) -> Color {
         let amount = 1.0 - amount;
@@ -1082,7 +1102,6 @@ impl Vec2Extensions for Vec2 {
 //     fn from_u8(r: u8, g: u8, b: u8, a: u8) -> Self;
 // }
 
-
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct SemanticVer {
     pub major: u16,
@@ -1181,7 +1200,6 @@ impl Transform {
     pub fn parent(self, parent: Entity) -> Self {
         Self { parent: Some(parent), ..self }
     }
-
 
     pub fn compose_with_parent(
         &self,
@@ -1504,7 +1522,6 @@ impl MovingStats {
         }
     }
 }
-
 
 // pub struct MovingStats {
 //     size: usize,
