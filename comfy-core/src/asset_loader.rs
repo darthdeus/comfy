@@ -27,6 +27,8 @@ pub struct AssetLoader {
     pub asset_source: Option<AssetSource>,
 
     pub data_load_queue: Vec<AssetData>,
+
+    pub pending_textures: HashSet<String>,
 }
 
 impl AssetLoader {
@@ -60,6 +62,8 @@ impl AssetLoader {
             asset_source: None,
 
             data_load_queue: Vec::new(),
+
+            pending_textures: Default::default(),
         }
     }
 
@@ -70,6 +74,11 @@ impl AssetLoader {
 
     pub fn queue_load_textures(&mut self, textures: Vec<(String, String)>) {
         inc_assets_queued(textures.len());
+
+        for (key, _path) in textures.iter() {
+            self.pending_textures.insert(key.clone());
+        }
+
         self.texture_load_queue.extend(textures)
     }
 
@@ -174,7 +183,10 @@ impl AssetLoader {
 
                     self.texture_data_send.lock().send(texture_data).log_err();
                 } else {
-                    error!("Error loading {}", relative_path);
+                    report_error(
+                        format!("{:?}", handle),
+                        format!("Error loading {}", relative_path),
+                    );
                 }
             }
         } else {

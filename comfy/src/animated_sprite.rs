@@ -476,12 +476,22 @@ impl AnimationState {
                 )
             }
             AnimationSource::Spritesheet { ref name, spritesheet } => {
-                let image_size = Assets::image_size(texture_id(name))
-                    .unwrap_or_else(|| {
-                        error!("failed to get size for {name}");
+                // let image_size = Assets::image_size(texture_id(name))
+                //     .unwrap_or_else(|| {
+                //         error!("failed to get size for {name}");
+                //         uvec2(64, 64)
+                //     })
+                //     .as_ivec2();
+
+                let image_size = match Assets::image_size(texture_id(name)) {
+                    ImageSizeResult::Loaded(size) => size,
+                    _ => {
+                        error!("NO SIZE FOR TEXTURE {:?}", name);
                         uvec2(64, 64)
-                    })
-                    .as_ivec2();
+                    }
+                }
+                .as_ivec2();
+
 
                 let size = ivec2(
                     image_size.x / spritesheet.columns as i32,

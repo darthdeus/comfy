@@ -117,10 +117,16 @@ pub fn draw_sprite_ex(
         pivot: params.pivot,
     };
 
-    let size = Assets::image_size(texture).unwrap_or_else(|| {
-        error!("NO SIZE FOR TEXTURE {:?}", texture);
-        UVec2::ONE
-    });
+    let size = match Assets::image_size(texture) {
+        ImageSizeResult::Loaded(size) => size,
+        ImageSizeResult::LoadingInProgress => {
+            return;
+        }
+        ImageSizeResult::ImageNotFound => {
+            error!("NO SIZE FOR TEXTURE {:?}", texture);
+            UVec2::ONE
+        }
+    };
 
     let vertices = rotated_rectangle(
         position.extend(z_index as f32 / Z_DIV),
@@ -247,8 +253,17 @@ pub fn draw_sprite_pro(
         )
     });
 
+    let texture_size = match Assets::image_size(texture) {
+        ImageSizeResult::Loaded(size) => size,
+        ImageSizeResult::LoadingInProgress => {
+            return;
+        }
+        ImageSizeResult::ImageNotFound => {
+            error!("NO SIZE FOR TEXTURE {:?}", texture);
+            UVec2::ONE
+        }
+    };
 
-    let texture_size = Assets::image_size(texture).unwrap_or(UVec2::ONE);
     let source_rect = params.source_rect.unwrap_or(IRect {
         offset: IVec2::new(0, 0),
         size: IVec2::new(texture_size.x as i32, texture_size.y as i32),

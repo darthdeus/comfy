@@ -18,6 +18,13 @@ pub struct AssetSource {
     pub base_path: BasePathFn,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum ImageSizeResult {
+    ImageNotFound,
+    LoadingInProgress,
+    Loaded(UVec2),
+}
+
 impl AssetSource {
     pub fn load_single_item(
         &self,
@@ -287,13 +294,24 @@ impl Assets {
         }
     }
 
-    pub fn image_size(handle: TextureHandle) -> Option<UVec2> {
+    pub fn image_size(handle: TextureHandle) -> ImageSizeResult {
         let assets = ASSETS.borrow();
         let image_map = assets.texture_image_map.lock();
 
-        let image = image_map.get(&handle)?;
 
-        Some(uvec2(image.width(), image.height()))
+        if let Some(image) = image_map.get(&handle) {
+            ImageSizeResult::Loaded(uvec2(image.width(), image.height()))
+        } else if let Some((name, _v)) =
+            assets.textures.iter().find(|(_k, v)| **v == handle)
+        {
+            if assets.asset_loader.pending_textures.contains(name) {
+                ImageSizeResult::LoadingInProgress
+            } else {
+                ImageSizeResult::ImageNotFound
+            }
+        } else {
+            ImageSizeResult::ImageNotFound
+        }
     }
 
     pub fn load_image_data(
