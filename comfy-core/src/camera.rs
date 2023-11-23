@@ -285,17 +285,23 @@ impl MainCamera {
 
         let center = self.center + vec2(sx, sy);
 
+        let ortho_camera = Mat4::orthographic_rh(
+            center.x - hx,
+            center.x + hx,
+            center.y - hy,
+            center.y + hy,
+            -range,
+            range,
+        );
+
         if let Some(matrix_fn) = self.matrix_fn.as_ref() {
-            matrix_fn(self, center)
+            if self.use_matrix_fn {
+                matrix_fn(self, center)
+            } else {
+                ortho_camera
+            }
         } else {
-            Mat4::orthographic_rh(
-                center.x - hx,
-                center.x + hx,
-                center.y - hy,
-                center.y + hy,
-                -range,
-                range,
-            )
+            ortho_camera
         }
 
         //     let fov = 70.0f32.to_radians(); // Field of view: 70 degrees
