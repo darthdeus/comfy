@@ -485,6 +485,8 @@ impl AnimationState {
 
                 let image_size = match Assets::image_size(texture_id(name)) {
                     ImageSizeResult::Loaded(size) => size,
+                    // TODO: this is probably not the best way to handle this
+                    ImageSizeResult::LoadingInProgress => uvec2(64, 64),
                     _ => {
                         error!("NO SIZE FOR TEXTURE {:?}", name);
                         uvec2(64, 64)

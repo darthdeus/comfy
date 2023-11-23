@@ -76,3 +76,6 @@ test:
 	cargo clippy
 	cargo test --all --features=blobs
 	./build-examples.sh
+
+duplicates:
+	simian **/*.rs
