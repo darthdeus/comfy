@@ -202,6 +202,10 @@ and while it does have a learning curve it's realtively easy and simple.
   means `c.despawn()` -> `despawn()`, and `c.to_despawn` ->
   `take_to_despawn()`, which now consumes the despawn queue and returns a
   `Vec<Entity>` that are to be despawned by the game.
+- Moved `c.draw` into a global, meaning `c.draw_mut()` -> `draw_mut()`.
+  Note that this API is likely going to change in the future, and is
+  mainly intended for debugging. It's also likely that it'll be removed
+  altogether in the future.
 
 We're also introducing experimental render targets. This is a feature that
 isn't yet complete, and there are some issues with it, but since merging it

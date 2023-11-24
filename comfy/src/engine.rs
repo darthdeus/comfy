@@ -12,8 +12,6 @@ pub trait GameLoop: Sized {
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
 
 pub struct EngineState {
-    pub draw: RefCell<Draw>,
-
     pub frame: u64,
     pub flags: RefCell<HashSet<String>>,
 
@@ -65,8 +63,6 @@ impl EngineState {
             renderer: None,
             texture_creator: None,
 
-            draw: RefCell::new(Draw::new()),
-
             dt_stats: MovingStats::new(20),
             fps_stats: MovingStats::new(100),
 
@@ -109,7 +105,6 @@ impl EngineState {
 
             delta: delta(),
 
-            draw: &mut self.draw,
             frame: self.frame,
 
             dt_stats: &mut self.dt_stats,

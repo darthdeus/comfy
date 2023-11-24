@@ -48,8 +48,6 @@ pub type ContextFn =
 pub struct EngineContext<'a> {
     pub renderer: &'a mut WgpuRenderer,
 
-    pub draw: &'a RefCell<Draw>,
-
     pub delta: f32,
     pub frame: u64,
 
@@ -119,18 +117,6 @@ impl<'a> EngineContext<'a> {
         }
 
         egui().set_fonts(font_defs);
-    }
-
-    pub fn mark(&self, pos: Vec2, color: Color, lifetime: f32) {
-        self.draw_mut().mark(pos.as_world(), color, lifetime);
-    }
-
-    pub fn draw(&self) -> core::cell::Ref<Draw> {
-        self.draw.borrow()
-    }
-
-    pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
-        self.draw.borrow_mut()
     }
 }
 

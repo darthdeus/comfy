@@ -99,8 +99,15 @@ pub struct QueuedLine {
 }
 
 pub struct Drawable {
-    pub func: Box<dyn Fn(&mut EngineContext)>,
+    pub func: Box<dyn Fn(&mut EngineContext) + Send + Sync + 'static>,
     pub time: Option<f32>,
+}
+
+static GLOBAL_DRAW: Lazy<AtomicRefCell<Draw>> =
+    Lazy::new(|| AtomicRefCell::new(Draw::new()));
+
+pub fn draw_mut() -> AtomicRefMut<'static, Draw> {
+    GLOBAL_DRAW.borrow_mut()
 }
 
 pub struct Draw {
@@ -127,14 +134,17 @@ impl Draw {
         }
     }
 
-    pub fn once(&mut self, func: impl Fn(&mut EngineContext) + 'static) {
+    pub fn once(
+        &mut self,
+        func: impl Fn(&mut EngineContext) + 'static + Send + Sync,
+    ) {
         self.drawables.push(Drawable { func: Box::new(func), time: None });
     }
 
     pub fn timed(
         &mut self,
         time: f32,
-        func: impl Fn(&mut EngineContext) + 'static,
+        func: impl Fn(&mut EngineContext) + 'static + Send + Sync,
     ) {
         self.drawables
             .push(Drawable { func: Box::new(func), time: Some(time) });

@@ -64,12 +64,12 @@ pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     process_notifications(c);
     show_lighting_ui(c);
 
-    c.draw.borrow_mut().marks.retain_mut(|mark| {
+    draw_mut().marks.retain_mut(|mark| {
         mark.lifetime -= delta;
         mark.lifetime > 0.0
     });
 
-    for mark in c.draw.borrow().marks.iter() {
+    for mark in draw_mut().marks.iter() {
         draw_circle_z(
             mark.pos.to_world(),
             0.1,
@@ -539,7 +539,7 @@ fn update_drawables(c: &mut EngineContext) {
 
     let mut temp_drawables = vec![];
 
-    std::mem::swap(&mut temp_drawables, &mut c.draw_mut().drawables);
+    std::mem::swap(&mut temp_drawables, &mut draw_mut().drawables);
 
     temp_drawables.retain_mut(|drawable| {
         if let Some(ref mut time) = drawable.time {
@@ -556,7 +556,7 @@ fn update_drawables(c: &mut EngineContext) {
         }
     });
 
-    let mut draw = c.draw_mut();
+    let mut draw = draw_mut();
     std::mem::swap(&mut temp_drawables, &mut draw.drawables);
 
     for drawable in temp_drawables.drain(..) {
@@ -608,10 +608,10 @@ fn process_sprite_queue() {
     }
 }
 
-fn process_temp_draws(c: &mut EngineContext) {
+fn process_temp_draws(_c: &mut EngineContext) {
     let _span = span!("temp draws");
 
-    for texture in c.draw_mut().textures.drain(..) {
+    for texture in draw_mut().textures.drain(..) {
         draw_sprite_ex(
             texture.texture,
             texture.position.to_world(),
@@ -621,11 +621,11 @@ fn process_temp_draws(c: &mut EngineContext) {
         );
     }
 
-    for (position, radius, color) in c.draw_mut().circles.drain(..) {
+    for (position, radius, color) in draw_mut().circles.drain(..) {
         draw_circle(position.to_world(), radius, color, 200);
     }
 
-    for line in c.draw_mut().lines.drain(..) {
+    for line in draw_mut().lines.drain(..) {
         draw_line(
             line.start.to_world(),
             line.end.to_world(),
@@ -636,7 +636,7 @@ fn process_temp_draws(c: &mut EngineContext) {
     }
 
     // TODO: calculate world space font size
-    for (text, position, color, size) in c.draw_mut().texts.drain(..) {
+    for (text, position, color, size) in draw_mut().texts.drain(..) {
         draw_text_ex(&text, position, TextAlign::Center, TextParams {
             color,
             font: egui::FontId::new(size, egui::FontFamily::Monospace),
