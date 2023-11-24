@@ -10,12 +10,10 @@ impl GameState {
     pub fn new(_c: &EngineState) -> Self {
         Self {
             ldtk_map: LdtkWorldMap::new(
-                parse_ldtk_map(include_str!(
-                    "../../assets/comfy_ldtk.ldtk"
-                ))
-                .unwrap(),
+                parse_ldtk_map(include_str!("../../assets/comfy_ldtk.ldtk"))
+                    .unwrap(),
                 LDTK_PATH,
-            )
+            ),
         }
     }
 }
@@ -43,7 +41,8 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
 
     let map = &state.ldtk_map.json;
     let level = &map.levels[0];
-    for (i, layer) in level.layer_instances.as_ref().unwrap().iter().rev().enumerate()
+    for (i, layer) in
+        level.layer_instances.as_ref().unwrap().iter().rev().enumerate()
     {
         let grid_size = layer.grid_size as f32;
 
@@ -98,10 +97,6 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
         }
     }
 }
-
-
-
-
 
 
 // pub fn draw_ldtk_map(ldtk: &LdtkWorldMap, spatial: &mut SpatialHash) {
