@@ -9,7 +9,8 @@ pub struct Glyph {
     pub metrics: fontdue::Metrics,
     pub bitmap: Vec<u8>,
     // pub texture: TextureHandle,
-    pub allocation: etagere::Allocation,
+    // pub allocation: etagere::Allocation,
+    pub rect: IRect,
 }
 
 fn make_layout() -> fontdue::layout::Layout {
@@ -63,13 +64,13 @@ impl TextRasterizer {
         font: &Font,
         font_size: f32,
         c: char,
-    ) -> (TextureHandle, etagere::Allocation) {
+    ) -> (TextureHandle, IRect) {
         let key = (font_handle, OrderedFloat(font_size), c);
         if !self.glyphs.contains_key(&key) {
             self.prepare_rasterize(font_handle, font, font_size, c);
         }
 
-        (self.texture, self.glyphs[&key].allocation)
+        (self.texture, self.glyphs[&key].rect)
     }
 
     pub fn prepare_rasterize(
@@ -115,25 +116,32 @@ impl TextRasterizer {
 
             let image = DynamicImage::ImageRgba8(image).flipv();
 
+            let pad = 2;
+
             let allocation = self
                 .atlas
                 .allocate(etagere::size2(
-                    metrics.width as i32,
-                    metrics.height as i32,
+                    metrics.width as i32 + 2 * pad,
+                    metrics.height as i32 + 2 * pad,
                 ))
                 .unwrap_or_else(|| panic!("FAILED TO FIT GLYPH {}", c));
 
             info!("still have {} free space", self.atlas.free_space());
 
+            let rect = allocation.rectangle.to_rect();
+            let inset_rect = IRect::new(
+                ivec2(rect.origin.x + pad, rect.origin.y + pad),
+                ivec2(rect.size.width - 2 * pad, rect.size.height - 2 * pad),
+            );
             self.context.texture_creator.borrow_mut().update_texture_region(
                 self.texture,
                 &image,
-                allocation.to_irect(),
+                inset_rect,
             );
 
             // handle
 
-            let glyph = Glyph { metrics, bitmap, allocation };
+            let glyph = Glyph { metrics, bitmap, rect: inset_rect };
 
             self.glyphs
                 .insert((font_handle, OrderedFloat(font_size), c), glyph);

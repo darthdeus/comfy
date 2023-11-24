@@ -24,6 +24,10 @@ without macros.
 
 ## No more `GameContext` and lifetimes around `comfy_game!(...)`
 
+**Important: If you were previously implementing your own game loop with
+`impl GameLoop for X`, there is an important change where you no longer
+have to call `run_early_udpate_stages` and `run_late_update_stages`.**
+
 One of the most controversial topics after Comfy's release was
 `GameContext` vs `EngineContext`, and the the associated lifetimes with
 `make_context` and overall the amount of boilerplate.

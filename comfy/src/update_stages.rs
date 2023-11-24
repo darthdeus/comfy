@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn run_early_update_stages(c: &mut EngineContext) {
+pub(crate) fn run_early_update_stages(c: &mut EngineContext) {
     let delta = delta();
 
     {
@@ -54,7 +54,7 @@ fn run_mid_update_stages(c: &mut EngineContext) {
 }
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
-pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
+pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     update_animated_sprites(c);
     update_trails(c);
     update_drawables(c);
@@ -282,7 +282,7 @@ fn render_text(c: &mut EngineContext) {
                 );
                 assert_ne!(texture, texture_id("1px"));
 
-                let mut source_rect = allocation.to_irect();
+                let mut source_rect = allocation;
                 source_rect.offset = ivec2(
                     source_rect.offset.x,
                     t.atlas_size as i32 -
