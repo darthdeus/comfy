@@ -87,11 +87,12 @@ pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
         *c.is_paused.borrow() || c.flags.borrow_mut().contains(PAUSE_DESPAWN);
 
     if !is_paused {
-        for (entity, despawn) in world_mut().query_mut::<&mut DespawnAfter>() {
-            despawn.0 -= delta;
+        for (entity, to_despawn) in world_mut().query_mut::<&mut DespawnAfter>()
+        {
+            to_despawn.0 -= delta;
 
-            if despawn.0 <= 0.0 {
-                c.to_despawn.borrow_mut().push(entity);
+            if to_despawn.0 <= 0.0 {
+                despawn(entity);
             }
         }
     }

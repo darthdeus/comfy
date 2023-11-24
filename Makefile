@@ -10,7 +10,7 @@
 # EXAMPLE=circle
 # EXAMPLE=colors
 # EXAMPLE=ecs_sprite
-# EXAMPLE=ecs_topdown_game
+EXAMPLE=ecs_topdown_game
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
@@ -26,7 +26,7 @@
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
-EXAMPLE=text
+# EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort

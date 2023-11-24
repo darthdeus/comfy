@@ -30,8 +30,6 @@ pub struct EngineState {
     pub is_paused: RefCell<bool>,
     pub show_pause_menu: bool,
     pub quit_flag: bool,
-
-    pub to_despawn: RefCell<Vec<Entity>>,
 }
 
 impl EngineState {
@@ -82,8 +80,6 @@ impl EngineState {
             is_paused: RefCell::new(false),
             show_pause_menu: false,
             quit_flag: false,
-
-            to_despawn: RefCell::new(vec![]),
         }
     }
 
@@ -128,8 +124,6 @@ impl EngineState {
             is_paused: &mut self.is_paused,
             show_pause_menu: &mut self.show_pause_menu,
             quit_flag: &mut self.quit_flag,
-
-            to_despawn: &mut self.to_despawn,
 
             texture_creator,
         }

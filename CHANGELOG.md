@@ -198,6 +198,10 @@ and while it does have a learning curve it's realtively easy and simple.
   but was never implemented properly and missed a lot of bindings. If we do end up wanting
   to have official `mlua` bindings I'd rather that be done in a more principled approach
   where we make sure things are exported in a consistent way.
+- Removed `to_despawn` queue from `EngineContext` & `EngineState`, this
+  means `c.despawn()` -> `despawn()`, and `c.to_despawn` ->
+  `take_to_despawn()`, which now consumes the despawn queue and returns a
+  `Vec<Entity>` that are to be despawned by the game.
 
 We're also introducing experimental render targets. This is a feature that
 isn't yet complete, and there are some issues with it, but since merging it
