@@ -15,10 +15,41 @@ pub async fn run_comfy_main_async(
     let mut loop_helper = spin_sleep::LoopHelper::builder()
         .build_with_target_rate(target_framerate);
 
-    let resolution = game_config().resolution;
+    let resolution = {
+        use std::env::var;
+
+        match (
+            var("COMFY_RES_WIDTH").map(|x| x.parse::<u32>()),
+            var("COMFY_RES_HEIGHT").map(|x| x.parse::<u32>()),
+        ) {
+            (Ok(Ok(width)), Ok(Ok(height))) => {
+                ResolutionConfig::Physical(width, height)
+            }
+            _ => game_config().resolution,
+        }
+    };
 
     let event_loop = winit::event_loop::EventLoop::new();
-    let window = winit::window::WindowBuilder::new().with_title(engine.title());
+
+    let title = {
+        let game_name = game_config().game_name.clone();
+        let dev_name = format!("{} (Comfy Engine DEV BUILD)", game_name);
+
+        match std::env::var("COMFY_DEV_TITLE") {
+            Ok(_) => dev_name,
+            Err(_) => {
+                cfg_if! {
+                    if #[cfg(feature = "dev")] {
+                        dev_name
+                    } else {
+                        game_name
+                    }
+                }
+            }
+        }
+    };
+
+    let window = winit::window::WindowBuilder::new().with_title(title);
 
     let window = match resolution {
         ResolutionConfig::Physical(w, h) => {

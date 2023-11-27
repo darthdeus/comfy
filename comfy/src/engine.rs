@@ -129,21 +129,10 @@ impl EngineState {
     //     .expect("client must be running")
     //     .secondary_frame_mark(tracy_client::frame_name!("update"));
 
-
     pub fn resize(&mut self, new_size: UVec2) {
         self.renderer
             .as_mut()
             .expect("renderer must be initialized")
             .resize(new_size);
-    }
-
-    pub fn title(&self) -> String {
-        cfg_if! {
-            if #[cfg(feature = "dev")] {
-                format!("{} (Comfy Engine DEV BUILD)", game_config().game_name)
-            } else {
-                game_config().game_name.clone()
-            }
-        }
     }
 }
