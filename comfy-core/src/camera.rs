@@ -264,6 +264,11 @@ impl MainCamera {
         self.center + vec2(world_viewport.x, world_viewport.y) / 2.0
     }
 
+    pub fn shake(&mut self, amount: f32, time: f32) {
+        self.shake_amount = amount;
+        self.shake_timer = time;
+    }
+
     pub fn current_shake(&self) -> f32 {
         self.shake_amount * self.shake_timer.clamp(0.0, 1.0)
     }
