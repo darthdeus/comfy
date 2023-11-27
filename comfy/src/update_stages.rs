@@ -850,7 +850,12 @@ pub fn update_perf_counters(c: &mut EngineContext, game_loop: &impl GameLoop) {
                         .sorted_by_key(|(_, entry)| entry.time)
                     {
                         let mean = if !entry.history.is_empty() {
-                            entry.history.sum() / entry.history.len() as f32
+                            entry
+                                .history
+                                .iter()
+                                .map(|(_, x)| x.as_secs_f32())
+                                .sum::<f32>() /
+                                entry.history.len() as f32
                         } else {
                             0.0
                         };

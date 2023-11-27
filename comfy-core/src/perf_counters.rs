@@ -7,7 +7,7 @@ static TIMINGS: Lazy<AtomicRefCell<Timings>> =
     Lazy::new(|| AtomicRefCell::new(Timings::new()));
 
 pub struct TimingEntry {
-    pub history: egui::util::History<f32>,
+    pub history: egui::util::History<Duration>,
     pub time: Instant,
 }
 
@@ -20,7 +20,12 @@ impl Timings {
         Self { data: HashMap::new() }
     }
 
-    pub fn add_value(&mut self, name: &'static str, value: f32, time: Instant) {
+    pub fn add_value(
+        &mut self,
+        name: &'static str,
+        value: Duration,
+        time: Instant,
+    ) {
         let entry = self.data.entry(name).or_insert(TimingEntry {
             history: egui::util::History::new(50..2000, 2.0),
             time: Instant::now(),
@@ -43,10 +48,7 @@ pub struct TimingGuard<'a> {
 
 impl<'a> Drop for TimingGuard<'a> {
     fn drop(&mut self) {
-        let elapsed = self.start.elapsed();
-        let elapsed_as_f32 = elapsed.as_secs_f32() * 1000.0; // Convert to milliseconds
-
-        self.timings.add_value(self.name, elapsed_as_f32, self.start);
+        self.timings.add_value(self.name, self.start.elapsed(), self.start);
     }
 }
 
@@ -57,16 +59,15 @@ pub struct AtomicTimingGuard {
 
 impl Drop for AtomicTimingGuard {
     fn drop(&mut self) {
-        let elapsed = self.start.elapsed();
-        let elapsed_as_f32 = elapsed.as_secs_f32();
-
-        TIMINGS.borrow_mut().add_value(self.name, elapsed_as_f32, self.start);
+        TIMINGS.borrow_mut().add_value(
+            self.name,
+            self.start.elapsed(),
+            self.start,
+        );
     }
 }
 
-pub use std::ops::Deref;
-
-pub fn timings() -> impl Deref<Target = Timings> {
+pub fn timings() -> impl std::ops::Deref<Target = Timings> {
     TIMINGS.borrow_mut()
 }
 
@@ -74,8 +75,13 @@ pub fn timing_start(name: &'static str) -> AtomicTimingGuard {
     AtomicTimingGuard { name, start: Instant::now() }
 }
 
+/// Add a timing value to a given timer, measured in f32 seconds.
 pub fn timings_add_value(name: &'static str, value: f32) {
-    TIMINGS.borrow_mut().add_value(name, value, Instant::now());
+    TIMINGS.borrow_mut().add_value(
+        name,
+        Duration::from_secs_f32(value),
+        Instant::now(),
+    );
 }
 
 #[derive(Default)]
