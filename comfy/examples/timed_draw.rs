@@ -2,7 +2,7 @@ use comfy::*;
 
 simple_game!("Timed Draw Example", update);
 
-fn update(c: &EngineContext) {
+fn update(_c: &EngineContext) {
     clear_background(BLACK);
 
     const TIME: f32 = 3.0;
@@ -16,7 +16,7 @@ fn update(c: &EngineContext) {
             if ui.button("Click me!").clicked() ||
                 is_key_pressed(KeyCode::Space)
             {
-                c.draw.borrow_mut().timed(TIME, |_c| {
+                draw_mut().timed(TIME, |_c| {
                     draw_text(
                         &format!("I will be visible for {} seconds.", TIME),
                         Vec2::ZERO,

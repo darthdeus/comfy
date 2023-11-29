@@ -1,7 +1,7 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
-EXAMPLE=alpha_sprite
+# EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
@@ -27,7 +27,7 @@ EXAMPLE=alpha_sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-# EXAMPLE=timed_draw
+EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
 
