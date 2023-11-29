@@ -1,7 +1,7 @@
 # EXAMPLE=animated_shapes
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
-# EXAMPLE=alpha_sprite
+EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
@@ -14,7 +14,7 @@
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
-EXAMPLE=music
+# EXAMPLE=music
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle

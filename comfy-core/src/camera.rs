@@ -119,6 +119,8 @@ pub struct MainCamera {
     pub target: Option<Vec2>,
 
     pub smoothing_speed: f32,
+    pub deadzone_width: f32,
+    pub deadzone_height: f32,
 
     pub aspect_ratio: f32,
 
@@ -151,7 +153,10 @@ impl MainCamera {
             desired_center: center,
             target: None,
 
-            smoothing_speed: 2.0,
+            deadzone_width: 3.0,
+            deadzone_height: 2.0,
+
+            smoothing_speed: 4.0,
 
             aspect_ratio: 1.0,
 
@@ -173,53 +178,27 @@ impl MainCamera {
         set_px(self.zoom / screen_width());
 
         if let Some(player_position) = self.target {
-            const DEADZONE_WIDTH: f32 = 3.0;
-            const DEADZONE_HEIGHT: f32 = 2.0;
+            let deadzone_hw = self.deadzone_width / 2.0;
+            let deadzone_hh = self.deadzone_height / 2.0;
 
-            let dx = (player_position.x - self.center.x).abs();
-            let dy = (player_position.y - self.center.y).abs();
+            let ox = player_position.x - self.center.x;
+            let oy = player_position.y - self.center.y;
 
-            if dx > DEADZONE_WIDTH / 2.0 || dy > DEADZONE_HEIGHT / 2.0 {
-                let mut new_center = self.center;
+            let dx = ox.abs() - deadzone_hw;
+            let dy = oy.abs() - deadzone_hh;
 
-                if dx > DEADZONE_WIDTH / 2.0 {
-                    new_center.x = player_position.x -
-                        DEADZONE_WIDTH / 2.0 * player_position.x.signum();
-                }
+            let mut offset = Vec2::ZERO;
 
-                if dy > DEADZONE_HEIGHT / 2.0 {
-                    new_center.y = player_position.y -
-                        DEADZONE_HEIGHT / 2.0 * player_position.y.signum();
-                }
-
-                self.center = self.center +
-                    (new_center - self.center) * self.smoothing_speed * delta;
+            if dx > 0.0 {
+                offset.x = dx * ox.signum();
             }
-        }
 
-        // if let Some(player_position) = self.target {
-        //     const DEADZONE_WIDTH: f32 = 3.0;
-        //     const DEADZONE_HEIGHT: f32 = 2.0;
-        //
-        //     let dx = (player_position.x - self.center.x).abs();
-        //     let dy = (player_position.y - self.center.y).abs();
-        //
-        //     let mut new_center = self.center;
-        //
-        //     if dx > DEADZONE_WIDTH / 2.0 {
-        //         new_center.x = player_position.x -
-        //             DEADZONE_WIDTH / 2.0 *
-        //                 (player_position.x - self.center.x).signum();
-        //     }
-        //
-        //     if dy > DEADZONE_HEIGHT / 2.0 {
-        //         new_center.y = player_position.y -
-        //             DEADZONE_HEIGHT / 2.0 *
-        //                 (player_position.y - self.center.y).signum();
-        //     }
-        //
-        //     self.center = new_center;
-        // }
+            if dy > 0.0 {
+                offset.y = dy * oy.signum();
+            }
+
+            self.center += offset * delta * self.smoothing_speed;
+        }
     }
 
     pub fn push_center(&mut self, new_center: Vec2, new_zoom: f32) {
