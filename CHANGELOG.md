@@ -206,6 +206,14 @@ and while it does have a learning curve it's realtively easy and simple.
   Note that this API is likely going to change in the future, and is
   mainly intended for debugging. It's also likely that it'll be removed
   altogether in the future.
+- Camera deadzone is now properly configurable with
+  `main_camera_mut().deadzone_width/height`. To use this, simply set
+  `main_camera_mut().target = vec2(...)` on every frame and the camera
+  will do the right thing. Just to clarify, make sure you're not setting
+  `.center` as well, as that will get updated based on `.target`.
+- Remove `desired_center` for camera, use `target` instead.
+
+Overall many things that were previously undocumented are now documented.
 
 We're also introducing experimental render targets. This is a feature that
 isn't yet complete, and there are some issues with it, but since merging it

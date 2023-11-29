@@ -42,10 +42,10 @@ jobs:
           shared-key: ${{matrix.os}}-build
 
       - name: Build tests
-        run: cargo test --features blobs --no-run
+        run: cargo test --features blobs,ldtk --no-run
 
       - name: Run tests
-        run: cargo test --features blobs
+        run: cargo test --features blobs,ldtk
 
       - name: Build all examples
         run: ./build-examples.sh

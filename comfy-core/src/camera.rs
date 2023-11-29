@@ -100,7 +100,6 @@ impl DampedSpring {
 #[derive(Copy, Clone)]
 struct HistoryStackValue {
     pub center: Vec2,
-    pub desired_center: Vec2,
     pub desired_zoom: f32,
     pub zoom: f32,
 }
@@ -109,17 +108,25 @@ pub type CameraMatrixFn =
     Box<dyn (Fn(&MainCamera, Vec2) -> Mat4) + Send + Sync + 'static>;
 
 pub struct MainCamera {
+    /// Screenshake time remaining.
     pub shake_timer: f32,
+    /// Amount of screenshake to apply.
     pub shake_amount: f32,
 
     pub recoil: f32,
 
+    /// Center of the camera. This updates the camera immediately for the current frame without any
+    /// smoothing. If you need something set `target` instead.
     pub center: Vec2,
-    pub desired_center: Vec2,
+    /// Smoothing target for the camera. By default this also uses a deadzone as defined by
+    /// `deadzone_width` and `deadzone_height`. If you don't want a deadzone, set those to zero.
     pub target: Option<Vec2>,
 
+    /// Smoothing speed when `target` is set.
     pub smoothing_speed: f32,
+    /// Width of the camera deadzone in world space.
     pub deadzone_width: f32,
+    /// Height of the camera deadzone in world space.
     pub deadzone_height: f32,
 
     pub aspect_ratio: f32,
@@ -127,6 +134,11 @@ pub struct MainCamera {
     pub zoom: f32,
     pub desired_zoom: f32,
 
+    /// Optional camera matrix function that allows the user to create their own projection matrix.
+    ///
+    /// See the implementation of `build_view_projection_matrix` for what is the default with
+    /// `Mat4::orthographic_rh`. Note that this doesn't have to return an orthographic perspective
+    /// matrix, it can be anything (perspective projection, etc.).
     pub matrix_fn: Option<CameraMatrixFn>,
     /// Override config allowing to disable matrix_fn even when one is provided.
     /// Useful for debugging.
@@ -150,7 +162,6 @@ impl MainCamera {
             recoil: 0.0,
 
             center,
-            desired_center: center,
             target: None,
 
             deadzone_width: 3.0,
@@ -203,13 +214,11 @@ impl MainCamera {
 
     pub fn push_center(&mut self, new_center: Vec2, new_zoom: f32) {
         self.history_stack.push(HistoryStackValue {
-            desired_center: self.desired_center,
             center: self.center,
             desired_zoom: self.desired_zoom,
             zoom: self.zoom,
         });
 
-        self.desired_center = new_center;
         self.center = new_center;
 
         self.desired_zoom = new_zoom;
@@ -218,7 +227,6 @@ impl MainCamera {
 
     pub fn pop_center(&mut self) {
         if let Some(item) = self.history_stack.pop() {
-            self.desired_center = item.desired_center;
             self.center = item.center;
             self.zoom = item.zoom;
             self.desired_zoom = item.desired_zoom;
@@ -287,23 +295,6 @@ impl MainCamera {
         } else {
             ortho_camera
         }
-
-        //     let fov = 70.0f32.to_radians(); // Field of view: 70 degrees
-        //     let aspect = aspect_ratio(); // Assuming this returns the correct aspect ratio
-        //     let near = 0.1; // Near clipping plane
-        //     let far = 1000.0; // Far clipping plane
-        //
-        //     let perspective_matrix =
-        //         Mat4::perspective_rh(fov, aspect, near, far);
-        //     let view_matrix = Mat4::look_to_rh(
-        //         vec3(0.0, 0.0, -10.0),
-        //         vec3(0.0, 0.0, 1.0),
-        //         vec3(0.0, 1.0, 0.0),
-        //     );
-        //
-        //     let camera_matrix = perspective_matrix * view_matrix;
-        //     camera_matrix
-        // }
     }
 
     pub fn screen_to_world(&self, position: Vec2) -> Vec2 {
