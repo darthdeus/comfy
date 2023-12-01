@@ -565,15 +565,24 @@ impl WgpuRenderer {
 
         let post_processing_effects = self.post_processing_effects.borrow();
 
+        let maybe_tonemapping_view = if game_config.tonemapping_enabled {
+            &self.tonemapping_texture.texture.view
+        } else {
+            screen_view
+        };
+
+        let surface_texture_format = self.context.config.borrow().format;
+
         let enabled_effects =
             post_processing_effects.iter().filter(|x| x.enabled).collect_vec();
 
         for (i, effect) in enabled_effects.iter().enumerate() {
-            let output_texture_view = if i == enabled_effects.len() - 1 {
-                &self.tonemapping_texture.texture.view
-            } else {
-                &effect.render_texture.view
-            };
+            let (output_texture_view, output_texture_format) =
+                if i == enabled_effects.len() - 1 {
+                    (maybe_tonemapping_view, surface_texture_format)
+                } else {
+                    (&effect.render_texture.view, self.render_texture_format)
+                };
 
             let maybe_pipeline = if self.pipelines.contains_key(&effect.name) {
                 Some(self.pipelines.get(&effect.name).unwrap())
@@ -584,7 +593,7 @@ impl WgpuRenderer {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
-                        self.render_texture_format,
+                        output_texture_format,
                         &[&self.texture_layout, &self.camera_bind_group_layout],
                         shader.clone(),
                         // &effect.shader,
@@ -624,66 +633,70 @@ impl WgpuRenderer {
         if game_config.bloom_enabled {
             self.bloom.blit_final(
                 &mut encoder,
-                &self.tonemapping_texture.texture.view,
+                maybe_tonemapping_view,
                 &game_config.lighting,
             );
         }
 
-        let tonemapping_pipeline =
-            self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
-                let shaders = &mut self.shaders.borrow_mut();
+        if game_config.tonemapping_enabled {
+            let tonemapping_pipeline = self
+                .pipelines
+                .entry("tonemapping".into())
+                .or_insert_with(|| {
+                    let shaders = &mut self.shaders.borrow_mut();
 
-                create_post_processing_pipeline(
-                    "Tonemapping",
-                    &self.context.device,
-                    self.context.config.borrow().format,
-                    &[&self.texture_layout, &self.camera_bind_group_layout],
-                    create_engine_post_processing_shader!(
-                        shaders,
-                        "tonemapping"
-                    ),
-                    wgpu::BlendState::REPLACE,
-                )
-            });
-
-
-        {
-            let should_clear = false;
-
-            let mut render_pass =
-                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    label: Some("Tonemapping"),
-                    color_attachments: &[Some(
-                        wgpu::RenderPassColorAttachment {
-                            view: screen_view,
-                            resolve_target: None,
-                            ops: wgpu::Operations {
-                                load: if should_clear {
-                                    wgpu::LoadOp::Clear(wgpu::Color {
-                                        r: 0.0,
-                                        g: 0.0,
-                                        b: 0.0,
-                                        a: 1.0,
-                                    })
-                                } else {
-                                    wgpu::LoadOp::Load
-                                },
-                                store: true,
-                            },
-                        },
-                    )],
-                    depth_stencil_attachment: None,
+                    create_post_processing_pipeline(
+                        "Tonemapping",
+                        &self.context.device,
+                        self.context.config.borrow().format,
+                        &[&self.texture_layout, &self.camera_bind_group_layout],
+                        create_engine_post_processing_shader!(
+                            shaders,
+                            "tonemapping"
+                        ),
+                        wgpu::BlendState::REPLACE,
+                    )
                 });
 
-            render_pass.set_pipeline(tonemapping_pipeline);
-            render_pass.set_bind_group(
-                0,
-                &self.tonemapping_texture.bind_group,
-                &[],
-            );
-            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 
-            render_pass.draw(0..3, 0..1);
+            {
+                let should_clear = false;
+
+                let mut render_pass =
+                    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Tonemapping"),
+                        color_attachments: &[Some(
+                            wgpu::RenderPassColorAttachment {
+                                view: screen_view,
+                                resolve_target: None,
+                                ops: wgpu::Operations {
+                                    load: if should_clear {
+                                        wgpu::LoadOp::Clear(wgpu::Color {
+                                            r: 0.0,
+                                            g: 0.0,
+                                            b: 0.0,
+                                            a: 1.0,
+                                        })
+                                    } else {
+                                        wgpu::LoadOp::Load
+                                    },
+                                    store: true,
+                                },
+                            },
+                        )],
+                        depth_stencil_attachment: None,
+                    });
+
+                render_pass.set_pipeline(tonemapping_pipeline);
+                render_pass.set_bind_group(
+                    0,
+                    &self.tonemapping_texture.bind_group,
+                    &[],
+                );
+                render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
+
+                render_pass.draw(0..3, 0..1);
+            }
         }
 
         self.context.queue.submit(std::iter::once(encoder.finish()));

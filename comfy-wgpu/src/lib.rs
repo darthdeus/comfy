@@ -329,15 +329,6 @@ impl CameraUniform {
     }
 }
 
-#[allow(dead_code)]
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-]);
-
 pub fn create_render_pipeline(
     label: &str,
     device: &wgpu::Device,

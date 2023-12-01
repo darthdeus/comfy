@@ -24,6 +24,7 @@ memprof = ["tracy"]
 blobs = ["dep:blobs"]
 
 wayland = ["winit/wayland"]
+exr = ["half", "image/exr"]
 
 [dependencies]
 smallvec = "1.10.0"
@@ -67,7 +68,12 @@ tracy-client = { version = "0.16.1", optional = true }
 image = { version = "0.24.6", default-features = false, features = [
   "png",
   "jpeg",
+  "exr",
 ] }
+half = { version = "2.3.1", features = [
+  "bytemuck",
+  "num-traits",
+], optional = true }
 
 fxhash = "0.2.1"
 

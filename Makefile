@@ -9,8 +9,10 @@
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
 # EXAMPLE=colors
+# EXAMPLE=color-bars
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
+EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
@@ -27,7 +29,7 @@
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
-EXAMPLE=timed_draw
+# EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
 
@@ -39,7 +41,7 @@ default: example
 # default: lint
 # default: test
 
-FLAGS=--features=blobs,git-version,dev,ldtk
+FLAGS=--features=blobs,git-version,dev,ldtk,exr
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
 
 bitmob:

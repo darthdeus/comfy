@@ -116,6 +116,8 @@ pub use glam::{
     ivec2, uvec2, vec2, vec3, vec4, Affine2, IVec2, Mat3, Mat4, UVec2, Vec2,
     Vec2Swizzles, Vec3, Vec4,
 };
+#[cfg(feature = "exr")]
+pub use half;
 pub use image;
 pub use image::DynamicImage;
 pub use itertools::Itertools;

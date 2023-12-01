@@ -64,8 +64,6 @@ pub fn load_texture_from_engine_bytes(
     textures: &mut TextureMap,
     address_mode: wgpu::AddressMode,
 ) {
-    let handle = texture_path(name);
-
     let img = image::load_from_memory(bytes).expect("must be valid image");
     let texture = Texture::from_image_ex(
         &context.device,
@@ -76,6 +74,23 @@ pub fn load_texture_from_engine_bytes(
         address_mode,
     )
     .unwrap();
+
+    load_texture_with_image(context, name, img, texture, textures);
+}
+
+/// Loads a pre-created `Texture` with an associated `DynamicImage`
+/// into the asset store.
+///
+/// Useful for when the user wants to create a Texture on their own,
+/// e.g. by using a more exotic format and way of loading of the image.
+pub fn load_texture_with_image(
+    context: &GraphicsContext,
+    name: &str,
+    img: DynamicImage,
+    texture: Texture,
+    textures: &mut TextureMap,
+) {
+    let handle = texture_path(name);
 
     let bind_group = context.device.simple_bind_group(
         Some(&format!("{}_bind_group", name)),

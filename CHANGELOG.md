@@ -15,6 +15,14 @@ in practice you should be able to just figure out how to fix things from
 the compile errors and finding a relevant example. The new game setup is
 quite a bit simpler and more ergonomic.
 
+**Your game's colors might look slightly different than on v0.2.** This is
+because tonemapping is now disabled by default, and the colors you were seeing
+previously were incorrect/distorted. If you'd like to go back to exactly what
+you had before in v0.2, simply set `game_config_mut().tonemapping_enabled =
+true`. This should make the game look _exactly_ the same as before. If you're
+using HDR colors and want those to be tonemapped instead of clipping, make sure
+to also set this to `true`.
+
 [The full game loop
 example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/full_game_loop.rs)
 contains a detailed description of how the main loop of Comfy is setup and
@@ -180,6 +188,12 @@ and while it does have a learning curve it's realtively easy and simple.
 
 ## Other changes
 
+- Tonemapping is now disabled by default. You can re-enable it by
+  `game_config_mut().tonemapping_enabled = true`. This was done because most
+  users aren't using HDR lighting, but the current default tonemapping curve
+  will affect all colors in an undesirable way. If you'd like to preserve the
+  look of your game from `v0.2` as it was exactly, simply set
+  `tonemapping_enabled = true` and don't worry about this :)
 - Blood canvas z-index is now configurable in `GameConfig`.
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
   where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
