@@ -564,14 +564,15 @@ impl WgpuRenderer {
         }
 
         let post_processing_effects = self.post_processing_effects.borrow();
-
-        let maybe_tonemapping_view = if game_config.tonemapping_enabled {
-            &self.tonemapping_texture.texture.view
-        } else {
-            screen_view
-        };
-
         let surface_texture_format = self.context.config.borrow().format;
+
+        let (last_effect_view, last_effect_format) = if game_config
+            .tonemapping_enabled
+        {
+            (&self.tonemapping_texture.texture.view, self.render_texture_format)
+        } else {
+            (screen_view, surface_texture_format)
+        };
 
         let enabled_effects =
             post_processing_effects.iter().filter(|x| x.enabled).collect_vec();
@@ -579,13 +580,15 @@ impl WgpuRenderer {
         for (i, effect) in enabled_effects.iter().enumerate() {
             let (output_texture_view, output_texture_format) =
                 if i == enabled_effects.len() - 1 {
-                    (maybe_tonemapping_view, surface_texture_format)
+                    (last_effect_view, last_effect_format)
                 } else {
                     (&effect.render_texture.view, self.render_texture_format)
                 };
 
-            let maybe_pipeline = if self.pipelines.contains_key(&effect.name) {
-                Some(self.pipelines.get(&effect.name).unwrap())
+            let pipeline_key = format!("{}-{:?}", effect.name, output_texture_format);
+
+            let maybe_pipeline = if self.pipelines.contains_key(&pipeline_key) {
+                Some(self.pipelines.get(&pipeline_key).unwrap())
             } else {
                 info!("Loading EFFECT: {}", effect.name);
 
@@ -600,8 +603,8 @@ impl WgpuRenderer {
                         wgpu::BlendState::REPLACE,
                     );
 
-                    self.pipelines.insert(effect.name.clone(), pipeline);
-                    self.pipelines.get(&effect.name)
+                    self.pipelines.insert(pipeline_key.clone(), pipeline);
+                    self.pipelines.get(&pipeline_key)
                 } else {
                     warn!(
                         "NO SHADER FOR EFFECT: {} ... {}",
@@ -633,7 +636,7 @@ impl WgpuRenderer {
         if game_config.bloom_enabled {
             self.bloom.blit_final(
                 &mut encoder,
-                maybe_tonemapping_view,
+                last_effect_view,
                 &game_config.lighting,
             );
         }
