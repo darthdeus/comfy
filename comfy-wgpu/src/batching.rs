@@ -149,13 +149,13 @@ pub fn render_meshes(
     }
 
     c.vertex_buffer.ensure_size_and_copy(
-        &c.context.device,
+        &c.context.device.lock(),
         &c.context.queue,
         bytemuck::cast_slice(all_vertices.as_slice()),
     );
 
     c.index_buffer.ensure_size_and_copy(
-        &c.context.device,
+        &c.context.device.lock(),
         &c.context.queue,
         bytemuck::cast_slice(all_indices.as_slice()),
     );
@@ -163,7 +163,7 @@ pub fn render_meshes(
     let textures = c.textures.lock();
     let render_targets = c.render_targets.borrow();
 
-    let mut encoder = c.context.device.simple_encoder("Mesh Render Encoder");
+    let mut encoder = c.context.device.lock().simple_encoder("Mesh Render Encoder");
 
     {
         let clear_color = if is_first { Some(clear_color) } else { None };
@@ -289,7 +289,7 @@ pub fn render_particles(
         c.pipelines.entry(name.clone()).or_insert_with(|| {
             create_render_pipeline_with_layout(
                 &name,
-                &c.context.device,
+                &c.context.device.lock(),
                 // c.config.format,
                 wgpu::TextureFormat::Rgba16Float,
                 &[&c.texture_layout, &c.camera_bind_group_layout],
@@ -349,16 +349,16 @@ pub fn render_particles(
     }
 
     let mut encoder =
-        c.context.device.simple_encoder("Particle Render Encoder");
+        c.context.device.lock().simple_encoder("Particle Render Encoder");
 
     c.vertex_buffer.ensure_size_and_copy(
-        &c.context.device,
+        &c.context.device.lock(),
         &c.context.queue,
         bytemuck::cast_slice(all_vertices.as_slice()),
     );
 
     c.index_buffer.ensure_size_and_copy(
-        &c.context.device,
+        &c.context.device.lock(),
         &c.context.queue,
         bytemuck::cast_slice(all_indices.as_slice()),
     );

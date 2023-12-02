@@ -27,7 +27,7 @@ pub fn create_render_target(
         depth_or_array_layers: 1,
     };
 
-    let texture = c.device.create_texture(&wgpu::TextureDescriptor {
+    let texture = c.device.lock().create_texture(&wgpu::TextureDescriptor {
         label: Some(&params.label),
         size,
         mip_level_count: 1,
@@ -50,7 +50,7 @@ pub fn create_render_target(
         array_layer_count: None,
     });
 
-    let sampler = c.device.create_sampler(&wgpu::SamplerDescriptor {
+    let sampler = c.device.lock().create_sampler(&wgpu::SamplerDescriptor {
         label: Some(&format!("{} Sampler", params.label)),
         address_mode_u: wgpu::AddressMode::ClampToEdge,
         address_mode_v: wgpu::AddressMode::ClampToEdge,
@@ -61,7 +61,7 @@ pub fn create_render_target(
         ..Default::default()
     });
 
-    let bind_group = c.device.create_bind_group(&wgpu::BindGroupDescriptor {
+    let bind_group = c.device.lock().create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some(&format!("{} Bind Group", params.label)),
         layout: &c.texture_layout,
         entries: &[
@@ -148,7 +148,7 @@ pub fn ensure_pipeline_exists(
             || {
                 create_render_pipeline_with_layout(
                     &name,
-                    &c.context.device,
+                    &c.context.device.lock(),
                     wgpu::TextureFormat::Rgba16Float,
                     &[&c.texture_layout, &c.camera_bind_group_layout],
                     &[SpriteVertex::desc()],
@@ -229,7 +229,7 @@ pub fn create_user_pipeline(
         match uniform_def {
             UniformDef::F32(maybe_default) => {
                 if let Some(value) = maybe_default {
-                    let buffer = context.device.create_buffer_init(
+                    let buffer = context.device.lock().create_buffer_init(
                         &wgpu::util::BufferInitDescriptor {
                             label: Some(&format!(
                                 "User UB: {} (default={})",
@@ -243,7 +243,7 @@ pub fn create_user_pipeline(
                     buffers.insert(uniform_name.to_string(), buffer);
                 } else {
                     let buffer =
-                        context.device.create_buffer(&wgpu::BufferDescriptor {
+                        context.device.lock().create_buffer(&wgpu::BufferDescriptor {
                             label: Some(&format!(
                                 "User UB: {} (no-default)",
                                 uniform_name
@@ -269,7 +269,7 @@ pub fn create_user_pipeline(
         });
     }
 
-    let user_layout = context.device.create_bind_group_layout(
+    let user_layout = context.device.lock().create_bind_group_layout(
         &wgpu::BindGroupLayoutDescriptor {
             label: Some(&format!("User Layout: {}", name)),
             entries: &layout_entries,
@@ -278,7 +278,7 @@ pub fn create_user_pipeline(
 
     let pipeline = create_render_pipeline_with_layout(
         name,
-        &context.device,
+        &context.device.lock(),
         wgpu::TextureFormat::Rgba16Float,
         &[&texture_layout, &camera_bind_group_layout, &user_layout],
         &[SpriteVertex::desc()],
@@ -289,7 +289,7 @@ pub fn create_user_pipeline(
     .unwrap();
 
     let bind_group =
-        context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        context.device.lock().create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("User Bind Group"),
             layout: &user_layout,
             entries: &bind_group_entries,

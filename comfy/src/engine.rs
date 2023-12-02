@@ -19,7 +19,7 @@ pub struct EngineState {
     pub fps_stats: MovingStats,
 
     pub renderer: Option<WgpuRenderer>,
-    pub texture_creator: Option<Arc<AtomicRefCell<WgpuTextureCreator>>>,
+    pub texture_creator: Option<Arc<Mutex<WgpuTextureCreator>>>,
 
     pub meta: AnyMap,
 

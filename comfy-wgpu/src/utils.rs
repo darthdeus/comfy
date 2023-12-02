@@ -66,7 +66,7 @@ pub fn load_texture_from_engine_bytes(
 ) {
     let img = image::load_from_memory(bytes).expect("must be valid image");
     let texture = Texture::from_image_ex(
-        &context.device,
+        &context.device.lock(),
         &context.queue,
         &img,
         Some(name),
@@ -92,7 +92,7 @@ pub fn load_texture_with_image(
 ) {
     let handle = texture_path(name);
 
-    let bind_group = context.device.simple_bind_group(
+    let bind_group = context.device.lock().simple_bind_group(
         Some(&format!("{}_bind_group", name)),
         &texture,
         &context.texture_layout,

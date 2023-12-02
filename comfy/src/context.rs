@@ -63,7 +63,7 @@ pub struct EngineContext<'a> {
     pub flags: &'a mut RefCell<HashSet<String>>,
 
     // TODO: remove this, can be passed through GraphicsContext or WgpuRenderer
-    pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
+    pub texture_creator: &'a Arc<Mutex<WgpuTextureCreator>>,
 }
 
 impl<'a> EngineContext<'a> {

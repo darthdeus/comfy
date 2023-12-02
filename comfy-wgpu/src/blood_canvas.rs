@@ -2,10 +2,10 @@ use crate::*;
 pub use comfy_core::*;
 use image::{GenericImageView, ImageBuffer};
 
-pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
+pub static BLOOD_CANVAS: OnceCell<Mutex<BloodCanvas>> = OnceCell::new();
 
 pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {
-    let mut canvas = BLOOD_CANVAS.get().unwrap().borrow_mut();
+    let mut canvas = BLOOD_CANVAS.get().unwrap().lock();
     let canvas = &mut *canvas;
 
     for (_, block) in canvas.blocks.iter_mut() {
@@ -13,10 +13,7 @@ pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {
             // info!("updating block at {}", key);
             block.modified = false;
 
-            canvas
-                .creator
-                .borrow_mut()
-                .update_texture(&block.image, block.handle);
+            canvas.creator.lock().update_texture(&block.image, block.handle);
         }
     }
 
@@ -26,7 +23,7 @@ pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {
 }
 
 pub fn blood_canvas_reset() {
-    BLOOD_CANVAS.get().unwrap().borrow_mut().blocks = HashMap::default();
+    BLOOD_CANVAS.get().unwrap().lock().blocks = HashMap::default();
 }
 
 pub fn blood_circle_at(
@@ -38,7 +35,7 @@ pub fn blood_circle_at(
     BLOOD_CANVAS
         .get()
         .unwrap()
-        .borrow_mut()
+        .lock()
         .circle_at_internal(position, radius, pixel_prob, color);
 }
 
@@ -48,7 +45,7 @@ pub fn blood_canvas_blit_at(
     source_rect: Option<IRect>,
     tint: Color,
 ) {
-    BLOOD_CANVAS.get().unwrap().borrow_mut().blit_at(
+    BLOOD_CANVAS.get().unwrap().lock().blit_at(
         texture,
         position,
         source_rect,
@@ -59,7 +56,7 @@ pub fn blood_canvas_blit_at(
 // TODO: move this out of blood_canvas
 #[derive(Debug)]
 pub struct WgpuTextureCreator {
-    pub device: Arc<wgpu::Device>,
+    pub device: Arc<Mutex<wgpu::Device>>,
     pub queue: Arc<wgpu::Queue>,
     pub layout: Arc<wgpu::BindGroupLayout>,
     pub textures: Arc<Mutex<TextureMap>>,
@@ -90,11 +87,11 @@ impl TextureCreator for WgpuTextureCreator {
 
         let texture =
             // Texture::from_image_uninit(&self.device, image, Some(name))
-            Texture::from_image(&self.device, &self.queue, image, Some(name), false)
+            Texture::from_image(&self.device.lock(), &self.queue, image, Some(name), false)
                 .unwrap();
 
         let bind_group =
-            self.device.simple_bind_group(Some(name), &texture, &self.layout);
+            self.device.lock().simple_bind_group(Some(name), &texture, &self.layout);
 
         let handle = texture_path(name);
         self.textures

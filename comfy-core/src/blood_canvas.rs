@@ -20,13 +20,13 @@ pub const fn blood_block_world_size() -> i32 {
 
 #[derive(Debug)]
 pub struct BloodCanvas {
-    pub creator: Arc<AtomicRefCell<dyn TextureCreator + Send + Sync + 'static>>,
+    pub creator: Arc<Mutex<dyn TextureCreator + Send + Sync + 'static>>,
     pub blocks: HashMap<IVec2, CanvasBlock>,
 }
 
 impl BloodCanvas {
     pub fn new(
-        creator: Arc<AtomicRefCell<dyn TextureCreator + Send + Sync + 'static>>,
+        creator: Arc<Mutex<dyn TextureCreator + Send + Sync + 'static>>,
     ) -> Self {
         Self { creator, blocks: HashMap::default() }
     }
@@ -49,7 +49,7 @@ impl BloodCanvas {
             let name = format!("blood-canvas-{}-{}", x, y);
 
             let handle =
-                self.creator.borrow_mut().handle_from_image(&name, &image);
+                self.creator.lock().handle_from_image(&name, &image);
 
             CanvasBlock { handle, image, modified: false }
         })
@@ -106,7 +106,7 @@ impl BloodCanvas {
         let assets = ASSETS.borrow_mut();
         let image_map = assets.texture_image_map.lock();
 
-        if let Some(image) = image_map.get(&texture).clone() {
+        if let Some(image) = image_map.get(&texture) {
             let rect = source_rect.unwrap_or(IRect::new(
                 ivec2(0, 0),
                 ivec2(image.width() as i32, image.height() as i32),

@@ -42,13 +42,14 @@ pub struct GraphicsContext {
     pub surface: Arc<wgpu::Surface>,
     pub instance: Arc<wgpu::Instance>,
     pub adapter: Arc<wgpu::Adapter>,
-    pub device: Arc<wgpu::Device>,
+    pub device: Arc<Mutex<wgpu::Device>>,
     pub queue: Arc<wgpu::Queue>,
     // Shared for all regular textures/sprites
     pub texture_layout: Arc<wgpu::BindGroupLayout>,
     pub config: Arc<AtomicRefCell<wgpu::SurfaceConfiguration>>,
     // TODO: maybe some sharing can be reduced with this
-    pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
+    // TODO: remove dyn TextureCreator around this and only use the wgpu one
+    pub texture_creator: Arc<Mutex<WgpuTextureCreator>>,
     // TODO: atomic refcell?
     pub textures: Arc<Mutex<TextureMap>>,
 }
@@ -101,7 +102,7 @@ pub struct WgpuRenderer {
     pub enable_z_buffer: bool,
 
     // TODO: remove this in favor of the context one
-    pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
+    pub texture_creator: Arc<Mutex<WgpuTextureCreator>>,
 
     #[cfg(not(target_arch = "wasm32"))]
     pub thread_pool: rayon::ThreadPool,
@@ -149,7 +150,7 @@ impl WgpuRenderer {
         let mut camera_uniform = CameraUniform::new();
         camera_uniform.update_view_proj(&main_camera());
 
-        let camera_buffer = context.device.create_buffer_init(
+        let camera_buffer = context.device.lock().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Camera Buffer"),
                 contents: bytemuck::cast_slice(&[camera_uniform]),
@@ -158,8 +159,10 @@ impl WgpuRenderer {
             },
         );
 
-        let camera_bind_group_layout = context.device.create_bind_group_layout(
-            &wgpu::BindGroupLayoutDescriptor {
+        let camera_bind_group_layout = context
+            .device
+            .lock()
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
@@ -215,10 +218,9 @@ impl WgpuRenderer {
                     },
                 ],
                 label: Some("camera_bind_group_layout"),
-            },
-        );
+            });
 
-        let lights_buffer = context.device.create_buffer_init(
+        let lights_buffer = context.device.lock().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Lights Buffer"),
                 contents: bytemuck::cast_slice(&[LightUniform::default()]),
@@ -227,7 +229,7 @@ impl WgpuRenderer {
             },
         );
 
-        let global_lighting_params_buffer = context.device.create_buffer_init(
+        let global_lighting_params_buffer = context.device.lock().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Global Lighting Params Buffer"),
                 contents: bytemuck::cast_slice(&[
@@ -241,7 +243,7 @@ impl WgpuRenderer {
         let lut_dim = 2;
 
         let color_lut_texture = Texture::create_uninit(
-            &context.device,
+            &context.device.lock(),
             lut_dim,
             lut_dim,
             Some("LUT"),
@@ -298,7 +300,7 @@ impl WgpuRenderer {
         );
 
         let camera_bind_group =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            context.device.lock().create_bind_group(&wgpu::BindGroupDescriptor {
                 layout: &camera_bind_group_layout,
                 entries: &[
                     wgpu::BindGroupEntry {
@@ -351,7 +353,7 @@ impl WgpuRenderer {
         };
 
         let egui_render_routine = EguiRenderRoutine::new(
-            &context.device,
+            &context.device.lock(),
             format,
             1,
             width,
@@ -361,7 +363,7 @@ impl WgpuRenderer {
 
         let screenshot_buffer = SizedBuffer::new(
             "screenshot_buffer",
-            &context.device,
+            &context.device.lock(),
             (width * height) as usize * std::mem::size_of::<u32>(),
             BufferType::Read,
         );
@@ -369,9 +371,7 @@ impl WgpuRenderer {
         info!("Initializing with scale factor: {}", window.scale_factor());
 
         BLOOD_CANVAS
-            .set(AtomicRefCell::new(BloodCanvas::new(
-                context.texture_creator.clone(),
-            )))
+            .set(Mutex::new(BloodCanvas::new(context.texture_creator.clone())))
             .expect("failed to create glow blood canvas");
 
         let (width, height) = {
@@ -380,7 +380,7 @@ impl WgpuRenderer {
         };
 
         let first_pass_texture = BindableTexture::new(
-            &context.device,
+            &context.device.lock(),
             &context.texture_layout,
             &TextureCreationParams {
                 label: Some("First Pass Texture"),
@@ -391,7 +391,7 @@ impl WgpuRenderer {
         );
 
         let tonemapping_texture = BindableTexture::new(
-            &context.device,
+            &context.device.lock(),
             &context.texture_layout,
             &TextureCreationParams {
                 label: Some("Tonemapping"),
@@ -405,7 +405,7 @@ impl WgpuRenderer {
 
         let quad_ubg = UniformBindGroup::simple(
             "Debug Quad",
-            &context.device,
+            &context.device.lock(),
             bytemuck::cast_slice(&[quad]),
         );
 
@@ -423,14 +423,14 @@ impl WgpuRenderer {
 
         let vertex_buffer = SizedBuffer::new(
             "Mesh Vertex Buffer",
-            &context.device,
+            &context.device.lock(),
             1024 * 1024,
             BufferType::Vertex,
         );
 
         let index_buffer = SizedBuffer::new(
             "Mesh Index Buffer",
-            &context.device,
+            &context.device.lock(),
             1024 * 1024,
             BufferType::Index,
         );
@@ -441,7 +441,7 @@ impl WgpuRenderer {
         // TODO: resize
 
         let depth_texture = Texture::create_depth_texture(
-            &context.device,
+            &context.device.lock(),
             &context.config.borrow(),
             "Depth Texture",
         );
@@ -549,14 +549,17 @@ impl WgpuRenderer {
         game_config: &GameConfig,
     ) {
         let _span = span!("render_post_processing");
-        let mut encoder =
-            self.context.device.simple_encoder("Post Processing Encoder");
+        let mut encoder = self
+            .context
+            .device
+            .lock()
+            .simple_encoder("Post Processing Encoder");
 
         let mut input_bind_group = &self.first_pass_texture.bind_group;
 
         if game_config.bloom_enabled {
             self.bloom.draw(
-                &self.context.device,
+                &self.context.device.lock(),
                 &self.texture_layout,
                 input_bind_group,
                 &mut encoder,
@@ -585,7 +588,8 @@ impl WgpuRenderer {
                     (&effect.render_texture.view, self.render_texture_format)
                 };
 
-            let pipeline_key = format!("{}-{:?}", effect.name, output_texture_format);
+            let pipeline_key =
+                format!("{}-{:?}", effect.name, output_texture_format);
 
             let maybe_pipeline = if self.pipelines.contains_key(&pipeline_key) {
                 Some(self.pipelines.get(&pipeline_key).unwrap())
@@ -595,7 +599,7 @@ impl WgpuRenderer {
                 if let Some(shader) = self.shaders.borrow().get(effect.id) {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
-                        &self.context.device,
+                        &self.context.device.lock(),
                         output_texture_format,
                         &[&self.texture_layout, &self.camera_bind_group_layout],
                         shader.clone(),
@@ -650,7 +654,7 @@ impl WgpuRenderer {
 
                     create_post_processing_pipeline(
                         "Tonemapping",
-                        &self.context.device,
+                        &self.context.device.lock(),
                         self.context.config.borrow().format,
                         &[&self.texture_layout, &self.camera_bind_group_layout],
                         create_engine_post_processing_shader!(
@@ -709,12 +713,12 @@ impl WgpuRenderer {
         let _span = span!("render_egui");
 
         let mut encoder =
-            self.context.device.simple_encoder("egui Render Encoder");
+            self.context.device.lock().simple_encoder("egui Render Encoder");
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
                 params.egui,
-                &self.context.device,
+                &self.context.device.lock(),
                 &self.context.queue,
                 &mut encoder,
             );
@@ -796,7 +800,7 @@ impl WgpuRenderer {
 
                 let load_image_texture = move || {
                     let texture = Texture::from_image(
-                        &context.device,
+                        &context.device.lock(),
                         &context.queue,
                         &loaded_image.image,
                         Some(&loaded_image.path),
@@ -804,7 +808,7 @@ impl WgpuRenderer {
                     )
                     .unwrap();
 
-                    let bind_group = context.device.simple_bind_group(
+                    let bind_group = context.device.lock().simple_bind_group(
                         Some(&format!("{}_bind_group", loaded_image.path)),
                         &texture,
                         &layout,
@@ -986,7 +990,9 @@ impl WgpuRenderer {
             config.width = size.width;
             config.height = size.height;
 
-            self.context.surface.configure(&self.context.device, &config);
+            self.context
+                .surface
+                .configure(&self.context.device.lock(), &config);
         }
 
         self.egui_render_routine.borrow_mut().resize(

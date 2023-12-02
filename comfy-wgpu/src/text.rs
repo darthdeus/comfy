@@ -35,7 +35,7 @@ impl TextRasterizer {
         const TEXT_ATLAS_SIZE: u32 = 4096;
         let size = uvec2(TEXT_ATLAS_SIZE, TEXT_ATLAS_SIZE);
 
-        let texture = context.texture_creator.borrow_mut().handle_from_size(
+        let texture = context.texture_creator.lock().handle_from_size(
             "Font Atlas",
             size,
             TRANSPARENT,
@@ -133,7 +133,7 @@ impl TextRasterizer {
                 ivec2(rect.origin.x + pad, rect.origin.y + pad),
                 ivec2(rect.size.width - 2 * pad, rect.size.height - 2 * pad),
             );
-            self.context.texture_creator.borrow_mut().update_texture_region(
+            self.context.texture_creator.lock().update_texture_region(
                 self.texture,
                 &image,
                 inset_rect,

@@ -147,11 +147,11 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
 
     let textures = Arc::new(Mutex::new(HashMap::new()));
 
-    let device = Arc::new(device);
+    let device = Arc::new(Mutex::new(device));
     let queue = Arc::new(queue);
     let texture_layout = Arc::new(texture_bind_group_layout);
 
-    let texture_creator = Arc::new(AtomicRefCell::new(WgpuTextureCreator {
+    let texture_creator = Arc::new(Mutex::new(WgpuTextureCreator {
         textures: textures.clone(),
         layout: texture_layout.clone(),
         queue: queue.clone(),

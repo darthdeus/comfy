@@ -46,7 +46,7 @@ impl Bloom {
 
         let threshold_render_texture =
             Texture::create_scaled_mip_filter_surface_texture(
-                device,
+                &device.lock(),
                 &config,
                 format,
                 1.0,
@@ -65,7 +65,7 @@ impl Bloom {
                 id: shader.id,
                 name: "Bloom Threshold".into(),
                 enabled: true,
-                bind_group: device.simple_bind_group(
+                bind_group: device.lock().simple_bind_group(
                     Some("Bloom Threshold Bind Group"),
                     &threshold_render_texture,
                     texture_layout,
@@ -73,7 +73,7 @@ impl Bloom {
                 render_texture: threshold_render_texture,
                 pipeline: create_post_processing_pipeline(
                     "Bloom Threshold",
-                    device,
+                    &device.lock(),
                     format,
                     &[texture_layout, lighting_params_layout],
                     shader,
@@ -88,7 +88,7 @@ impl Bloom {
         };
 
         let blur_texture = BindableTexture::new(
-            device,
+            &device.lock(),
             texture_layout,
             &TextureCreationParams {
                 label: Some("Bloom Blue Texture"),
@@ -101,7 +101,7 @@ impl Bloom {
 
         let mip_blur_pipeline = create_post_processing_pipeline(
             "Bloom Blur",
-            device,
+            &device.lock(),
             format,
             &[texture_layout],
             create_engine_post_processing_shader!(shaders, "bloom-mip-blur"),
@@ -117,7 +117,7 @@ impl Bloom {
 
         let merge_pipeline = create_post_processing_pipeline(
             "Bloom Merge",
-            device,
+            &device.lock(),
             format,
             &[texture_layout],
             create_engine_post_processing_shader!(shaders, "bloom-merge"),
@@ -131,7 +131,7 @@ impl Bloom {
             },
         );
 
-        let mipmap_generator = MipmapGenerator::new(device, format);
+        let mipmap_generator = MipmapGenerator::new(&device.lock(), format);
 
         let params = TextureCreationParams {
             label: Some("Bloom Ping Pong 0"),
@@ -143,7 +143,7 @@ impl Bloom {
 
         let pingpong = [
             BindableTexture::new(
-                device,
+                &device.lock(),
                 texture_layout,
                 &TextureCreationParams {
                     label: Some("Bloom Ping Pong 0"),
@@ -151,7 +151,7 @@ impl Bloom {
                 },
             ),
             BindableTexture::new(
-                device,
+                &device.lock(),
                 texture_layout,
                 &TextureCreationParams {
                     label: Some("Bloom Ping Pong 1"),
@@ -160,8 +160,10 @@ impl Bloom {
             ),
         ];
 
-        let blur_direction_layout = context.device.create_bind_group_layout(
-            &wgpu::BindGroupLayoutDescriptor {
+        let blur_direction_layout = context
+            .device
+            .lock()
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("Bloom Blur Direction Layout"),
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -173,10 +175,9 @@ impl Bloom {
                     },
                     count: None,
                 }],
-            },
-        );
+            });
 
-        let blur_direction_buffer_0 = context.device.create_buffer_init(
+        let blur_direction_buffer_0 = context.device.lock().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Bloom Blur Direction Buffer = 0"),
                 contents: bytemuck::cast_slice(&[BLUR_DIR_ZERO]),
@@ -184,7 +185,7 @@ impl Bloom {
             },
         );
 
-        let blur_direction_buffer_1 = context.device.create_buffer_init(
+        let blur_direction_buffer_1 = context.device.lock().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Bloom Blur Direction Buffer = 1"),
                 contents: bytemuck::cast_slice(&[BLUR_DIR_ONE]),
@@ -193,7 +194,7 @@ impl Bloom {
         );
 
         let blur_direction_group_0 =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            context.device.lock().create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("Bloom Blur Direction Bind Group = 0"),
                 layout: &blur_direction_layout,
                 entries: &[wgpu::BindGroupEntry {
@@ -203,7 +204,7 @@ impl Bloom {
             });
 
         let blur_direction_group_1 =
-            context.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            context.device.lock().create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("Bloom Blur Direction Bind Group = 1"),
                 layout: &blur_direction_layout,
                 entries: &[wgpu::BindGroupEntry {
@@ -214,7 +215,7 @@ impl Bloom {
 
         let gaussian_pipeline = create_post_processing_pipeline(
             "Bloom Gaussian",
-            device,
+            &device.lock(),
             format,
             &[texture_layout, lighting_params_layout, &blur_direction_layout],
             create_engine_post_processing_shader!(shaders, "bloom-gauss"),

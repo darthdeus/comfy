@@ -8,7 +8,7 @@ pub fn insert_post_processing_effect(
 ) {
     let effect = PostProcessingEffect::new(
         name.to_string(),
-        &renderer.context.device,
+        &renderer.context.device.lock(),
         &[&renderer.context.texture_layout],
         &renderer.context.config.borrow(),
         renderer.render_texture_format,

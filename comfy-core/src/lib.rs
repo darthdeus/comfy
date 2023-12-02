@@ -12,8 +12,8 @@ mod desktop;
 mod errors;
 mod events;
 mod fast_sprite;
+mod global;
 mod global_state;
-#[cfg(not(target_arch = "wasm32"))]
 mod input;
 mod lighting;
 mod math;
@@ -38,6 +38,7 @@ pub use crate::desktop::*;
 pub use crate::errors::*;
 pub use crate::events::*;
 pub use crate::fast_sprite::*;
+pub use crate::global::*;
 pub use crate::global_state::*;
 pub use crate::input::*;
 pub use crate::lighting::*;
@@ -1256,7 +1257,7 @@ impl Transform {
 }
 
 pub fn initialize_logger() {
-    #[cfg(feature = "file_logger")]
+    #[cfg(all(feature = "file_logger", not(target_arch = "wasm32")))]
     {
         pub fn initialize_log4rs(
             log_root: &std::path::Path,
@@ -1304,7 +1305,7 @@ pub fn initialize_logger() {
         println!("LOGGER: log4rs ");
     }
 
-    #[cfg(not(feature = "file_logger"))]
+    #[cfg(any(not(feature = "file_logger"), target_arch = "wasm32"))]
     {
         env_logger::builder().format_timestamp(None).init();
         // env_logger::builder().format_timestamp_millis().init();

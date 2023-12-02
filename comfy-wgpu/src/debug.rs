@@ -42,7 +42,7 @@ pub fn render_debug(
 
             create_render_pipeline_with_layout(
                 "Debug",
-                &context.device,
+                &context.device.lock(),
                 context.config.borrow().format,
                 &[&texture_layout, &quad_ubg.layout],
                 &[],
@@ -62,7 +62,7 @@ pub fn render_debug(
             bytemuck::cast_slice(&[quads[i]]),
         );
 
-        let mut encoder = context.device.simple_encoder("Debug Render Encoder");
+        let mut encoder = context.device.lock().simple_encoder("Debug Render Encoder");
         {
             let mut render_pass =
                 encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
