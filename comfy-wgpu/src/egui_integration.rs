@@ -3,6 +3,7 @@ use egui::ClippedPrimitive;
 pub struct EguiRenderRoutine {
     pub render_pass: egui_wgpu::Renderer,
     pub screen_descriptor: egui_wgpu::renderer::ScreenDescriptor,
+    #[allow(dead_code)]
     textures_to_free: Vec<egui::TextureId>,
 }
 

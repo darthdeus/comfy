@@ -13,7 +13,6 @@ mod errors;
 mod events;
 mod fast_sprite;
 mod global_state;
-#[cfg(not(target_arch = "wasm32"))]
 mod input;
 mod lighting;
 mod math;
