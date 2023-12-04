@@ -714,15 +714,13 @@ impl WgpuRenderer {
         let mut encoder =
             self.context.device.simple_encoder("egui Render Encoder");
 
-        let pixels_per_point = self.scale_factor();
-
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
                 params.egui,
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,
-                pixels_per_point,
+                egui_scale_factor(),
             );
 
         let egui_render = self.egui_render_routine.borrow();
