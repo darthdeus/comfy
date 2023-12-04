@@ -1303,7 +1303,7 @@ pub fn initialize_logger() {
         println!("LOGGER: log4rs ");
     }
 
-    #[cfg(any(not(feature = "file_logger"), target_arch="wasm32"))]
+    #[cfg(any(not(feature = "file_logger"), target_arch = "wasm32"))]
     {
         env_logger::builder().format_timestamp(None).init();
         // env_logger::builder().format_timestamp_millis().init();
