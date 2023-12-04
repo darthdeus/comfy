@@ -16,8 +16,6 @@ pub struct Bloom {
     pub blur_texture: BindableTexture,
     pub mip_blur_pipeline: wgpu::RenderPipeline,
 
-    pub merge_pipeline: wgpu::RenderPipeline,
-
     pub gaussian_pipeline: wgpu::RenderPipeline,
 
     pub blur_direction_buffer_0: wgpu::Buffer,
@@ -109,22 +107,6 @@ impl Bloom {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::Constant,
                     dst_factor: wgpu::BlendFactor::One,
-                    operation: wgpu::BlendOperation::Add,
-                },
-                alpha: wgpu::BlendComponent::REPLACE,
-            },
-        );
-
-        let merge_pipeline = create_post_processing_pipeline(
-            "Bloom Merge",
-            device,
-            format,
-            &[texture_layout],
-            create_engine_post_processing_shader!(shaders, "bloom-merge"),
-            wgpu::BlendState {
-                color: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::Constant,
-                    dst_factor: wgpu::BlendFactor::OneMinusConstant,
                     operation: wgpu::BlendOperation::Add,
                 },
                 alpha: wgpu::BlendComponent::REPLACE,
@@ -238,8 +220,6 @@ impl Bloom {
             blur_direction_group_1,
 
             blur_direction_layout,
-
-            merge_pipeline,
 
             pingpong,
             gaussian_pipeline,
@@ -431,13 +411,42 @@ impl Bloom {
     pub fn blit_final(
         &self,
         encoder: &mut wgpu::CommandEncoder,
+        shaders: &mut ShaderMap,
+        pipelines: &mut PipelineMap,
         output_view: &wgpu::TextureView,
+        target_format: wgpu::TextureFormat,
         params: &GlobalLightingParams,
     ) {
+        let pipeline_name = format!("Bloom Merge {:?}", target_format);
+
+        let pipeline = if let Some(pipeline) = pipelines.get(&pipeline_name) {
+            pipeline
+        } else {
+            let pipeline = create_post_processing_pipeline(
+                &pipeline_name,
+                &self.context.device,
+                target_format,
+                &[&self.context.texture_layout],
+                create_engine_post_processing_shader!(shaders, "bloom-merge"),
+                wgpu::BlendState {
+                    color: wgpu::BlendComponent {
+                        src_factor: wgpu::BlendFactor::Constant,
+                        dst_factor: wgpu::BlendFactor::OneMinusConstant,
+                        operation: wgpu::BlendOperation::Add,
+                    },
+                    alpha: wgpu::BlendComponent::REPLACE,
+                },
+            );
+
+            pipelines.insert(pipeline_name.clone(), pipeline);
+            pipelines.get(&pipeline_name).unwrap()
+        };
+
+
         draw_post_processing_output(
             "Bloom Merge",
             encoder,
-            &self.merge_pipeline,
+            pipeline,
             if GlobalParams::get_int("bloom_alg") == 0 {
                 &self.blur_texture.bind_group
             } else {

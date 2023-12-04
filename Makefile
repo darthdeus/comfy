@@ -3,7 +3,7 @@
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
 # EXAMPLE=blood_canvas
-# EXAMPLE=bloom
+EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
 # EXAMPLE=custom_fonts
@@ -12,7 +12,7 @@
 # EXAMPLE=color-bars
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
-EXAMPLE=exr-hdr-image
+# EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader

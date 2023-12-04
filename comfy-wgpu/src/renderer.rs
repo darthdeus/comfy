@@ -637,7 +637,10 @@ impl WgpuRenderer {
         if game_config.bloom_enabled {
             self.bloom.blit_final(
                 &mut encoder,
+                &mut self.shaders.borrow_mut(),
+                &mut self.pipelines,
                 last_effect_view,
+                last_effect_format,
                 &game_config.lighting,
             );
         }
@@ -647,6 +650,7 @@ impl WgpuRenderer {
                 .pipelines
                 .entry("tonemapping".into())
                 .or_insert_with(|| {
+                    // TODO: texture format?
                     let shaders = &mut self.shaders.borrow_mut();
 
                     create_post_processing_pipeline(

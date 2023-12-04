@@ -198,7 +198,7 @@ and while it does have a learning curve it's realtively easy and simple.
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
   where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
   window managers like i3 to automatically float windows with this title, e.g.
-  `for_window [title=".*Comfy Engine DEV BUIL:D.*"] floating enable`.
+  `for_window [title=".*Comfy Engine DEV BUILD.*"] floating enable`.
 - Notable upgrades: `wgpu 0.16.3 -> 0.18.0`, `egui 0.22.0 -> 0.24.1`. The
   `egui` upgrade is somewhat important, as `egui::plot` got moved into a
   separate `egui_plot` crate that Comfy now re-exports.
