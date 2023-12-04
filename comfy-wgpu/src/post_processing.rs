@@ -211,10 +211,12 @@ pub fn draw_post_processing_output(
                     } else {
                         wgpu::LoadOp::Load
                     },
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
 
     render_pass.push_debug_group(name);

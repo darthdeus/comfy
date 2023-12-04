@@ -73,7 +73,7 @@ pub fn render_debug(
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: color_to_clear_op(None),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             },
                         },
                     )],
@@ -82,6 +82,8 @@ pub fn render_debug(
                         &depth_texture.view,
                         false,
                     ),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
 
 

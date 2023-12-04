@@ -79,10 +79,6 @@ impl EngineState {
         }
     }
 
-    pub fn on_event(&mut self, event: &WindowEvent) -> bool {
-        self.renderer.as_mut().unwrap().on_event(event, egui())
-    }
-
     // #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
     // pub fn update(&mut self) {
     //     if self.game_loop.is_none() {

@@ -102,7 +102,8 @@ pub async fn run_comfy_main_async(
 
     info!("scale factor = {}", window.scale_factor());
 
-    let egui_winit = egui_winit::State::new(&event_loop);
+    let egui_winit =
+        egui_winit::State::new(egui().viewport_id(), &window, None, None);
 
     let mut delta = 1.0 / 60.0;
 
@@ -129,7 +130,16 @@ pub async fn run_comfy_main_async(
 
                 {
                     span_with_timing!("frame");
-                    engine.renderer.as_mut().unwrap().begin_frame(egui());
+                    {
+                        let _span = span!("begin_frame");
+                        let renderer = engine.renderer.as_mut().unwrap();
+
+                        egui().begin_frame(
+                            renderer
+                                .egui_winit
+                                .take_egui_input(&renderer.window),
+                        );
+                    }
 
                     engine.frame += 1;
 
@@ -164,7 +174,7 @@ pub async fn run_comfy_main_async(
             }
 
             Event::WindowEvent { ref event, window_id: _ } => {
-                if engine.on_event(event) {
+                if engine.renderer.as_mut().unwrap().on_event(event, egui()) {
                     return;
                 }
 
