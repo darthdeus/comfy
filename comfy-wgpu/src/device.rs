@@ -10,6 +10,13 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         // backends: wgpu::Backends::GL,
         backends,
         dx12_shader_compiler: Default::default(),
+        // TODO: make validation configurable?
+        flags: if cfg!(debug_assertions) {
+            wgpu::InstanceFlags::debugging()
+        } else {
+            wgpu::InstanceFlags::VALIDATION
+        },
+        gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
     });
 
     let surface = unsafe {

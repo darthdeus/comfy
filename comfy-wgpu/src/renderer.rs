@@ -585,7 +585,8 @@ impl WgpuRenderer {
                     (&effect.render_texture.view, self.render_texture_format)
                 };
 
-            let pipeline_key = format!("{}-{:?}", effect.name, output_texture_format);
+            let pipeline_key =
+                format!("{}-{:?}", effect.name, output_texture_format);
 
             let maybe_pipeline = if self.pipelines.contains_key(&pipeline_key) {
                 Some(self.pipelines.get(&pipeline_key).unwrap())
@@ -683,11 +684,13 @@ impl WgpuRenderer {
                                     } else {
                                         wgpu::LoadOp::Load
                                     },
-                                    store: true,
+                                    store: wgpu::StoreOp::Store,
                                 },
                             },
                         )],
                         depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
                     });
 
                 render_pass.set_pipeline(tonemapping_pipeline);
@@ -717,6 +720,7 @@ impl WgpuRenderer {
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,
+                egui_scale_factor(),
             );
 
         let egui_render = self.egui_render_routine.borrow();
@@ -740,17 +744,11 @@ impl WgpuRenderer {
         event: &winit::event::WindowEvent,
         egui_ctx: &egui::Context,
     ) -> bool {
-        self.egui_winit.on_event(egui_ctx, event).consumed
+        self.egui_winit.on_window_event(egui_ctx, event).consumed
     }
 
     pub fn as_mut_any(&mut self) -> &mut dyn Any {
         self
-    }
-
-    pub fn begin_frame(&mut self, egui_ctx: &egui::Context) {
-        let _span = span!("begin_frame");
-
-        egui_ctx.begin_frame(self.egui_winit.take_egui_input(&self.window));
     }
 
     pub fn update(&mut self, params: &mut DrawParams) {
@@ -995,7 +993,7 @@ impl WgpuRenderer {
             scale_factor,
         );
 
-        self.egui_winit.set_pixels_per_point(scale_factor);
+        // self.egui_winit.set_pixels_per_point(scale_factor);
     }
 
     pub fn width(&self) -> f32 {
@@ -1022,7 +1020,7 @@ pub fn depth_stencil_attachment(
             view,
             depth_ops: Some(wgpu::Operations {
                 load: clear_depth,
-                store: true,
+                store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
         })

@@ -276,10 +276,12 @@ impl CommandEncoderExtensions for wgpu::CommandEncoder {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: color_to_clear_op(clear_color),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         })
     }
 }

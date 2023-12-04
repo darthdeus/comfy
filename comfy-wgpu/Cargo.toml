@@ -19,14 +19,14 @@ record-pngs = ["dep:futures-intrusive"]
 [dependencies]
 comfy-core = { path = "../comfy-core", version = "0.2.0" }
 
-wgpu = { version = "0.17.1", features = ["expose-ids"] }
-wgpu-types = "0.17.0"
+wgpu = { version = "0.18.0", features = ["expose-ids"] }
+wgpu-types = "0.18.0"
 winit = { version = "0.28.3", default-features = false, features = ["x11"] }
-naga = { version = "0.13.0", features = ["wgsl-in"] }
+naga = { version = "0.14.1", features = ["wgsl-in"] }
 
-egui = "0.23.0"
-egui-wgpu = "0.23.0"
-egui-winit = { version = "0.23.0", default-features = false, features = [] }
+egui = "0.24.1"
+egui-wgpu = "0.24.1"
+egui-winit = { version = "0.24.1", default-features = false, features = [] }
 
 image = { version = "0.24", default-features = false, features = [
   "png",
@@ -37,5 +37,8 @@ bytemuck = { version = "1.12", default-features = false, features = ["derive"] }
 futures-intrusive = { version = "0.5.0", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wgpu = { version = "0.17.1", features = ["webgl"] }
+wgpu = { version = "0.18.0", features = [
+  "webgl",
+  "fragile-send-sync-non-atomic-wasm",
+] }
 web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }

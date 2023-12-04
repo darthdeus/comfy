@@ -3,7 +3,6 @@ use egui::ClippedPrimitive;
 pub struct EguiRenderRoutine {
     pub render_pass: egui_wgpu::Renderer,
     pub screen_descriptor: egui_wgpu::renderer::ScreenDescriptor,
-    #[allow(dead_code)]
     textures_to_free: Vec<egui::TextureId>,
 }
 
@@ -51,12 +50,13 @@ impl EguiRenderRoutine {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         encoder: &mut wgpu::CommandEncoder,
+        pixels_per_point: f32,
         // view: &wgpu::TextureView,
         // render_pass: &'a mut wgpu::RenderPass<'a>,
     ) -> Vec<ClippedPrimitive> {
         let egui::FullOutput { shapes, textures_delta, .. } = ctx.end_frame();
 
-        let paint_jobs = ctx.tessellate(shapes);
+        let paint_jobs = ctx.tessellate(shapes, pixels_per_point);
 
         for id in textures_delta.free {
             self.render_pass.free_texture(&id);

@@ -187,7 +187,7 @@ pub fn render_meshes(
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: color_to_clear_op(clear_color),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
                 depth_stencil_attachment: depth_stencil_attachment(
@@ -195,6 +195,8 @@ pub fn render_meshes(
                     &c.depth_texture.view,
                     is_first,
                 ),
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         let mesh_pipeline = c
@@ -374,7 +376,7 @@ pub fn render_particles(
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: color_to_clear_op(clear_color),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
                 // depth_stencil_attachment: Some(
@@ -392,6 +394,8 @@ pub fn render_particles(
                     &c.depth_texture.view,
                     is_first,
                 ),
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         render_pass.set_pipeline(particle_pipeline);
