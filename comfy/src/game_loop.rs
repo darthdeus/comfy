@@ -168,6 +168,10 @@ pub async fn run_comfy_main_async(
                 loop_helper.loop_sleep();
                 delta = frame_start.elapsed().as_secs_f32();
                 delta = delta.clamp(1.0 / 5000.0, 1.0 / 10.0);
+                #[cfg(target_arch = "wasm32")]
+                {
+                    delta *= 10.0;
+                }
 
                 #[cfg(feature = "tracy")]
                 tracy_client::frame_mark();
