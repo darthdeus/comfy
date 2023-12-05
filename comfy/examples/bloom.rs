@@ -4,6 +4,7 @@ simple_game!("Nice red circle", setup, update);
 
 fn setup(_c: &mut EngineContext) {
     game_config_mut().bloom_enabled = true;
+    game_config_mut().tonemapping_enabled = true;
 }
 
 fn update(_c: &mut EngineContext) {

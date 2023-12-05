@@ -154,7 +154,7 @@ fn convertOpenDomainToNormalizedLog2(in_color: vec3<f32>, minimum_ev: f32, maxim
     // remove negative before log transform
     var color = max(vec3(0.0), in_color);
     // avoid infinite issue with log -- ref[1]
-    color = select(color, 0.00001525878 + color, color  < 0.00003051757);
+    color = select(color, 0.00001525878 + color, color < vec3(0.00003051757));
     color = clamp(
         log2(color / in_midgrey),
         vec3(minimum_ev),
