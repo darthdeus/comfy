@@ -102,8 +102,12 @@ pub async fn run_comfy_main_async(
 
     info!("scale factor = {}", window.scale_factor());
 
-    let egui_winit =
-        egui_winit::State::new(egui().viewport_id(), &window, None, None);
+    let egui_winit = egui_winit::State::new(
+        egui().viewport_id(),
+        &window,
+        Some(window.scale_factor() as f32),
+        None,
+    );
 
     let mut delta = 1.0 / 60.0;
 
