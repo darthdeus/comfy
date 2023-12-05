@@ -180,6 +180,19 @@ pub enum RecordingMode {
 
 impl Default for DevConfig {
     fn default() -> Self {
+        // The mut is actually required, but only dependent on certain features, and without
+        // the allow will cause a confusing warning.
+        #[allow(unused_mut)]
+        let mut show_fps = false;
+
+        cfg_if! {
+            if #[cfg(feature = "ci-release")] {
+                show_fps = false;
+            } else if #[cfg(feature = "dev")] {
+                show_fps = true;
+            }
+        };
+
         Self {
             show_lighting_config: false,
             show_buffers: false,
@@ -194,13 +207,7 @@ impl Default for DevConfig {
 
             show_debug_bullets: false,
 
-            #[cfg(feature = "ci-release")]
-            show_fps: false,
-            #[cfg(feature = "dev")]
-            show_fps: true,
-            #[cfg(all(not(feature = "dev"), not(feature = "ci-release")))]
-            show_fps: false,
-
+            show_fps,
             draw_colliders: false,
             draw_collision_marks: false,
 
