@@ -183,6 +183,7 @@ impl Default for DevConfig {
         // The mut is actually required, but only dependent on certain features, and without
         // the allow will cause a confusing warning.
         #[allow(unused_mut)]
+        #[allow(unused_assignments)]
         let mut show_fps = false;
 
         cfg_if! {
