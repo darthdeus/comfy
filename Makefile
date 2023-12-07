@@ -39,7 +39,8 @@ EXAMPLE=fragment-shader
 # default: profile-startup
 # default: bitmob
 # default: example
-default: egui-demo
+default: wasm-egui-scaling
+# default: egui-demo
 # default: lint
 # default: test
 
@@ -57,6 +58,9 @@ egui-demo:
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
+
+wasm-egui-scaling:
+	cargo run --target wasm32-unknown-unknown --bin egui-scaling
 
 build-examples:
 	./build-examples.sh

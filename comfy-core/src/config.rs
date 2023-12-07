@@ -88,6 +88,8 @@ pub struct GameConfig {
     pub lighting: GlobalLightingParams,
     pub lighting_enabled: bool,
 
+    pub wasm_append_id: Option<String>,
+
     pub enable_dynamic_camera: bool,
 
     pub dev: DevConfig,
@@ -127,6 +129,8 @@ impl Default for GameConfig {
             tonemapping_enabled: false,
             lighting: GlobalLightingParams::default(),
             lighting_enabled: false,
+
+            wasm_append_id: Some("wasm-body".to_string()),
 
             dev: DevConfig::default(),
 
