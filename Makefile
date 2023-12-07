@@ -12,11 +12,11 @@
 # EXAMPLE=color-bars
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
-EXAMPLE=egui
+# EXAMPLE=egui
 # EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
-# EXAMPLE=fragment-shader
+EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
@@ -38,18 +38,22 @@ EXAMPLE=egui
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
-default: example
+# default: example
+default: egui-demo
 # default: lint
 # default: test
 
 FLAGS=--features=blobs,git-version,dev,ldtk,exr
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
 
 example:
 	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS)
+
+egui-demo:
+	$(ENV_VARS) cargo run --bin egui-scaling
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
