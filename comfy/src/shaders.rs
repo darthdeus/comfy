@@ -1,4 +1,34 @@
 // use miniquad::{BlendFactor, BlendState, BlendValue, Equation};
+use crate::*;
+
+/// Similar to `create_shader` but automatically hot reloads the shader on change.
+/// Note that `create_reloadable_sprite_shader` will automatically call
+/// `sprite_shader_from_fragment`, meaning your source should only contain the fragment part.
+///
+/// The user needs to provide a `ReloadableShaderSource` which contains the static source to be
+/// embedded in the binary, as well as the path to the shader file path for hot reloading.
+///
+/// The [fragment_shader
+/// example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/fragment-shader.rs#L24-L57)
+/// contains a full working example of how works.
+pub fn create_reloadable_sprite_shader(
+    shaders: &mut ShaderMap,
+    name: &str,
+    reloadable_source: ReloadableShaderSource,
+    uniform_defs: UniformDefs,
+) -> Result<ShaderId> {
+    let id = create_shader(
+        shaders,
+        name,
+        &sprite_shader_from_fragment(&reloadable_source.static_source),
+        uniform_defs,
+    )?;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    watch_shader_path(&reloadable_source.path, id)?;
+
+    Ok(id)
+}
 
 // use crate::*;
 // use notify::{event::AccessKind, Event, EventKind, RecursiveMode, Watcher};

@@ -38,7 +38,7 @@ pub use crate::game_loop::*;
 // pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
-// pub use crate::shaders::*;
+pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
 pub use crate::update_stages::*;
