@@ -959,9 +959,11 @@ impl WgpuRenderer {
             );
         }
 
+        let config = self.context.config.borrow();
+
         #[cfg(feature = "record-pngs")]
         screenshot::record_pngs(
-            uvec2(self.config.width, self.config.height),
+            uvec2(config.width, config.height),
             &self.context,
             &self.screenshot_buffer,
             &output,
