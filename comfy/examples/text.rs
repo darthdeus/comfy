@@ -9,11 +9,6 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(_c: &mut EngineState) -> Self {
-        // let font_data =
-        //     include_bytes!("../assets/ArianaVioleta.ttf") as &[u8];
-        // let font_data =
-        //     include_bytes!("../../assets/ThaleahFat_TTF.ttf") as &[u8];
-
         Self {
             fonts: vec![
                 load_font_from_bytes(include_bytes!(
@@ -43,7 +38,6 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
 
     draw_text_pro_experimental(
         simple_styled_text("comfy has *c*o*m*f*y *t*e*x*t rendering"),
-        // mouse_world(),
         vec2(0.0, 1.0),
         WHITE,
         TextAlign::Center,
