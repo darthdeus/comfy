@@ -13,7 +13,7 @@ repository = "https://github.com/darthdeus/comfy"
 # crate-type = ["dylib"]
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.2.0" }
+comfy-core = { path = "../comfy-core", version = "0.3.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 notify = "6.1.1"
