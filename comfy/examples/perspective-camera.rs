@@ -119,7 +119,9 @@ fn setup(c: &mut EngineContext) {
     for x in -count..count {
         for y in -count..count {
             commands().spawn((
-                Transform::position(start_pos + vec2(x as f32, y as f32) + splat(0.5)),
+                Transform::position(
+                    start_pos + vec2(x as f32, y as f32) + splat(0.5),
+                ),
                 Sprite::new("player", splat(1.0), 5, BLUE)
                     .with_z_index(Z_MOBS)
                     .with_rect(0, 0, 16, 16),
