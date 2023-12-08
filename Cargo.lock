@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "comfy"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "comfy-core",
  "comfy-ldtk",
@@ -501,7 +501,7 @@ dependencies = [
 
 [[package]]
 name = "comfy-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "ahash 0.8.6",
  "anyhow",
@@ -592,7 +592,7 @@ dependencies = [
 
 [[package]]
 name = "comfy-wgpu"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytemuck",
  "comfy-core",
