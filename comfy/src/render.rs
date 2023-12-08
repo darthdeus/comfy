@@ -49,6 +49,10 @@ impl Sprite {
         Self { rotation_x, ..self }
     }
 
+    pub fn with_z_index(self, z_index: i32) -> Self {
+        Self { z_index, ..self }
+    }
+
     pub fn set_rect(self, source_rect: Option<IRect>) -> Self {
         Self { source_rect, ..self }
     }

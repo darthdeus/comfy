@@ -22,11 +22,11 @@
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-# EXAMPLE=perspective-camera
+EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
-EXAMPLE=sprite
+# EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
