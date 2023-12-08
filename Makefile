@@ -18,11 +18,11 @@
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
-# EXAMPLE=ldtk
+EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-EXAMPLE=perspective-camera
+# EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
