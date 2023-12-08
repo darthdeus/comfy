@@ -16,7 +16,7 @@
 # EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
-EXAMPLE=fragment-shader
+# EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
@@ -26,7 +26,7 @@ EXAMPLE=fragment-shader
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
-# EXAMPLE=sprite
+EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
 # EXAMPLE=text
@@ -38,6 +38,7 @@ EXAMPLE=fragment-shader
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
+# default: crash
 default: example
 # default: example-wasm
 # default: wasm-egui-scaling
@@ -47,6 +48,10 @@ default: example
 
 FLAGS=--features=blobs,git-version,dev,ldtk,exr
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1
+
+# Crashes on i3 without COMFY_DEV_TITLE=1
+i3-crash:
+	cargo run --example alpha_sprite --features comfy-wgpu/record-pngs,blobs,ldtk
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
