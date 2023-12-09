@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "comfy"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "comfy-core",
  "comfy-ldtk",

@@ -1,6 +1,6 @@
 [package]
 name = "comfy"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A comfy 2d game engine in Rust."
@@ -10,7 +10,7 @@ repository = "https://github.com/darthdeus/comfy"
 
 
 [features]
-default = ["color-backtrace", "quick-exit", "use-wgpu", "exr"]
+default = ["color-backtrace", "quick-exit", "use-wgpu"]
 
 dev = ["comfy-core/dev"]
 blobs = []
