@@ -46,12 +46,13 @@ default: example
 # default: lint
 # default: test
 
-FLAGS=--features=blobs,git-version,dev,ldtk,exr
+# FLAGS=--features=blobs,git-version,dev,ldtk,exr
+FLAGS=--features=git-version,dev
 ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1
 
 # Crashes on i3 without COMFY_DEV_TITLE=1
 i3-crash:
-	cargo run --example alpha_sprite --features comfy-wgpu/record-pngs,blobs,ldtk
+	cargo run --example alpha_sprite $(FLAGS)
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
