@@ -108,7 +108,10 @@ fn draw_text_internal(
     pro_params: Option<ProTextParams>,
     params: TextParams,
 ) {
-    GLOBAL_STATE.borrow_mut().text_queue.push(DrawText {
+    let mut state = GLOBAL_STATE.borrow_mut();
+    let current_queue = state.current_draw_queue;
+
+    state.draw_queues[current_queue].text_queue.push(DrawText {
         text,
         position,
         color: params.color,

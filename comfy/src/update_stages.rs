@@ -177,8 +177,10 @@ fn render_text(c: &mut EngineContext) {
         egui::Id::new("text-painter"),
     ));
 
-    let text_queue =
-        GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
+    let text_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
+        .text_queue
+        .drain(..)
+        .collect_vec();
 
     let assets = ASSETS.borrow();
 
@@ -273,7 +275,6 @@ fn render_text(c: &mut EngineContext) {
 
                 // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
                 //     text.position;
-
 
                 let (texture, allocation) = t.get_glyph(
                     font_handle,
@@ -1047,8 +1048,10 @@ fn renderer_update(c: &mut EngineContext) {
     let frame_params =
         FrameParams { frame: get_frame(), delta, time: get_time() as f32 };
 
-    let mut mesh_queue =
-        GLOBAL_STATE.borrow_mut().mesh_queue.drain(..).collect_vec();
+    let mut mesh_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
+        .mesh_queue
+        .drain(..)
+        .collect_vec();
 
     mesh_queue.sort_by_key(|x| x.mesh.z_index);
 
