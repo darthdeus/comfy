@@ -92,8 +92,17 @@ pub fn set_unpaused_time(value: f64) {
     UNPAUSED_TIME.store(value.to_bits(), Ordering::SeqCst);
 }
 
-pub static GLOBAL_STATE: Lazy<AtomicRefCell<GlobalState>> =
-    Lazy::new(|| AtomicRefCell::new(GlobalState::default()));
+#[derive(Default)]
+pub struct DrawQueue {
+    pub mesh_queue: Vec<MeshDraw>,
+    pub text_queue: Vec<DrawText>,
+}
+
+pub static GLOBAL_STATE: Lazy<AtomicRefCell<GlobalState>> = Lazy::new(|| {
+    let mut state = GlobalState::default();
+    state.draw_queues.push(DrawQueue::default());
+    AtomicRefCell::new(state)
+});
 
 #[derive(Default)]
 pub struct GlobalState {
@@ -109,8 +118,8 @@ pub struct GlobalState {
     pub frame: u32,
     pub fps: i32,
 
-    pub mesh_queue: Vec<MeshDraw>,
-    pub text_queue: Vec<DrawText>,
+    pub draw_queues: Vec<DrawQueue>,
+    pub current_draw_queue: usize,
 
     pub clear_color: Color,
 

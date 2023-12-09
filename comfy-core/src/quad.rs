@@ -1382,7 +1382,10 @@ pub fn draw_mesh(mesh: Mesh) {
 }
 
 pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
-    GLOBAL_STATE.borrow_mut().mesh_queue.push(MeshDraw {
+    let mut state = GLOBAL_STATE.borrow_mut();
+    let current_queue = state.current_draw_queue;
+
+    state.draw_queues[current_queue].mesh_queue.push(MeshDraw {
         mesh,
         texture_params,
         shader: get_current_shader(),
