@@ -1,0 +1,12 @@
+[package]
+name = "fun"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# comfy = "0.3"
+comfy = { path = "../../comfy" }
+tobj = "4"
+gltf = "1"

@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["comfy", "comfy-core", "comfy-wgpu", "demos/egui-scaling"]
+members = ["comfy", "comfy-core", "comfy-wgpu", "demos/egui-scaling", "demos/fun"]
 
 [profile.dev]
 opt-level = 3

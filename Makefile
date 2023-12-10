@@ -18,11 +18,11 @@
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
-EXAMPLE=ldtk
+# EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-# EXAMPLE=perspective-camera
+EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
@@ -39,7 +39,8 @@ EXAMPLE=ldtk
 # default: profile-startup
 # default: bitmob
 # default: crash
-default: example
+# default: example
+default: fun
 # default: example-wasm
 # default: wasm-egui-scaling
 # default: egui-demo
@@ -59,6 +60,9 @@ bitmob:
 
 example:
 	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS)
+
+fun:
+	$(ENV_VARS) cargo run --bin fun $(FLAGS)
 
 example-wasm:
 	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS) --target wasm32-unknown-unknown
