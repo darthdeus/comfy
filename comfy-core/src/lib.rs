@@ -779,6 +779,10 @@ impl Color {
         ]
     }
 
+    pub fn to_array_f32(self) -> [f32; 4] {
+        [self.r, self.g, self.b, self.a]
+    }
+
     pub fn alpha(&self, value: f32) -> Color {
         Color::new(self.r, self.g, self.b, value)
     }
