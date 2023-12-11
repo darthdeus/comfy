@@ -103,6 +103,7 @@ pub struct GlobalState {
     pub mouse_world: Vec2,
 
     pub mouse_locked: bool,
+    pub cursor_hidden: bool,
 
     pub egui_scale_factor: f32,
 
