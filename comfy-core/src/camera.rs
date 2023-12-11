@@ -97,33 +97,54 @@ impl DampedSpring {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
+struct HistoryStackValue {
+    pub center: Vec2,
+    pub desired_zoom: f32,
+    pub zoom: f32,
+}
+
+pub type CameraMatrixFn =
+    Box<dyn (Fn(&MainCamera, Vec2) -> Mat4) + Send + Sync + 'static>;
+
 pub struct MainCamera {
+    /// Screenshake time remaining.
     pub shake_timer: f32,
+    /// Amount of screenshake to apply.
     pub shake_amount: f32,
 
     pub recoil: f32,
 
+    /// Center of the camera. This updates the camera immediately for the current frame without any
+    /// smoothing. If you need something set `target` instead.
     pub center: Vec2,
-    pub desired_center: Vec2,
+    /// Smoothing target for the camera. By default this also uses a deadzone as defined by
+    /// `deadzone_width` and `deadzone_height`. If you don't want a deadzone, set those to zero.
     pub target: Option<Vec2>,
 
+    /// Smoothing speed when `target` is set.
     pub smoothing_speed: f32,
+    /// Width of the camera deadzone in world space.
+    pub deadzone_width: f32,
+    /// Height of the camera deadzone in world space.
+    pub deadzone_height: f32,
 
     pub aspect_ratio: f32,
 
     pub zoom: f32,
     pub desired_zoom: f32,
 
-    history_stack: Vec<HistoryStackValue>,
-}
+    /// Optional camera matrix function that allows the user to create their own projection matrix.
+    ///
+    /// See the implementation of `build_view_projection_matrix` for what is the default with
+    /// `Mat4::orthographic_rh`. Note that this doesn't have to return an orthographic perspective
+    /// matrix, it can be anything (perspective projection, etc.).
+    pub matrix_fn: Option<CameraMatrixFn>,
+    /// Override config allowing to disable matrix_fn even when one is provided.
+    /// Useful for debugging.
+    pub use_matrix_fn: bool,
 
-#[derive(Copy, Clone)]
-struct HistoryStackValue {
-    pub center: Vec2,
-    pub desired_center: Vec2,
-    pub desired_zoom: f32,
-    pub zoom: f32,
+    history_stack: Vec<HistoryStackValue>,
 }
 
 impl Default for MainCamera {
@@ -141,10 +162,12 @@ impl MainCamera {
             recoil: 0.0,
 
             center,
-            desired_center: center,
             target: None,
 
-            smoothing_speed: 2.0,
+            deadzone_width: 3.0,
+            deadzone_height: 2.0,
+
+            smoothing_speed: 4.0,
 
             aspect_ratio: 1.0,
 
@@ -152,6 +175,9 @@ impl MainCamera {
             desired_zoom: zoom,
 
             history_stack: Vec::new(),
+
+            matrix_fn: None,
+            use_matrix_fn: true,
         }
     }
 
@@ -163,64 +189,36 @@ impl MainCamera {
         set_px(self.zoom / screen_width());
 
         if let Some(player_position) = self.target {
-            const DEADZONE_WIDTH: f32 = 3.0;
-            const DEADZONE_HEIGHT: f32 = 2.0;
+            let deadzone_hw = self.deadzone_width / 2.0;
+            let deadzone_hh = self.deadzone_height / 2.0;
 
-            let dx = (player_position.x - self.center.x).abs();
-            let dy = (player_position.y - self.center.y).abs();
+            let ox = player_position.x - self.center.x;
+            let oy = player_position.y - self.center.y;
 
-            if dx > DEADZONE_WIDTH / 2.0 || dy > DEADZONE_HEIGHT / 2.0 {
-                let mut new_center = self.center;
+            let dx = ox.abs() - deadzone_hw;
+            let dy = oy.abs() - deadzone_hh;
 
-                if dx > DEADZONE_WIDTH / 2.0 {
-                    new_center.x = player_position.x -
-                        DEADZONE_WIDTH / 2.0 * player_position.x.signum();
-                }
+            let mut offset = Vec2::ZERO;
 
-                if dy > DEADZONE_HEIGHT / 2.0 {
-                    new_center.y = player_position.y -
-                        DEADZONE_HEIGHT / 2.0 * player_position.y.signum();
-                }
-
-                self.center = self.center +
-                    (new_center - self.center) * self.smoothing_speed * delta;
+            if dx > 0.0 {
+                offset.x = dx * ox.signum();
             }
-        }
 
-        // if let Some(player_position) = self.target {
-        //     const DEADZONE_WIDTH: f32 = 3.0;
-        //     const DEADZONE_HEIGHT: f32 = 2.0;
-        //
-        //     let dx = (player_position.x - self.center.x).abs();
-        //     let dy = (player_position.y - self.center.y).abs();
-        //
-        //     let mut new_center = self.center;
-        //
-        //     if dx > DEADZONE_WIDTH / 2.0 {
-        //         new_center.x = player_position.x -
-        //             DEADZONE_WIDTH / 2.0 *
-        //                 (player_position.x - self.center.x).signum();
-        //     }
-        //
-        //     if dy > DEADZONE_HEIGHT / 2.0 {
-        //         new_center.y = player_position.y -
-        //             DEADZONE_HEIGHT / 2.0 *
-        //                 (player_position.y - self.center.y).signum();
-        //     }
-        //
-        //     self.center = new_center;
-        // }
+            if dy > 0.0 {
+                offset.y = dy * oy.signum();
+            }
+
+            self.center += offset * delta * self.smoothing_speed;
+        }
     }
 
     pub fn push_center(&mut self, new_center: Vec2, new_zoom: f32) {
         self.history_stack.push(HistoryStackValue {
-            desired_center: self.desired_center,
             center: self.center,
             desired_zoom: self.desired_zoom,
             zoom: self.zoom,
         });
 
-        self.desired_center = new_center;
         self.center = new_center;
 
         self.desired_zoom = new_zoom;
@@ -229,7 +227,6 @@ impl MainCamera {
 
     pub fn pop_center(&mut self) {
         if let Some(item) = self.history_stack.pop() {
-            self.desired_center = item.desired_center;
             self.center = item.center;
             self.zoom = item.zoom;
             self.desired_zoom = item.desired_zoom;
@@ -254,6 +251,11 @@ impl MainCamera {
         self.center + vec2(world_viewport.x, world_viewport.y) / 2.0
     }
 
+    pub fn shake(&mut self, amount: f32, time: f32) {
+        self.shake_amount = amount;
+        self.shake_timer = time;
+    }
+
     pub fn current_shake(&self) -> f32 {
         self.shake_amount * self.shake_timer.clamp(0.0, 1.0)
     }
@@ -275,15 +277,24 @@ impl MainCamera {
 
         let center = self.center + vec2(sx, sy);
 
-        Mat4::orthographic_rh(
-            // let proj = Mat4::orthographic_lh(
+        let ortho_camera = Mat4::orthographic_rh(
             center.x - hx,
             center.x + hx,
             center.y - hy,
             center.y + hy,
             -range,
             range,
-        )
+        );
+
+        if let Some(matrix_fn) = self.matrix_fn.as_ref() {
+            if self.use_matrix_fn {
+                matrix_fn(self, center)
+            } else {
+                ortho_camera
+            }
+        } else {
+            ortho_camera
+        }
     }
 
     pub fn screen_to_world(&self, position: Vec2) -> Vec2 {

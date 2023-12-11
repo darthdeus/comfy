@@ -9,15 +9,20 @@
 # EXAMPLE=custom_fonts
 # EXAMPLE=circle
 # EXAMPLE=colors
+# EXAMPLE=color-bars
 # EXAMPLE=ecs_sprite
 # EXAMPLE=ecs_topdown_game
+# EXAMPLE=egui
+# EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
+EXAMPLE=ldtk
 # EXAMPLE=lighting
-EXAMPLE=single_particle
+# EXAMPLE=single_particle
 # EXAMPLE=particle_systems
+# EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
@@ -33,12 +38,20 @@ EXAMPLE=single_particle
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
+# default: crash
 default: example
+# default: example-wasm
+# default: wasm-egui-scaling
+# default: egui-demo
 # default: lint
 # default: test
 
-FLAGS=--features=blobs,git-version,dev
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1
+FLAGS=--features=blobs,git-version,dev,ldtk,exr
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1
+
+# Crashes on i3 without COMFY_DEV_TITLE=1
+i3-crash:
+	cargo run --example alpha_sprite --features comfy-wgpu/record-pngs,blobs,ldtk
 
 bitmob:
 	$(ENV_VARS) cargo run --bin bitmob $(FLAGS)
@@ -46,8 +59,17 @@ bitmob:
 example:
 	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS)
 
+example-wasm:
+	$(ENV_VARS) cargo run --example $(EXAMPLE) $(FLAGS) --target wasm32-unknown-unknown
+
+egui-demo:
+	$(ENV_VARS) cargo run --bin egui-scaling
+
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
+
+wasm-egui-scaling:
+	cargo run --target wasm32-unknown-unknown --bin egui-scaling
 
 build-examples:
 	./build-examples.sh
@@ -74,3 +96,6 @@ test:
 	cargo clippy
 	cargo test --all --features=blobs
 	./build-examples.sh
+
+duplicates:
+	simian **/*.rs

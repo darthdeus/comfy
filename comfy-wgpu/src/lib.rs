@@ -9,6 +9,8 @@ pub use winit::event::{
     WindowEvent,
 };
 
+pub use fontdue;
+
 mod batching;
 mod blood_canvas;
 mod bloom;
@@ -23,6 +25,7 @@ mod post_processing;
 mod render_pass;
 mod renderer;
 mod screenshot;
+mod text;
 mod texture;
 mod utils;
 mod y_sort;
@@ -40,6 +43,7 @@ pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
+pub use crate::text::*;
 pub use crate::texture::*;
 pub use crate::utils::*;
 pub use crate::y_sort::*;
@@ -272,10 +276,12 @@ impl CommandEncoderExtensions for wgpu::CommandEncoder {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: color_to_clear_op(clear_color),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         })
     }
 }
@@ -324,15 +330,6 @@ impl CameraUniform {
             camera.build_view_projection_matrix().to_cols_array_2d();
     }
 }
-
-#[allow(dead_code)]
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-]);
 
 pub fn create_render_pipeline(
     label: &str,

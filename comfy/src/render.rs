@@ -10,6 +10,7 @@ pub struct Sprite {
     pub source_rect: Option<IRect>,
 
     pub offset: Vec2,
+    pub rotation_x: f32,
 
     pub flip_x: bool,
     pub flip_y: bool,
@@ -30,6 +31,7 @@ impl Sprite {
             blend_mode: BlendMode::None,
             source_rect: None,
             offset: Vec2::ZERO,
+            rotation_x: 0.0,
             flip_x: false,
             flip_y: false,
         }
@@ -41,6 +43,14 @@ impl Sprite {
 
     pub fn with_rect(self, x: i32, y: i32, w: i32, h: i32) -> Self {
         Self { source_rect: Some(IRect::new(ivec2(x, y), ivec2(w, h))), ..self }
+    }
+
+    pub fn with_rotation_x(self, rotation_x: f32) -> Self {
+        Self { rotation_x, ..self }
+    }
+
+    pub fn with_z_index(self, z_index: i32) -> Self {
+        Self { z_index, ..self }
     }
 
     pub fn set_rect(self, source_rect: Option<IRect>) -> Self {
@@ -56,6 +66,7 @@ impl Sprite {
             blend_mode: self.blend_mode,
             dest_size: self.size * transform.scale,
             source_rect: self.source_rect,
+            rotation_x: self.rotation_x,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
         }
@@ -92,8 +103,15 @@ pub struct QueuedLine {
 }
 
 pub struct Drawable {
-    pub func: Box<dyn Fn(&mut EngineContext)>,
+    pub func: Box<dyn Fn(&mut EngineContext) + Send + Sync + 'static>,
     pub time: Option<f32>,
+}
+
+static GLOBAL_DRAW: Lazy<AtomicRefCell<Draw>> =
+    Lazy::new(|| AtomicRefCell::new(Draw::new()));
+
+pub fn draw_mut() -> AtomicRefMut<'static, Draw> {
+    GLOBAL_DRAW.borrow_mut()
 }
 
 pub struct Draw {
@@ -120,14 +138,17 @@ impl Draw {
         }
     }
 
-    pub fn once(&mut self, func: impl Fn(&mut EngineContext) + 'static) {
+    pub fn once(
+        &mut self,
+        func: impl Fn(&mut EngineContext) + 'static + Send + Sync,
+    ) {
         self.drawables.push(Drawable { func: Box::new(func), time: None });
     }
 
     pub fn timed(
         &mut self,
         time: f32,
-        func: impl Fn(&mut EngineContext) + 'static,
+        func: impl Fn(&mut EngineContext) + 'static + Send + Sync,
     ) {
         self.drawables
             .push(Drawable { func: Box::new(func), time: Some(time) });

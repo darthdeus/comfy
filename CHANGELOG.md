@@ -1,9 +1,11 @@
 # v0.3.0
 
-**This release contains breaking changes, most notably around the
-`GameContext` and setup of the main game loop.** It's likely most games will
-be affected, but the changes needed are very small and should help us a
-lot in the long run.
+**This release contains breaking changes, most notably around the `GameContext`
+and setup of the main game loop.** It's likely most games will be affected, but
+the changes needed are very small and should help us a lot in the long run.
+**This release also includes new experimental features, which are made
+available a bit sooner before the API is stabilized to allow faster
+iteration.**
 
 If you run into any issues, please either create an issue on GitHub, or ping
 @darth on Discord.
@@ -13,6 +15,14 @@ in practice you should be able to just figure out how to fix things from
 the compile errors and finding a relevant example. The new game setup is
 quite a bit simpler and more ergonomic.
 
+**Your game's colors might look slightly different than on v0.2.** This is
+because tonemapping is now disabled by default, and the colors you were seeing
+previously were incorrect/distorted. If you'd like to go back to exactly what
+you had before in v0.2, simply set `game_config_mut().tonemapping_enabled =
+true`. This should make the game look _exactly_ the same as before. If you're
+using HDR colors and want those to be tonemapped instead of clipping, make sure
+to also set this to `true`.
+
 [The full game loop
 example](https://github.com/darthdeus/comfy/blob/master/comfy/examples/full_game_loop.rs)
 contains a detailed description of how the main loop of Comfy is setup and
@@ -21,6 +31,10 @@ or `GameContext` and users are now much more easily able to define their own `ma
 without macros.
 
 ## No more `GameContext` and lifetimes around `comfy_game!(...)`
+
+**Important: If you were previously implementing your own game loop with
+`impl GameLoop for X`, there is an important change where you no longer
+have to call `run_early_udpate_stages` and `run_late_update_stages`.**
 
 One of the most controversial topics after Comfy's release was
 `GameContext` vs `EngineContext`, and the the associated lifetimes with
@@ -93,13 +107,99 @@ New shader related functions (see their individual docstrings & [fragment shader
 - `use_default_shader`: Switch back to the default shader.
 - `set_uniform_f32`: Set a `f32` uniform value.
 
+## Experimental text rendering
+
+Starting with v0.3 comfy will now support its own text rendering in addition to
+the previous approach using `egui`'s painter on a fullscreen canvas.
+
+It should be noted that this is currently an experimental feature. It works
+fine and we're already starting to use it internally, but the API will most
+certainly change, and there are going to be some hardcoded limitations and
+bugs.
+
+If you do end up using this, please expect to that you'll have to either fork
+comfy or follow the `master` branch in case you run into any problems. The
+reason we're introducing this is to avoid perfectionism and keeping features
+hidden until they're 100% complete.
+
+Please note that this doesn't mean "shipping shitty features and leaving them
+shitty" like some commercial engines do. Think of it more like _beta_ or _early
+access_.
+
+## Experimental perspective camera & 3D/2.5D
+
+Much like text rendering, there's also now work towards supporting **very
+simple 3D**. By 3D we really mean 2.5D, and by 2.5D we really mean _rotate a
+sprite and use a perspective camera_.
+
+Comfy does have a quite flexible `draw_mesh_ex` API already, so those brave enough
+could in theory start working on 3D games. But realistically you probably want to hold on
+for a little while unless you're ready to dive into the internals.
+
+Right now we only have `rotation_x` for a 3d rotation around the `x` axis
+for `draw_sprite_pro/Sprite/AnimatedSprite`. This will be extended over
+time, and users can easily implement their own 3d objects with
+`draw_mesh`.
+
+## LDTK support
+
+Comfy now has a very simple builtin support for the [LDTK level
+editor](https://ldtk.io/). This isn't very comprehensive yet, and it probably
+does much less than you would expect it to do, but there are a few nice things!
+
+Firstly, LDTK officially provides a [generated `serde`
+parser](https://ldtk.io/files/quicktype/LdtkJson.rs) for its file format. This
+is great in some ways, but [`serde`](https://serde.rs/)'s procedural macros are
+_incredibly_ slow to compile, and could easily add seconds to your incremental
+builds if you end up triggering a rebuild of the quicktype file.
+
+This is especially noticable if you tried to do something like
+`serde_json::from_str::<LdtkJson>(...)` in your crate. In my testing this
+easily takes a <1s build to 3-5 seconds alone.
+
+A solution is surprisingly simple, we just need to define a non-generic
+function that wraps serde's generic deserializer and move it into its own
+crate, meaning all the ugliness that happens with serde's types happen in the
+crate, and it won't be triggered on incremental builds. Comfy can now define
+the following function which really just calls serde, and this takes the build
+time back to <1s quite comfortably. I haven't really noticed a significant
+measurable difference with using LDTK this way compared to not using it.
+
+```rust
+pub fn parse_ldtk_map(
+    map: &str,
+) -> Result<quicktype::LdtkJson, serde_json::Error> {
+    serde_json::from_str(map)
+}
+```
+
+It would be interesting to see how this would compare with
+[`nanoserde`](https://docs.rs/nanoserde/latest/nanoserde/), which is
+_significantly faster to compile than serde_, but it would require some changes
+to the generated LDTK file and we just haven't had the time to do those yet.
+That being said, Comfy would like to move away from serde in the near if at all
+possible.
+
+On top of this, we also provide a few extension traits for LDTK's types that
+make working with it a little more convenient. Please keep in mind that LDTK
+support is still very early, and you are expected to do digging into LDTK's
+file format if you are to use this. That being said, LDTK is very well documented
+and while it does have a learning curve it's realtively easy and simple.
+
 ## Other changes
 
+- Tonemapping is now disabled by default. You can re-enable it by
+  `game_config_mut().tonemapping_enabled = true`. This was done because most
+  users aren't using HDR lighting, but the current default tonemapping curve
+  will affect all colors in an undesirable way. If you'd like to preserve the
+  look of your game from `v0.2` as it was exactly, simply set
+  `tonemapping_enabled = true` and don't worry about this :)
+- Blood canvas z-index is now configurable in `GameConfig`.
 - Removed `(COMFY ENGINE)` from the title. This is now only shown in `--features dev`
   where `(Comfy Engine DEV BUILD)` is appended to the title. This can be useful for tiling
   window managers like i3 to automatically float windows with this title, e.g.
-  `for_window [title=".*Comfy Engine DEV BUIL:D.*"] floating enable`.
-- Notable upgrades: `wgpu 0.16.3 -> 0.17.1`, `egui 0.22.0 -> 0.23.0`. The
+  `for_window [title=".*Comfy Engine DEV BUILD.*"] floating enable`.
+- Notable upgrades: `wgpu 0.16.3 -> 0.18.0`, `egui 0.22.0 -> 0.24.1`. The
   `egui` upgrade is somewhat important, as `egui::plot` got moved into a
   separate `egui_plot` crate that Comfy now re-exports.
 - Added `--feature git-version` that embeds the current git commit hash
@@ -112,6 +212,22 @@ New shader related functions (see their individual docstrings & [fragment shader
   but was never implemented properly and missed a lot of bindings. If we do end up wanting
   to have official `mlua` bindings I'd rather that be done in a more principled approach
   where we make sure things are exported in a consistent way.
+- Removed `to_despawn` queue from `EngineContext` & `EngineState`, this
+  means `c.despawn()` -> `despawn()`, and `c.to_despawn` ->
+  `take_to_despawn()`, which now consumes the despawn queue and returns a
+  `Vec<Entity>` that are to be despawned by the game.
+- Moved `c.draw` into a global, meaning `c.draw_mut()` -> `draw_mut()`.
+  Note that this API is likely going to change in the future, and is
+  mainly intended for debugging. It's also likely that it'll be removed
+  altogether in the future.
+- Camera deadzone is now properly configurable with
+  `main_camera_mut().deadzone_width/height`. To use this, simply set
+  `main_camera_mut().target = vec2(...)` on every frame and the camera
+  will do the right thing. Just to clarify, make sure you're not setting
+  `.center` as well, as that will get updated based on `.target`.
+- Remove `desired_center` for camera, use `target` instead.
+
+Overall many things that were previously undocumented are now documented.
 
 We're also introducing experimental render targets. This is a feature that
 isn't yet complete, and there are some issues with it, but since merging it

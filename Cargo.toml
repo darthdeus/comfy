@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["comfy", "comfy-core", "comfy-wgpu"]
+members = ["comfy", "comfy-core", "comfy-wgpu", "demos/egui-scaling"]
 
 [profile.dev]
 opt-level = 3
@@ -11,3 +11,7 @@ opt-level = 3
 [patch.crates-io]
 # wgpu = { path = "../wgpu/wgpu" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }
+# egui = { path = "../egui/crates/egui" }
+# egui-wgpu = { path = "../egui/crates/egui-wgpu" }
+# egui-winit = { path = "../egui/crates/egui-winit" }
+# egui_plot = { path = "../egui/crates/egui_plot" }

@@ -36,6 +36,7 @@ pub fn shader_to_wgpu(shader: &Shader) -> wgpu::ShaderModuleDescriptor<'_> {
     }
 }
 
+// TODO: reducing number of Arc's?
 #[derive(Clone)]
 pub struct GraphicsContext {
     pub surface: Arc<wgpu::Surface>,
@@ -46,6 +47,10 @@ pub struct GraphicsContext {
     // Shared for all regular textures/sprites
     pub texture_layout: Arc<wgpu::BindGroupLayout>,
     pub config: Arc<AtomicRefCell<wgpu::SurfaceConfiguration>>,
+    // TODO: maybe some sharing can be reduced with this
+    pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
+    // TODO: atomic refcell?
+    pub textures: Arc<Mutex<TextureMap>>,
 }
 
 pub struct WgpuRenderer {
@@ -55,6 +60,8 @@ pub struct WgpuRenderer {
     pub user_pipelines: UserPipelineMap,
     pub shaders: RefCell<ShaderMap>,
     pub render_targets: RefCell<RenderTargetMap>,
+
+    pub text: RefCell<TextRasterizer>,
 
     pub egui_winit: egui_winit::State,
     pub egui_render_routine: RefCell<EguiRenderRoutine>,
@@ -93,6 +100,7 @@ pub struct WgpuRenderer {
 
     pub enable_z_buffer: bool,
 
+    // TODO: remove this in favor of the context one
     pub texture_creator: Arc<AtomicRefCell<WgpuTextureCreator>>,
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -112,29 +120,31 @@ impl WgpuRenderer {
 
         trace!("Loading builtin engine textures");
 
-        let mut textures = HashMap::default();
+        {
+            let textures = &mut context.textures.lock();
 
-        macro_rules! load_engine_tex {
-            ($name: literal) => {{
-                load_texture_from_engine_bytes(
-                    &context,
-                    $name,
-                    include_bytes!(concat!(
-                        env!("CARGO_MANIFEST_DIR"),
-                        "/assets/",
+            macro_rules! load_engine_tex {
+                ($name: literal) => {{
+                    load_texture_from_engine_bytes(
+                        &context,
                         $name,
-                        ".png"
-                    )),
-                    &mut textures,
-                    wgpu::AddressMode::Repeat,
-                );
-            }};
-        }
+                        include_bytes!(concat!(
+                            env!("CARGO_MANIFEST_DIR"),
+                            "/assets/",
+                            $name,
+                            ".png"
+                        )),
+                        textures,
+                        wgpu::AddressMode::Repeat,
+                    );
+                }};
+            }
 
-        load_engine_tex!("error");
-        load_engine_tex!("1px");
-        load_engine_tex!("test-grid");
-        load_engine_tex!("_builtin-comfy");
+            load_engine_tex!("error");
+            load_engine_tex!("1px");
+            load_engine_tex!("test-grid");
+            load_engine_tex!("_builtin-comfy");
+        }
 
         let mut camera_uniform = CameraUniform::new();
         camera_uniform.update_view_proj(&main_camera());
@@ -358,18 +368,10 @@ impl WgpuRenderer {
 
         info!("Initializing with scale factor: {}", window.scale_factor());
 
-        let textures = Arc::new(Mutex::new(textures));
-
-        let texture_creator =
-            Arc::new(AtomicRefCell::new(WgpuTextureCreator {
-                textures: textures.clone(),
-                layout: context.texture_layout.clone(),
-                queue: context.queue.clone(),
-                device: context.device.clone(),
-            }));
-
         BLOOD_CANVAS
-            .set(AtomicRefCell::new(BloodCanvas::new(texture_creator.clone())))
+            .set(AtomicRefCell::new(BloodCanvas::new(
+                context.texture_creator.clone(),
+            )))
             .expect("failed to create glow blood canvas");
 
         let (width, height) = {
@@ -464,6 +466,8 @@ impl WgpuRenderer {
             #[cfg(not(target_arch = "wasm32"))]
             thread_pool: rayon::ThreadPoolBuilder::new().build().unwrap(),
 
+            text: RefCell::new(TextRasterizer::new(context.clone())),
+
             sprite_shader_id,
             error_shader_id,
 
@@ -506,14 +510,14 @@ impl WgpuRenderer {
             camera_bind_group,
             camera_bind_group_layout,
 
-            textures,
+            textures: context.textures.clone(),
             render_texture_format,
 
             color: Color::new(0.1, 0.2, 0.3, 1.0),
 
             enable_z_buffer: false,
 
-            texture_creator,
+            texture_creator: context.texture_creator.clone(),
 
             window,
 
@@ -560,19 +564,32 @@ impl WgpuRenderer {
         }
 
         let post_processing_effects = self.post_processing_effects.borrow();
+        let surface_texture_format = self.context.config.borrow().format;
+
+        let (last_effect_view, last_effect_format) = if game_config
+            .tonemapping_enabled
+        {
+            (&self.tonemapping_texture.texture.view, self.render_texture_format)
+        } else {
+            (screen_view, surface_texture_format)
+        };
 
         let enabled_effects =
             post_processing_effects.iter().filter(|x| x.enabled).collect_vec();
 
         for (i, effect) in enabled_effects.iter().enumerate() {
-            let output_texture_view = if i == enabled_effects.len() - 1 {
-                &self.tonemapping_texture.texture.view
-            } else {
-                &effect.render_texture.view
-            };
+            let (output_texture_view, output_texture_format) =
+                if i == enabled_effects.len() - 1 {
+                    (last_effect_view, last_effect_format)
+                } else {
+                    (&effect.render_texture.view, self.render_texture_format)
+                };
 
-            let maybe_pipeline = if self.pipelines.contains_key(&effect.name) {
-                Some(self.pipelines.get(&effect.name).unwrap())
+            let pipeline_key =
+                format!("{}-{:?}", effect.name, output_texture_format);
+
+            let maybe_pipeline = if self.pipelines.contains_key(&pipeline_key) {
+                Some(self.pipelines.get(&pipeline_key).unwrap())
             } else {
                 info!("Loading EFFECT: {}", effect.name);
 
@@ -580,15 +597,15 @@ impl WgpuRenderer {
                     let pipeline = create_post_processing_pipeline(
                         &effect.name,
                         &self.context.device,
-                        self.render_texture_format,
+                        output_texture_format,
                         &[&self.texture_layout, &self.camera_bind_group_layout],
                         shader.clone(),
                         // &effect.shader,
                         wgpu::BlendState::REPLACE,
                     );
 
-                    self.pipelines.insert(effect.name.clone(), pipeline);
-                    self.pipelines.get(&effect.name)
+                    self.pipelines.insert(pipeline_key.clone(), pipeline);
+                    self.pipelines.get(&pipeline_key)
                 } else {
                     warn!(
                         "NO SHADER FOR EFFECT: {} ... {}",
@@ -620,66 +637,76 @@ impl WgpuRenderer {
         if game_config.bloom_enabled {
             self.bloom.blit_final(
                 &mut encoder,
-                &self.tonemapping_texture.texture.view,
+                &mut self.shaders.borrow_mut(),
+                &mut self.pipelines,
+                last_effect_view,
+                last_effect_format,
                 &game_config.lighting,
             );
         }
 
-        let tonemapping_pipeline =
-            self.pipelines.entry("tonemapping".into()).or_insert_with(|| {
-                let shaders = &mut self.shaders.borrow_mut();
+        if game_config.tonemapping_enabled {
+            let tonemapping_pipeline = self
+                .pipelines
+                .entry("tonemapping".into())
+                .or_insert_with(|| {
+                    // TODO: texture format?
+                    let shaders = &mut self.shaders.borrow_mut();
 
-                create_post_processing_pipeline(
-                    "Tonemapping",
-                    &self.context.device,
-                    self.context.config.borrow().format,
-                    &[&self.texture_layout, &self.camera_bind_group_layout],
-                    create_engine_post_processing_shader!(
-                        shaders,
-                        "tonemapping"
-                    ),
-                    wgpu::BlendState::REPLACE,
-                )
-            });
-
-
-        {
-            let should_clear = false;
-
-            let mut render_pass =
-                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    label: Some("Tonemapping"),
-                    color_attachments: &[Some(
-                        wgpu::RenderPassColorAttachment {
-                            view: screen_view,
-                            resolve_target: None,
-                            ops: wgpu::Operations {
-                                load: if should_clear {
-                                    wgpu::LoadOp::Clear(wgpu::Color {
-                                        r: 0.0,
-                                        g: 0.0,
-                                        b: 0.0,
-                                        a: 1.0,
-                                    })
-                                } else {
-                                    wgpu::LoadOp::Load
-                                },
-                                store: true,
-                            },
-                        },
-                    )],
-                    depth_stencil_attachment: None,
+                    create_post_processing_pipeline(
+                        "Tonemapping",
+                        &self.context.device,
+                        self.context.config.borrow().format,
+                        &[&self.texture_layout, &self.camera_bind_group_layout],
+                        create_engine_post_processing_shader!(
+                            shaders,
+                            "tonemapping"
+                        ),
+                        wgpu::BlendState::REPLACE,
+                    )
                 });
 
-            render_pass.set_pipeline(tonemapping_pipeline);
-            render_pass.set_bind_group(
-                0,
-                &self.tonemapping_texture.bind_group,
-                &[],
-            );
-            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 
-            render_pass.draw(0..3, 0..1);
+            {
+                let should_clear = false;
+
+                let mut render_pass =
+                    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Tonemapping"),
+                        color_attachments: &[Some(
+                            wgpu::RenderPassColorAttachment {
+                                view: screen_view,
+                                resolve_target: None,
+                                ops: wgpu::Operations {
+                                    load: if should_clear {
+                                        wgpu::LoadOp::Clear(wgpu::Color {
+                                            r: 0.0,
+                                            g: 0.0,
+                                            b: 0.0,
+                                            a: 1.0,
+                                        })
+                                    } else {
+                                        wgpu::LoadOp::Load
+                                    },
+                                    store: wgpu::StoreOp::Store,
+                                },
+                            },
+                        )],
+                        depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                    });
+
+                render_pass.set_pipeline(tonemapping_pipeline);
+                render_pass.set_bind_group(
+                    0,
+                    &self.tonemapping_texture.bind_group,
+                    &[],
+                );
+                render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
+
+                render_pass.draw(0..3, 0..1);
+            }
         }
 
         self.context.queue.submit(std::iter::once(encoder.finish()));
@@ -697,6 +724,7 @@ impl WgpuRenderer {
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,
+                egui_scale_factor(),
             );
 
         let egui_render = self.egui_render_routine.borrow();
@@ -720,17 +748,11 @@ impl WgpuRenderer {
         event: &winit::event::WindowEvent,
         egui_ctx: &egui::Context,
     ) -> bool {
-        self.egui_winit.on_event(egui_ctx, event).consumed
+        self.egui_winit.on_window_event(egui_ctx, event).consumed
     }
 
     pub fn as_mut_any(&mut self) -> &mut dyn Any {
         self
-    }
-
-    pub fn begin_frame(&mut self, egui_ctx: &egui::Context) {
-        let _span = span!("begin_frame");
-
-        egui_ctx.begin_frame(self.egui_winit.take_egui_input(&self.window));
     }
 
     pub fn update(&mut self, params: &mut DrawParams) {
@@ -808,9 +830,10 @@ impl WgpuRenderer {
             info!("Recording Mode: {:?}", params.config.dev.recording_mode);
 
             self.window.set_title(&format!(
-                "NANOVOID {} (COMFY ENGINE)",
+                "{} {}(COMFY ENGINE)",
+                params.config.game_name,
                 if params.config.dev.recording_mode == RecordingMode::Tiktok {
-                    "Portrait"
+                    "Portrait "
                 } else {
                     ""
                 },
@@ -938,12 +961,16 @@ impl WgpuRenderer {
         }
 
         #[cfg(feature = "record-pngs")]
-        screenshot::record_pngs(
-            uvec2(self.config.width, self.config.height),
-            &self.context,
-            &self.screenshot_buffer,
-            &output,
-        );
+        {
+            let config = self.context.config.borrow();
+
+            screenshot::record_pngs(
+                uvec2(config.width, config.height),
+                &self.context,
+                &self.screenshot_buffer,
+                &output,
+            );
+        }
 
         output.present();
     }
@@ -975,7 +1002,7 @@ impl WgpuRenderer {
             scale_factor,
         );
 
-        self.egui_winit.set_pixels_per_point(scale_factor);
+        // self.egui_winit.set_pixels_per_point(scale_factor);
     }
 
     pub fn width(&self) -> f32 {
@@ -1002,7 +1029,7 @@ pub fn depth_stencil_attachment(
             view,
             depth_ops: Some(wgpu::Operations {
                 load: clear_depth,
-                store: true,
+                store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
         })

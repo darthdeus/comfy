@@ -13,7 +13,6 @@ mod errors;
 mod events;
 mod fast_sprite;
 mod global_state;
-#[cfg(not(target_arch = "wasm32"))]
 mod input;
 mod lighting;
 mod math;
@@ -56,8 +55,6 @@ pub use std::collections::VecDeque;
 pub use std::hash::{Hash, Hasher};
 pub use std::num::NonZeroU32;
 
-pub const Z_BLOOD_CANVAS: i32 = 4;
-
 pub use std::ops::DerefMut;
 
 use std::ops::Add;
@@ -94,6 +91,7 @@ pub use inline_tweak;
 pub use inline_tweak::tweak;
 
 pub use std::future::Future;
+pub use std::path::Path;
 pub use std::pin::Pin;
 pub use std::task::Poll;
 
@@ -107,6 +105,7 @@ pub use backtrace::Backtrace;
 pub use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 pub use bytemuck;
 pub use cfg_if::cfg_if;
+pub use crossbeam::atomic::AtomicCell;
 pub use egui;
 pub use egui_plot;
 pub use egui_winit;
@@ -116,6 +115,8 @@ pub use glam::{
     ivec2, uvec2, vec2, vec3, vec4, Affine2, IVec2, Mat3, Mat4, UVec2, Vec2,
     Vec2Swizzles, Vec3, Vec4,
 };
+#[cfg(feature = "exr")]
+pub use half;
 pub use image;
 pub use image::DynamicImage;
 pub use itertools::Itertools;
@@ -135,6 +136,9 @@ pub use blobs;
 pub use memory_stats;
 
 pub use num_complex::Complex;
+
+pub use etagere;
+pub use fontdue;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client;
@@ -478,17 +482,44 @@ impl IRect {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub center: Vec2,
+    pub size: Vec2,
 }
 
 impl Rect {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self { x, y, w, h }
+    pub fn from_xywh(x: f32, y: f32, w: f32, h: f32) -> Self {
+        // impl
+        Self { center: vec2(x + w / 2.0, y + h / 2.0), size: vec2(w, h) }
+    }
+
+    pub fn new(center: Vec2, size: Vec2) -> Self {
+        Self { center, size }
+    }
+
+    pub fn from_min_max(min: Vec2, max: Vec2) -> Self {
+        Self { center: (min + max) / 2.0, size: max - min }
+    }
+
+    pub fn top_left(&self) -> Vec2 {
+        self.center - self.size / 2.0
+    }
+
+    pub fn x(&self) -> f32 {
+        self.center.x - self.size.x / 2.0
+    }
+
+    pub fn y(&self) -> f32 {
+        self.center.y - self.size.y / 2.0
+    }
+
+    pub fn w(&self) -> f32 {
+        self.size.x
+    }
+
+    pub fn h(&self) -> f32 {
+        self.size.y
     }
 }
 
@@ -772,7 +803,6 @@ impl Color {
             (self.a * 255.0) as u8,
         ])
     }
-
 
     pub fn darken(&self, amount: f32) -> Color {
         let amount = 1.0 - amount;
@@ -1073,7 +1103,6 @@ impl Vec2Extensions for Vec2 {
 //     fn from_u8(r: u8, g: u8, b: u8, a: u8) -> Self;
 // }
 
-
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct SemanticVer {
     pub major: u16,
@@ -1173,7 +1202,6 @@ impl Transform {
         Self { parent: Some(parent), ..self }
     }
 
-
     pub fn compose_with_parent(
         &self,
         parent_transform: &Transform,
@@ -1227,7 +1255,7 @@ impl Transform {
 }
 
 pub fn initialize_logger() {
-    #[cfg(feature = "file_logger")]
+    #[cfg(all(feature = "file_logger", not(target_arch = "wasm32")))]
     {
         pub fn initialize_log4rs(
             log_root: &std::path::Path,
@@ -1275,7 +1303,7 @@ pub fn initialize_logger() {
         println!("LOGGER: log4rs ");
     }
 
-    #[cfg(not(feature = "file_logger"))]
+    #[cfg(any(not(feature = "file_logger"), target_arch = "wasm32"))]
     {
         env_logger::builder().format_timestamp(None).init();
         // env_logger::builder().format_timestamp_millis().init();
@@ -1496,7 +1524,6 @@ impl MovingStats {
     }
 }
 
-
 // pub struct MovingStats {
 //     size: usize,
 //     queue: VecDeque<f32>,
@@ -1670,4 +1697,43 @@ impl AABB {
     pub fn top_left(&self) -> Vec2 {
         vec2(self.min.x, self.max.y)
     }
+}
+
+pub trait VecExtensions {
+    fn flip(&self, width: usize) -> Self;
+    fn flip_inplace(&mut self, width: usize);
+}
+
+impl<T: Clone> VecExtensions for Vec<T> {
+    fn flip(&self, width: usize) -> Self {
+        let mut res = self.clone();
+        res.flip_inplace(width);
+        res
+    }
+
+    fn flip_inplace(&mut self, width: usize) {
+        assert!(self.len() % width == 0);
+
+        let height = self.len() / width;
+
+        for y in 0..(height / 2) {
+            for x in 0..width {
+                self.swap(y * width + x, (height - y - 1) * width + x)
+            }
+        }
+    }
+}
+
+#[test]
+fn test_vec_flip_h() {
+    assert_eq!(vec![0, 0, 1, 1].flip(2), vec![1, 1, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(3), vec![1, 1, 2, 0, 0, 0]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2].flip(2), vec![1, 2, 0, 1, 0, 0]);
+
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(2), vec![
+        3, 3, 1, 2, 0, 1, 0, 0
+    ]);
+    assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(4), vec![
+        1, 2, 3, 3, 0, 0, 0, 1
+    ]);
 }

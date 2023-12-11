@@ -12,8 +12,6 @@ pub trait GameLoop: Sized {
 pub type GameLoopBuilder = Box<dyn Fn() -> Arc<Mutex<dyn GameLoop>>>;
 
 pub struct EngineState {
-    pub draw: RefCell<Draw>,
-
     pub frame: u64,
     pub flags: RefCell<HashSet<String>>,
 
@@ -30,8 +28,6 @@ pub struct EngineState {
     pub is_paused: RefCell<bool>,
     pub show_pause_menu: bool,
     pub quit_flag: bool,
-
-    pub to_despawn: RefCell<Vec<Entity>>,
 }
 
 impl EngineState {
@@ -67,8 +63,6 @@ impl EngineState {
             renderer: None,
             texture_creator: None,
 
-            draw: RefCell::new(Draw::new()),
-
             dt_stats: MovingStats::new(20),
             fps_stats: MovingStats::new(100),
 
@@ -82,13 +76,7 @@ impl EngineState {
             is_paused: RefCell::new(false),
             show_pause_menu: false,
             quit_flag: false,
-
-            to_despawn: RefCell::new(vec![]),
         }
-    }
-
-    pub fn on_event(&mut self, event: &WindowEvent) -> bool {
-        self.renderer.as_mut().unwrap().on_event(event, egui())
     }
 
     // #[cfg_attr(feature = "exit-after-startup", allow(unreachable_code))]
@@ -113,7 +101,6 @@ impl EngineState {
 
             delta: delta(),
 
-            draw: &mut self.draw,
             frame: self.frame,
 
             dt_stats: &mut self.dt_stats,
@@ -129,8 +116,6 @@ impl EngineState {
             show_pause_menu: &mut self.show_pause_menu,
             quit_flag: &mut self.quit_flag,
 
-            to_despawn: &mut self.to_despawn,
-
             texture_creator,
         }
     }
@@ -140,21 +125,10 @@ impl EngineState {
     //     .expect("client must be running")
     //     .secondary_frame_mark(tracy_client::frame_name!("update"));
 
-
     pub fn resize(&mut self, new_size: UVec2) {
         self.renderer
             .as_mut()
             .expect("renderer must be initialized")
             .resize(new_size);
-    }
-
-    pub fn title(&self) -> String {
-        cfg_if! {
-            if #[cfg(feature = "dev")] {
-                format!("{} (Comfy Engine DEV BUILD)", game_config().game_name)
-            } else {
-                game_config().game_name.clone()
-            }
-        }
     }
 }

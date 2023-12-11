@@ -128,6 +128,7 @@ fn update(_c: &mut EngineContext) {
                 flip_x: false,
                 flip_y: false,
                 blend_mode: BlendMode::Alpha,
+                rotation_x: 0.0,
             },
         )
     }

@@ -75,26 +75,30 @@ impl SimpleAnimation {
 
     pub fn draw(&self, position: Vec2, z_index: i32, size: f32, rotation: f32) {
         let texture = texture_id(&self.name);
-        let image_size =
-            Assets::image_size(texture).unwrap_or(UVec2::ONE).as_ivec2();
 
+        let image_size = match Assets::image_size(texture) {
+            ImageSizeResult::Loaded(size) => size,
+            ImageSizeResult::LoadingInProgress => {
+                return;
+            }
+            ImageSizeResult::ImageNotFound => {
+                error!("NO SIZE FOR TEXTURE {:?}", texture);
+                UVec2::ONE
+            }
+        }
+        .as_ivec2();
+
+        // TODO: ratio should be a part of draw_sprite_ex/pro
         let ratio = (image_size.x / self.sheet.columns as i32) as f32 /
             (image_size.y / self.sheet.rows as i32) as f32;
 
-        draw_sprite_ex(
-            // texture_id("thruster-sheet"),
-            texture,
-            position,
-            WHITE,
-            z_index,
-            DrawTextureParams {
-                dest_size: Some(vec2(size, size / ratio).as_world_size()),
-                source_rect: Some(self.current_frame(image_size)),
-                rotation,
-                blend_mode: BlendMode::Additive,
-                ..Default::default()
-            },
-        );
+        draw_sprite_ex(texture, position, WHITE, z_index, DrawTextureParams {
+            dest_size: Some(vec2(size, size / ratio).as_world_size()),
+            source_rect: Some(self.current_frame(image_size)),
+            rotation,
+            blend_mode: BlendMode::Additive,
+            ..Default::default()
+        });
     }
 
     pub fn current_frame(&self, sprite_size: IVec2) -> IRect {

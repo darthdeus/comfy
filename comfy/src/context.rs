@@ -6,6 +6,27 @@ pub const PAUSE_PHYSICS: &str = "PAUSE_PHYSICS";
 pub const NEW_GAME_FLAG: &str = "NEW_GAME";
 pub const EXIT_GAME_FLAG: &str = "EXIT_GAME";
 
+pub static TO_DESPAWN_QUEUE: AtomicRefCell<Vec<Entity>> =
+    AtomicRefCell::new(Vec::new());
+
+/// Queue up an entity into a global despawn queue.
+///
+/// This is useful for when you want to despawn an entity from
+/// single place in the code at some later stage.
+///
+/// Use `take_to_despawn` to get the list of entities to despawn
+/// and clear the despawn queue.
+pub fn despawn(entity: Entity) {
+    TO_DESPAWN_QUEUE.borrow_mut().push(entity);
+}
+
+/// Returns a list of entities to despawn.
+///
+/// This consumes the existing queue and replaces it with an empty one.
+pub fn take_to_despawn() -> Vec<Entity> {
+    std::mem::take(&mut TO_DESPAWN_QUEUE.borrow_mut())
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct RbdSyncSettings {
     pub copy_rotation: bool,
@@ -27,8 +48,6 @@ pub type ContextFn =
 pub struct EngineContext<'a> {
     pub renderer: &'a mut WgpuRenderer,
 
-    pub draw: &'a RefCell<Draw>,
-
     pub delta: f32,
     pub frame: u64,
 
@@ -40,10 +59,10 @@ pub struct EngineContext<'a> {
     pub is_paused: &'a mut RefCell<bool>,
     pub show_pause_menu: &'a mut bool,
 
-    pub to_despawn: &'a mut RefCell<Vec<Entity>>,
     pub quit_flag: &'a mut bool,
     pub flags: &'a mut RefCell<HashSet<String>>,
 
+    // TODO: remove this, can be passed through GraphicsContext or WgpuRenderer
     pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
 }
 
@@ -98,22 +117,6 @@ impl<'a> EngineContext<'a> {
         }
 
         egui().set_fonts(font_defs);
-    }
-
-    pub fn mark(&self, pos: Vec2, color: Color, lifetime: f32) {
-        self.draw_mut().mark(pos.as_world(), color, lifetime);
-    }
-
-    pub fn despawn(&self, entity: Entity) {
-        self.to_despawn.borrow_mut().push(entity);
-    }
-
-    pub fn draw(&self) -> core::cell::Ref<Draw> {
-        self.draw.borrow()
-    }
-
-    pub fn draw_mut(&self) -> core::cell::RefMut<Draw> {
-        self.draw.borrow_mut()
     }
 }
 

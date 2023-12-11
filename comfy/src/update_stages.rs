@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn run_early_update_stages(c: &mut EngineContext) {
+pub(crate) fn run_early_update_stages(c: &mut EngineContext) {
     let delta = delta();
 
     {
@@ -54,7 +54,7 @@ fn run_mid_update_stages(c: &mut EngineContext) {
 }
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
-pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
+pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     update_animated_sprites(c);
     update_trails(c);
     update_drawables(c);
@@ -64,12 +64,12 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     process_notifications(c);
     show_lighting_ui(c);
 
-    c.draw.borrow_mut().marks.retain_mut(|mark| {
+    draw_mut().marks.retain_mut(|mark| {
         mark.lifetime -= delta;
         mark.lifetime > 0.0
     });
 
-    for mark in c.draw.borrow().marks.iter() {
+    for mark in draw_mut().marks.iter() {
         draw_circle_z(
             mark.pos.to_world(),
             0.1,
@@ -87,11 +87,12 @@ pub fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
         *c.is_paused.borrow() || c.flags.borrow_mut().contains(PAUSE_DESPAWN);
 
     if !is_paused {
-        for (entity, despawn) in world_mut().query_mut::<&mut DespawnAfter>() {
-            despawn.0 -= delta;
+        for (entity, to_despawn) in world_mut().query_mut::<&mut DespawnAfter>()
+        {
+            to_despawn.0 -= delta;
 
-            if despawn.0 <= 0.0 {
-                c.to_despawn.borrow_mut().push(entity);
+            if to_despawn.0 <= 0.0 {
+                despawn(entity);
             }
         }
     }
@@ -167,7 +168,8 @@ fn process_asset_queues(c: &mut EngineContext) {
     // }
 }
 
-fn render_text(_c: &mut EngineContext) {
+
+fn render_text(c: &mut EngineContext) {
     let _span = span!("text");
 
     let painter = egui().layer_painter(egui::LayerId::new(
@@ -178,26 +180,213 @@ fn render_text(_c: &mut EngineContext) {
     let text_queue =
         GLOBAL_STATE.borrow_mut().text_queue.drain(..).collect_vec();
 
+    let assets = ASSETS.borrow();
+
     for text in text_queue {
-        let align = match text.align {
-            TextAlign::TopLeft => egui::Align2::LEFT_TOP,
-            TextAlign::Center => egui::Align2::CENTER_CENTER,
-            TextAlign::TopRight => egui::Align2::RIGHT_TOP,
-            TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
-            TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
-        };
+        if let Some(pro_params) = text.pro_params {
+            let mut t = c.renderer.text.borrow_mut();
 
-        // TODO: maybe better way of doing this?
-        let screen_pos =
-            text.position.as_world().to_screen() / egui_scale_factor();
+            let (clean_text, styled_glyphs) = match text.text {
+                TextData::Raw(raw_text) => (raw_text, None),
+                TextData::Rich(rich_text) => {
+                    (rich_text.clean_text, Some(rich_text.styled_glyphs))
+                }
+            };
 
-        painter.text(
-            egui::pos2(screen_pos.x, screen_pos.y),
-            align,
-            text.text,
-            text.font,
-            text.color.egui(),
-        );
+            let font_handle = pro_params.font;
+            let font = assets.fonts.get(&font_handle).unwrap();
+
+            // let RichText { clean_text, styled_glyphs } =
+            //     simple_styled_text(&text.text);
+
+            let layout = t.layout_text(
+                font,
+                &clean_text,
+                pro_params.font_size,
+                &fontdue::layout::LayoutSettings {
+                    // vertical_align: fontdue::layout::VerticalAlign::Middle,
+                    // horizontal_align: fontdue::layout::HorizontalAlign::Center,
+                    ..Default::default()
+                },
+            );
+
+            let mut min_x = f32::INFINITY;
+            let mut min_y = f32::INFINITY;
+            let mut max_x = f32::NEG_INFINITY;
+            let mut max_y = f32::NEG_INFINITY;
+
+            for glyph in layout.glyphs() {
+                let glyph_min_x = glyph.x;
+                let glyph_min_y = glyph.y;
+                let glyph_max_x = glyph.x + glyph.width as f32;
+                let glyph_max_y = glyph.y + glyph.height as f32;
+
+                min_x = min_x.min(glyph_min_x);
+                min_y = min_y.min(glyph_min_y);
+                max_x = max_x.max(glyph_max_x);
+                max_y = max_y.max(glyph_max_y);
+            }
+
+            let layout_rect =
+                Rect::from_min_max(vec2(min_x, min_y), vec2(max_x, max_y));
+
+            let draw_outline = false;
+
+            if draw_outline {
+                draw_rect_outline(
+                    text.position +
+                        layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
+                    Size::screen(layout_rect.size.x, layout_rect.size.y)
+                        .to_world(),
+                    0.1,
+                    YELLOW,
+                    200,
+                );
+            }
+
+            for (i, glyph) in layout.glyphs().iter().enumerate() {
+                let style = styled_glyphs.as_ref().map(|x| x[i]);
+
+                if glyph.parent == ' ' {
+                    continue;
+                }
+
+                let mut pos = vec2(glyph.x, glyph.y) * px() +
+                    text.position +
+                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() /
+                        2.0;
+
+                let mut color = text.color;
+
+                if let Some(style) = style {
+                    if style.wiggle {
+                        pos += vec2(
+                            random_range(-0.02, 0.02),
+                            random_range(-0.035, 0.035),
+                        );
+                    }
+
+                    if let Some(override_color) = style.color {
+                        color = override_color;
+                    }
+                }
+
+                // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
+                //     text.position;
+
+
+                let (texture, allocation) = t.get_glyph(
+                    font_handle,
+                    font,
+                    pro_params.font_size,
+                    glyph.parent,
+                );
+                assert_ne!(texture, texture_id("1px"));
+
+                let mut source_rect = allocation;
+                source_rect.offset = ivec2(
+                    source_rect.offset.x,
+                    t.atlas_size as i32 -
+                        source_rect.offset.y -
+                        source_rect.size.y,
+                );
+
+                let ratio =
+                    source_rect.size.x as f32 / source_rect.size.y as f32;
+
+                draw_sprite_pro(
+                    texture,
+                    pos,
+                    color,
+                    100,
+                    DrawTextureProParams {
+                        source_rect: Some(source_rect),
+                        align: SpriteAlign::BottomLeft,
+                        size: Size::screen(
+                            glyph.width as f32,
+                            glyph.width as f32 / ratio,
+                        )
+                        .to_world(),
+                        ..Default::default()
+                    },
+                );
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         source_rect: Some(source_rect),
+                //         // align: SpriteAlign::BottomLeft,
+                //         // dest_size: Some(splat(4.0).as_world_size()),
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default()
+                //     },
+                // );
+
+                // break;
+
+                // let pos = vec2(i as f32, 0.0) + text.position;
+                // // TODO: this makes it delayed!
+
+                // println!("pos: {:?} {}", pos, glyph.parent);
+
+                // draw_sprite_ex(
+                //     texture,
+                //     pos,
+                //     text.color,
+                //     100,
+                //     DrawTextureParams {
+                //         dest_size: Some(Size::screen(
+                //             glyph.width as f32,
+                //             glyph.height as f32,
+                //         )),
+                //         ..Default::default() // source_rect: (),
+                //                              // scroll_offset: (),
+                //                              // rotation: (),
+                //                              // flip_x: (),
+                //                              // flip_y: (),
+                //                              // pivot: (),
+                //                              // blend_mode: (),
+                //     },
+                //     //     dest_size: DestSize::Fixed(Vec2::new(
+                //     //         glyph.width as f32,
+                //     //         glyph.height as f32,
+                //     //     )),
+                //     //     layer: params.layer,
+                //     //     ..Default::default()
+                //     // },
+                // );
+            }
+        } else {
+            let align = match text.align {
+                TextAlign::TopLeft => egui::Align2::LEFT_TOP,
+                TextAlign::Center => egui::Align2::CENTER_CENTER,
+                TextAlign::TopRight => egui::Align2::RIGHT_TOP,
+                TextAlign::BottomLeft => egui::Align2::LEFT_BOTTOM,
+                TextAlign::BottomRight => egui::Align2::RIGHT_BOTTOM,
+            };
+
+            // TODO: maybe better way of doing this?
+            let screen_pos =
+                text.position.as_world().to_screen() / egui_scale_factor();
+
+            if let TextData::Raw(raw_text) = text.text {
+                painter.text(
+                    egui::pos2(screen_pos.x, screen_pos.y),
+                    align,
+                    raw_text,
+                    text.font,
+                    text.color.egui(),
+                );
+            } else {
+                panic!("TextData::RichText is not supported with egui");
+            }
+        }
     }
 }
 
@@ -206,11 +395,13 @@ fn update_blood_canvas(_c: &mut EngineContext) {
 
     // TODO: this really doesn't belong here
     blood_canvas_update_and_draw(|key, block| {
+        let z = game_config().blood_canvas_z;
+
         draw_sprite_ex(
             block.handle,
             (key.as_vec2() + splat(0.5)) * blood_block_world_size() as f32,
             WHITE,
-            Z_BLOOD_CANVAS,
+            z,
             DrawTextureParams {
                 dest_size: Some(
                     splat(blood_block_world_size() as f32).as_world_size(),
@@ -348,7 +539,7 @@ fn update_drawables(c: &mut EngineContext) {
 
     let mut temp_drawables = vec![];
 
-    std::mem::swap(&mut temp_drawables, &mut c.draw_mut().drawables);
+    std::mem::swap(&mut temp_drawables, &mut draw_mut().drawables);
 
     temp_drawables.retain_mut(|drawable| {
         if let Some(ref mut time) = drawable.time {
@@ -365,7 +556,7 @@ fn update_drawables(c: &mut EngineContext) {
         }
     });
 
-    let mut draw = c.draw_mut();
+    let mut draw = draw_mut();
     std::mem::swap(&mut temp_drawables, &mut draw.drawables);
 
     for drawable in temp_drawables.drain(..) {
@@ -397,14 +588,15 @@ fn process_sprite_queue() {
     {
         // for draw in group.sorted_by(|a, b| a.texture.cmp(&b.texture)) {
         for draw in group {
-            draw_sprite_ex(
+            draw_sprite_pro(
                 draw.texture,
                 draw.transform.position,
                 draw.color,
                 z_index,
-                DrawTextureParams {
+                DrawTextureProParams {
                     source_rect: draw.source_rect,
-                    dest_size: Some(draw.dest_size.as_world_size()),
+                    size: draw.dest_size,
+                    rotation_x: draw.rotation_x,
                     rotation: draw.transform.rotation,
                     blend_mode: draw.blend_mode,
                     flip_x: draw.flip_x,
@@ -416,10 +608,10 @@ fn process_sprite_queue() {
     }
 }
 
-fn process_temp_draws(c: &mut EngineContext) {
+fn process_temp_draws(_c: &mut EngineContext) {
     let _span = span!("temp draws");
 
-    for texture in c.draw_mut().textures.drain(..) {
+    for texture in draw_mut().textures.drain(..) {
         draw_sprite_ex(
             texture.texture,
             texture.position.to_world(),
@@ -429,11 +621,11 @@ fn process_temp_draws(c: &mut EngineContext) {
         );
     }
 
-    for (position, radius, color) in c.draw_mut().circles.drain(..) {
+    for (position, radius, color) in draw_mut().circles.drain(..) {
         draw_circle(position.to_world(), radius, color, 200);
     }
 
-    for line in c.draw_mut().lines.drain(..) {
+    for line in draw_mut().lines.drain(..) {
         draw_line(
             line.start.to_world(),
             line.end.to_world(),
@@ -444,7 +636,7 @@ fn process_temp_draws(c: &mut EngineContext) {
     }
 
     // TODO: calculate world space font size
-    for (text, position, color, size) in c.draw_mut().texts.drain(..) {
+    for (text, position, color, size) in draw_mut().texts.drain(..) {
         draw_text_ex(&text, position, TextAlign::Center, TextParams {
             color,
             font: egui::FontId::new(size, egui::FontFamily::Monospace),
@@ -658,7 +850,12 @@ pub fn update_perf_counters(c: &mut EngineContext, game_loop: &impl GameLoop) {
                         .sorted_by_key(|(_, entry)| entry.time)
                     {
                         let mean = if !entry.history.is_empty() {
-                            entry.history.sum() / entry.history.len() as f32
+                            entry
+                                .history
+                                .iter()
+                                .map(|(_, x)| x.as_secs_f32())
+                                .sum::<f32>() /
+                                entry.history.len() as f32
                         } else {
                             0.0
                         };

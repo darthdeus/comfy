@@ -230,21 +230,60 @@ impl Texture {
         is_normal_map: bool,
         address_mode: wgpu::AddressMode,
     ) -> ImageResult<Self> {
-        let img = img.flipv();
-        let rgba = img.to_rgba8();
-        let dimensions = img.dimensions();
-
-        let size = wgpu::Extent3d {
-            width: dimensions.0,
-            height: dimensions.1,
-            depth_or_array_layers: 1,
-        };
-
         let format = if is_normal_map {
             wgpu::TextureFormat::Rgba8Unorm
         } else {
             wgpu::TextureFormat::Rgba8UnormSrgb
-            // wgpu::TextureFormat::Rgba8Unorm
+        };
+
+        Self::from_image_with_format(
+            device,
+            queue,
+            img,
+            label,
+            address_mode,
+            format,
+        )
+    }
+
+    pub fn from_image_with_format(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        img: &image::DynamicImage,
+        label: Option<&str>,
+        address_mode: wgpu::AddressMode,
+        format: wgpu::TextureFormat,
+    ) -> ImageResult<Self> {
+        let img = img.flipv();
+        let rgba = img.to_rgba8();
+        let dimensions = img.dimensions();
+
+        Self::from_image_data_with_format(
+            device,
+            queue,
+            &rgba,
+            label,
+            address_mode,
+            format,
+            dimensions,
+            4,
+        )
+    }
+
+    pub fn from_image_data_with_format(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        img_data: &[u8],
+        label: Option<&str>,
+        address_mode: wgpu::AddressMode,
+        format: wgpu::TextureFormat,
+        dimensions: (u32, u32),
+        bytes_per_pixel: u32,
+    ) -> ImageResult<Self> {
+        let size = wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth_or_array_layers: 1,
         };
 
         let texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -266,10 +305,10 @@ impl Texture {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            &rgba,
+            img_data,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(4 * dimensions.0),
+                bytes_per_row: Some(bytes_per_pixel * dimensions.0),
                 rows_per_image: Some(dimensions.1),
             },
             size,
@@ -297,6 +336,7 @@ impl Texture {
         label: Option<&str>,
     ) -> ImageResult<Self> {
         let dimensions = img.dimensions();
+        assert!(dimensions.0 > 0 && dimensions.1 > 0);
         Self::create_uninit(device, dimensions.0, dimensions.1, label)
     }
 

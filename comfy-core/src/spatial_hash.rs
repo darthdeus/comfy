@@ -366,11 +366,11 @@ impl SpatialHash {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
 pub struct UserData {
     pub entity_type: u64,
-    pub entity: Entity,
+    pub entity: Option<Entity>,
 }
 
 pub fn draw_spatial(spatial: &SpatialHash) {

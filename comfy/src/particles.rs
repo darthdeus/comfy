@@ -441,7 +441,16 @@ impl Particle {
 
     pub fn update_source_rect(&mut self) {
         if let Some(spritesheet) = self.spritesheet {
-            let size = Assets::image_size(self.texture).unwrap_or(UVec2::ONE);
+            // let size = Assets::image_size(self.texture).unwrap_or(UVec2::ONE);
+
+            let size = match Assets::image_size(self.texture) {
+                ImageSizeResult::Loaded(size) => size,
+                _ => {
+                    error!("NO SIZE FOR TEXTURE {:?}", self.texture);
+                    UVec2::ONE
+                }
+            }
+            .as_ivec2();
 
             // Update source_rect with the new frame's coordinates
             let sprite_width = size.x as i32 / spritesheet.columns as i32;

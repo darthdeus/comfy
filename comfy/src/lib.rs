@@ -38,7 +38,7 @@ pub use crate::game_loop::*;
 // pub use crate::macros::*;
 pub use crate::particles::*;
 pub use crate::render::*;
-// pub use crate::shaders::*;
+pub use crate::shaders::*;
 pub use crate::timer::*;
 pub use crate::trail::*;
 pub use crate::update_stages::*;
@@ -57,10 +57,11 @@ pub use std::{
 
 pub use comfy_core::{self, Assets, *};
 
-pub use std::path::Path;
-
 pub use comfy_wgpu;
 pub use comfy_wgpu::*;
+
+#[cfg(feature = "ldtk")]
+pub use comfy_ldtk::*;
 
 #[cfg(feature = "tracy")]
 pub use tracy_client::{frame_mark, secondary_frame_mark};

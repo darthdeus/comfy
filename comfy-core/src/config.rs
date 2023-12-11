@@ -84,8 +84,11 @@ pub struct GameConfig {
     pub vsync_enabled: bool,
 
     pub bloom_enabled: bool,
+    pub tonemapping_enabled: bool,
     pub lighting: GlobalLightingParams,
     pub lighting_enabled: bool,
+
+    pub wasm_append_id: Option<String>,
 
     pub enable_dynamic_camera: bool,
 
@@ -94,6 +97,7 @@ pub struct GameConfig {
     pub scroll_speed: f32,
 
     pub music_enabled: bool,
+    pub blood_canvas_z: i32,
 
     pub show_combat_text: bool,
     pub spawn_exp: bool,
@@ -122,8 +126,11 @@ impl Default for GameConfig {
             vsync_enabled: true,
 
             bloom_enabled: false,
+            tonemapping_enabled: false,
             lighting: GlobalLightingParams::default(),
             lighting_enabled: false,
+
+            wasm_append_id: Some("wasm-body".to_string()),
 
             dev: DevConfig::default(),
 
@@ -131,6 +138,7 @@ impl Default for GameConfig {
 
             scroll_speed: 7.0,
             music_enabled: false,
+            blood_canvas_z: 4,
 
             show_combat_text: true,
             spawn_exp: true,
@@ -176,6 +184,20 @@ pub enum RecordingMode {
 
 impl Default for DevConfig {
     fn default() -> Self {
+        // The mut is actually required, but only dependent on certain features, and without
+        // the allow will cause a confusing warning.
+        #[allow(unused_mut)]
+        #[allow(unused_assignments)]
+        let mut show_fps = false;
+
+        cfg_if! {
+            if #[cfg(feature = "ci-release")] {
+                show_fps = false;
+            } else if #[cfg(feature = "dev")] {
+                show_fps = true;
+            }
+        };
+
         Self {
             show_lighting_config: false,
             show_buffers: false,
@@ -190,13 +212,7 @@ impl Default for DevConfig {
 
             show_debug_bullets: false,
 
-            #[cfg(feature = "ci-release")]
-            show_fps: false,
-            #[cfg(feature = "dev")]
-            show_fps: true,
-            #[cfg(all(not(feature = "dev"), not(feature = "ci-release")))]
-            show_fps: false,
-
+            show_fps,
             draw_colliders: false,
             draw_collision_marks: false,
 
