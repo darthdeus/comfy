@@ -7,6 +7,8 @@ pub fn run_batched_render_passes(
     sprite_shader_id: ShaderId,
     error_shader_id: ShaderId,
 ) {
+    span_with_timing!("run_batched_render_passes");
+
     let render_passes = collect_render_passes(params);
 
     perf_counter("render pass blocks", render_passes.len() as u64);
@@ -34,10 +36,14 @@ pub fn run_batched_render_passes(
         .group_by(|p| p.z_index);
 
     for (_, z_index_group) in &grouped_render_passes {
+        let _span = span!("z_index_group");
+
         for ((blend_mode, shader, render_target), blend_group) in &z_index_group
             .sorted_by_key(|x| x.blend_mode)
             .group_by(|x| (x.blend_mode, x.shader.clone(), x.render_target))
         {
+            let _span = span!("blend/shader/target group");
+
             let (meshes, particles) = blend_group.into_iter().fold(
                 (vec![], vec![]),
                 |mut acc, pass_data| {
@@ -88,7 +94,7 @@ pub fn run_batched_render_passes(
                     error_shader_id,
                 );
 
-                perf_counter_inc("real_mesh_draw", 1);
+                perf_counter_inc("render passes", 1);
                 is_first = false;
             }
 

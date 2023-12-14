@@ -98,8 +98,9 @@ pub fn gen_font_handle() -> FontHandle {
     )
 }
 
-/// Opaque handle to a font. The ID is exposed for debugging purposes.
-/// If you set it manually, you're on your own!
+/// Opaque handle to a user font.
+///
+/// The ID is exposed only for debugging purposes.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FontHandle(pub u64);
 

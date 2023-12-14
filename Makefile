@@ -22,7 +22,7 @@
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
 # EXAMPLE=particle_systems
-EXAMPLE=perspective-camera
+# EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
@@ -33,6 +33,7 @@ EXAMPLE=perspective-camera
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
+EXAMPLE=z_index_test
 
 # default: build-examples
 # default: wasm-build

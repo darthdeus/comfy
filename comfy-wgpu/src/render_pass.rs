@@ -35,6 +35,12 @@ pub enum DrawData {
 pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
     span_with_timing!("collect_render_passes");
 
+    let mesh_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
+        .mesh_queue
+        .drain(..)
+        // .sorted_by_key(|x| x.mesh.z_index)
+        .collect_vec();
+
     let white_px = TextureHandle::from_path("1px");
     let mut result = vec![];
 
@@ -43,7 +49,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
 
         // Meshes
         for ((blend_mode, shader, render_target), group) in
-            &params.mesh_queue.iter().group_by(|draw| {
+            &mesh_queue.iter().group_by(|draw| {
                 (
                     draw.texture_params.blend_mode,
                     &draw.shader,
@@ -122,7 +128,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         }
     }
 
-    if result.is_empty() {
+    let result = if result.is_empty() {
         vec![RenderPassData {
             z_index: 0,
             blend_mode: BlendMode::Alpha,
@@ -133,5 +139,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         }]
     } else {
         result
-    }
+    };
+
+    result
 }

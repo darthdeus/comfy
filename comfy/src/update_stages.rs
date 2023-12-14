@@ -851,12 +851,17 @@ pub fn update_perf_counters(c: &mut EngineContext, game_loop: &impl GameLoop) {
                         .sorted_by_key(|(_, entry)| entry.time)
                     {
                         let mean = if !entry.history.is_empty() {
-                            entry
-                                .history
-                                .iter()
-                                .map(|(_, x)| x.as_secs_f32())
-                                .sum::<f32>() /
-                                entry.history.len() as f32
+                            if entry.history.len() < entry.history.max_len() - 1
+                            {
+                                entry.history.latest().unwrap_or_default().as_secs_f32()
+                            } else {
+                                entry
+                                    .history
+                                    .iter()
+                                    .map(|(_, x)| x.as_secs_f32())
+                                    .sum::<f32>() /
+                                    entry.history.len() as f32
+                            }
                         } else {
                             0.0
                         };
@@ -1048,13 +1053,6 @@ fn renderer_update(c: &mut EngineContext) {
     let frame_params =
         FrameParams { frame: get_frame(), delta, time: get_time() as f32 };
 
-    let mut mesh_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
-        .mesh_queue
-        .drain(..)
-        .collect_vec();
-
-    mesh_queue.sort_by_key(|x| x.mesh.z_index);
-
     let mut draw_params = DrawParams {
         aspect_ratio: aspect_ratio(),
         config: &mut game_config_mut(),
@@ -1064,7 +1062,6 @@ fn renderer_update(c: &mut EngineContext) {
         frame: frame_params,
         lights: LightingState::take_lights(),
         // sprite_queue,
-        mesh_queue,
         particle_queue,
         egui: egui(),
     };
