@@ -67,14 +67,14 @@ impl GameLoop for Maybe3D {
             ..Default::default()
         });
 
-        let buffers = self.sponza.buffers().collect_vec();
+        let _buffers = self.sponza.buffers().collect_vec();
 
-        let blob = self.sponza.blob.as_ref();
+        let _blob = self.sponza.blob.as_ref();
 
         for scene in self.sponza.scenes() {
             for node in scene.nodes() {
                 if let Some(mesh) = node.mesh() {
-                    for primitive in mesh.primitives() {
+                    for _primitive in mesh.primitives() {
                         // let reader = primitive.reader(|buffer| {
                         //     let buffer = &buffers[buffer.index()];
                         //     match buffer.source() {
