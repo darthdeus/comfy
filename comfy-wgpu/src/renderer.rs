@@ -548,7 +548,8 @@ impl WgpuRenderer {
         screen_view: &wgpu::TextureView,
         game_config: &GameConfig,
     ) {
-        let _span = span!("render_post_processing");
+        span_with_timing!("render_post_processing");
+
         let mut encoder =
             self.context.device.simple_encoder("Post Processing Encoder");
 
@@ -713,7 +714,7 @@ impl WgpuRenderer {
     }
 
     pub fn render_egui(&self, view: &wgpu::TextureView, params: &DrawParams) {
-        let _span = span!("render_egui");
+        span_with_timing!("render_egui");
 
         let mut encoder =
             self.context.device.simple_encoder("egui Render Encoder");
@@ -935,6 +936,8 @@ impl WgpuRenderer {
         self.render_egui(&surface_view, &params);
 
         if params.config.dev.show_buffers {
+            span_with_timing!("render_debug");
+
             let pp = self.post_processing_effects.borrow();
 
             let mut bind_groups = vec![&self.first_pass_texture.bind_group];
@@ -972,7 +975,10 @@ impl WgpuRenderer {
             );
         }
 
-        output.present();
+        {
+            span_with_timing!("present");
+            output.present();
+        }
     }
 
     pub fn scale_factor(&self) -> f32 {

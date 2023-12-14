@@ -52,7 +52,7 @@ impl AssetSource {
                 .to_string_lossy()
                 .to_string();
 
-            info!("File {} ... {}", relative_path, absolute_path);
+            debug!("File {} ... {}", relative_path, absolute_path);
 
             let contents = std::fs::read(&absolute_path);
             contents.as_ref().unwrap_or_else(|err| {

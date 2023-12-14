@@ -101,11 +101,6 @@ impl PerfCounters {
         PERF_COUNTERS.borrow()
     }
 
-    // pub fn update_counter(&mut self, counter_name: &str, count: u64) {
-    //     let counter =
-    //         self.counters.entry(counter_name.to_string()).or_default();
-    //     counter.count = count;
-    // }
     pub fn update_counter(
         &mut self,
         counter_name: impl Into<Cow<'static, str>>,
@@ -117,8 +112,11 @@ impl PerfCounters {
 
     pub fn new_frame(&mut self, delta: f64) {
         for counter in self.counters.values_mut() {
-            counter.decayed_average = counter.decayed_average * (1.0 - delta) +
-                (counter.count as f64) * delta;
+            let t = delta * 5.0;
+
+            counter.decayed_average = counter.decayed_average * (1.0 - t) +
+                (counter.count as f64) * t;
+
             counter.count = 0;
         }
     }

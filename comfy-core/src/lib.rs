@@ -588,7 +588,6 @@ pub struct DrawParams<'a> {
     pub config: &'a mut GameConfig,
 
     pub frame: FrameParams,
-    pub mesh_queue: Vec<MeshDraw>,
 
     pub particle_queue: Vec<ParticleDraw>,
     pub egui: &'a egui::Context,

@@ -104,7 +104,7 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         match std::env::var("COMFY_VSYNC_OVERRIDE").as_deref() {
             Ok("0") | Ok("f") | Ok("false") => {
                 info!("VSYNC OVERRIDE via env var, set to VSYNC=off");
-                wgpu::PresentMode::AutoNoVsync
+                wgpu::PresentMode::Immediate
             }
             Ok("1") | Ok("t") | Ok("true") => {
                 info!("VSYNC OVERRIDE via env var, set to VSYNC=on");
@@ -124,6 +124,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
     } else {
         caps.present_modes[0]
     };
+
+    info!("ACTUAL PRESENT MODE: {:?}", present_mode);
 
     let config = wgpu::SurfaceConfiguration {
         usage: surface_usage,

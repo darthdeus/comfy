@@ -98,8 +98,11 @@ pub fn gen_font_handle() -> FontHandle {
     )
 }
 
+/// Represents a custom user font.
+///
+/// The ID is exposed only for debugging purposes.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct FontHandle(u64);
+pub struct FontHandle(pub u64);
 
 fn draw_text_internal(
     text: TextData,
