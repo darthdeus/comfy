@@ -39,8 +39,8 @@ EXAMPLE=perspective-camera
 # default: profile-startup
 # default: bitmob
 # default: crash
-# default: example
-default: fun
+default: example
+# default: fun
 # default: example-wasm
 # default: wasm-egui-scaling
 # default: egui-demo
@@ -48,8 +48,8 @@ default: fun
 # default: test
 
 # FLAGS=--features=blobs,git-version,dev,ldtk,exr
-FLAGS=--features=git-version,dev
-ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1
+FLAGS=--features=git-version,dev,tracy
+ENV_VARS=RUST_LOG=info,wgpu=warn,symphonia=warn,naga=warn RUST_BACKTRACE=1 COMFY_DEV_TITLE=1 COMFY_VSYNC_OVERRIDE=0
 
 # Crashes on i3 without COMFY_DEV_TITLE=1
 i3-crash:

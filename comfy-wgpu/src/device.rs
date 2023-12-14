@@ -99,11 +99,25 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
     #[cfg(not(feature = "record-pngs"))]
     let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
 
-    let desired_present_mode = if game_config().vsync_enabled {
-        wgpu::PresentMode::AutoVsync
-    } else {
-        wgpu::PresentMode::AutoNoVsync
-    };
+
+    let desired_present_mode =
+        match std::env::var("COMFY_VSYNC_OVERRIDE").as_deref() {
+            Ok("0") | Ok("f") | Ok("false") => {
+                info!("VSYNC OVERRIDE via env var, set to VSYNC=off");
+                wgpu::PresentMode::AutoNoVsync
+            }
+            Ok("1") | Ok("t") | Ok("true") => {
+                info!("VSYNC OVERRIDE via env var, set to VSYNC=on");
+                wgpu::PresentMode::AutoVsync
+            }
+            _ => {
+                if game_config().vsync_enabled {
+                    wgpu::PresentMode::AutoVsync
+                } else {
+                    wgpu::PresentMode::AutoNoVsync
+                }
+            }
+        };
 
     let present_mode = if caps.present_modes.contains(&desired_present_mode) {
         desired_present_mode
