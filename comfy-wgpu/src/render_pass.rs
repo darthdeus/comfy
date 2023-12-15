@@ -37,62 +37,30 @@ pub fn collect_render_passes(
 ) -> HashMap<i32, Vec<RenderPassData>> {
     span_with_timing!("collect_render_passes");
 
-    let white_px = TextureHandle::from_path("1px");
-
     let mut result = vec![];
+    let queues = consume_render_queues();
 
-    for (key, queue) in consume_render_queues().into_iter() {
+    perf_counter_inc("batch-count", queues.len() as u64);
+
+    for (key, queue) in queues.into_iter() {
         let _span = span!("mesh group");
 
-        // Meshes
-        // for ((blend_mode, shader, render_target), group) in
-        //     &queue.meshes.iter().group_by(|draw| {
-        //         (
-        //             draw.texture_params.blend_mode,
-        //             draw.shader,
-        //             draw.render_target,
-        //         )
-        //     })
+        let mut sorted_by_z = queue.meshes;
 
-        for (tex_handle, group) in
-            &queue.meshes.into_iter().group_by(|draw| (draw.mesh.texture))
-        {
-            perf_counter_inc("batch-count", 1);
+        if get_y_sort(key.z_index) {
+            sorted_by_z
+                .sort_by_key(|draw| OrderedFloat::<f32>(-draw.mesh.origin.y));
+        }
 
-            let tex_handle = tex_handle.unwrap_or(white_px);
-
-            let _span = span!("texture");
-
-            // TODO: do we still need to sort here?
-            let mut sorted_by_z =
-                group.sorted_by_key(|draw| draw.mesh.z_index).collect_vec();
-
-            if !sorted_by_z.is_empty() &&
-                get_y_sort(sorted_by_z[0].mesh.z_index)
-            {
-                sorted_by_z.sort_by_cached_key(|draw| {
-                    OrderedFloat::<f32>(-draw.mesh.origin.y)
-                });
-
-                //     -draw
-                //         .mesh
-                //         .vertices
-                //         .iter()
-                //         .map(|v| v.position[1])
-                //         .sum::<f32>() /
-                //         draw.mesh.vertices.len() as f32,
-            }
-
-            for draw in sorted_by_z {
-                result.push(RenderPassData {
-                    z_index: draw.mesh.z_index,
-                    blend_mode: key.blend_mode,
-                    shader: key.shader,
-                    render_target: key.render_target,
-                    texture: tex_handle,
-                    data: DrawData::Meshes([draw.clone()].into()),
-                });
-            }
+        for draw in sorted_by_z {
+            result.push(RenderPassData {
+                z_index: draw.mesh.z_index,
+                blend_mode: key.blend_mode,
+                shader: key.shader,
+                render_target: key.render_target,
+                texture: key.texture_id,
+                data: DrawData::Meshes([draw].into()),
+            });
         }
     }
 
@@ -124,7 +92,7 @@ pub fn collect_render_passes(
         vec![RenderPassData {
             z_index: 0,
             blend_mode: BlendMode::Alpha,
-            texture: white_px,
+            texture: TextureHandle::from_path("1px"),
             shader: None,
             render_target: None,
             data: DrawData::Meshes(SmallVec::new()),

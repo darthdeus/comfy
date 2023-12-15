@@ -1116,13 +1116,16 @@ pub fn draw_poly_z(
         }
     }
 
-    draw_mesh(Mesh {
-        origin: position.extend(z_index as f32),
-        vertices: vertices.into(),
-        indices: indices.into(),
-        z_index,
-        ..Default::default()
-    });
+    draw_mesh_ex(
+        Mesh {
+            origin: position.extend(z_index as f32),
+            vertices: vertices.into(),
+            indices: indices.into(),
+            z_index,
+            ..Default::default()
+        },
+        blend_mode,
+    );
 }
 
 pub fn draw_arc(
