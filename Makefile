@@ -21,7 +21,7 @@
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
-# EXAMPLE=particle_systems
+EXAMPLE=particle_systems
 # EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
@@ -33,7 +33,7 @@
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
-EXAMPLE=z_index_test
+# EXAMPLE=z_index_test
 
 # default: build-examples
 # default: wasm-build

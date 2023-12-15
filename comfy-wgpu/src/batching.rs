@@ -9,123 +9,149 @@ pub fn run_batched_render_passes(
 ) {
     span_with_timing!("run_batched_render_passes");
 
-    let render_passes = collect_render_passes(params);
+    let render_passes = {
+        span_with_timing!("collect_render_passes");
+
+        let mut result = vec![];
+        let queues = consume_render_queues();
+
+        perf_counter_inc("batch-count", queues.len() as u64);
+
+        for (key, queue) in queues.into_iter() {
+            let _span = span!("mesh group");
+
+            let mut sorted_by_z = queue.meshes;
+
+            if get_y_sort(key.z_index) {
+                sorted_by_z.sort_by_key(|draw| {
+                    OrderedFloat::<f32>(-draw.mesh.origin.y)
+                });
+            }
+
+            for draw in sorted_by_z {
+                result.push(RenderPassData {
+                    z_index: draw.mesh.z_index,
+                    blend_mode: key.blend_mode,
+                    shader: key.shader,
+                    render_target: key.render_target,
+                    texture: key.texture_id,
+                    data: [draw].into(),
+                });
+            }
+        }
+
+        let results = if result.is_empty() {
+            vec![RenderPassData {
+                z_index: 0,
+                blend_mode: BlendMode::Alpha,
+                texture: TextureHandle::from_path("1px"),
+                shader: None,
+                render_target: None,
+                data: SmallVec::new(),
+            }]
+        } else {
+            result
+        };
+
+        let mut render_passes = HashMap::<i32, Vec<RenderPassData>>::new();
+
+        for pass in results.into_iter() {
+            render_passes.entry(pass.z_index).or_default().push(pass);
+        }
+
+        render_passes
+    };
 
     {
         let mut blocks = 0;
         let mut meshes = 0;
-        let mut particles = 0;
 
         for (_, passes) in render_passes.iter() {
-            for pass in passes.iter() {
+            for _ in passes.iter() {
                 blocks += 1;
-
-                match &pass.data {
-                    DrawData::Meshes(_) => {
-                        meshes += 1;
-                    }
-                    DrawData::Particles(_) => {
-                        particles += 1;
-                    }
-                }
+                meshes += 1;
             }
         }
 
         perf_counter("render pass blocks", blocks as u64);
         perf_counter("mesh draws", meshes as u64);
-        perf_counter("particle draws", particles as u64);
     }
 
 
     let mut is_first = true;
 
-    for (_, z_index_group) in
+
+    for (_, render_pass_data) in
         render_passes.into_iter().sorted_by_key(|(k, _)| *k)
     {
-        let _span = span!("z_index_group");
+        let _span = span!("blend/shader/target group");
 
-        for ((blend_mode, shader, render_target), blend_group) in &z_index_group
-            .iter()
-            .sorted_by_key(|x| x.blend_mode)
-            .group_by(|x| (x.blend_mode, x.shader, x.render_target))
-        {
-            let _span = span!("blend/shader/target group");
+        let first = render_pass_data.first().cloned();
 
-            let (meshes, particles) = blend_group.into_iter().fold(
-                (vec![], vec![]),
-                |mut acc, pass_data| {
-                    match &pass_data.data {
-                        DrawData::Meshes(mesh_draw) => {
-                            acc.0.push(MeshDrawData {
-                                blend_mode,
-                                shader,
-                                render_target,
-                                texture: pass_data.texture,
-                                data: mesh_draw.clone(),
-                            })
-                        }
-                        DrawData::Particles(particle_draw) => {
-                            acc.1.push(ParticleDrawData {
-                                blend_mode,
-                                texture: pass_data.texture,
-                                data: particle_draw.clone(),
-                            })
-                        }
-                    }
+        if let Some(first) = first {
+            let meshes =
+                render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
 
-                    acc
+            render_meshes(
+                c,
+                is_first,
+                params.clear_color,
+                MeshDrawData {
+                    blend_mode: first.blend_mode,
+                    texture: first.texture,
+                    shader: first.shader,
+                    render_target: first.render_target,
+                    data: meshes.into(),
                 },
+                surface_view,
+                sprite_shader_id,
+                error_shader_id,
             );
+        }
 
-            for ((blend_mode, texture, shader, render_target), mesh_group) in
-                &meshes.into_iter().sorted_by_key(|x| x.texture).group_by(|x| {
-                    (x.blend_mode, x.texture, x.shader, x.render_target)
-                })
+
+        perf_counter_inc("render passes", 1);
+
+        is_first = false;
+    }
+
+    {
+        span_with_timing!("prepare_particles");
+
+        for (blend_mode, group) in
+            &params.particle_queue.iter().group_by(|draw| draw.blend_mode)
+        {
+            for (tex_handle, group) in
+                &group.into_iter().group_by(|draw| draw.texture)
             {
-                render_meshes(
-                    c,
-                    is_first,
-                    params.clear_color,
-                    MeshDrawData {
-                        blend_mode,
-                        texture,
-                        shader,
-                        render_target,
-                        data: mesh_group
-                            .flat_map(|x| x.data)
-                            .collect_vec()
-                            .into(),
-                    },
-                    surface_view,
-                    sprite_shader_id,
-                    error_shader_id,
-                );
+                for draw in group {
+                    // particle_queue.push(RenderPassData {
+                    //     // TODO: this is probably wrong
+                    //     z_index: draw.position.z as i32,
+                    //     blend_mode,
+                    //     texture: tex_handle,
+                    //     shader: None,
+                    //     render_target: None,
+                    //     data: DrawData::Particles(vec![*draw]),
+                    // });
 
-                perf_counter_inc("render passes", 1);
-                is_first = false;
+                    render_particles(
+                        c,
+                        is_first,
+                        ParticleDrawData {
+                            blend_mode,
+                            texture: tex_handle,
+                            data: vec![*draw],
+                        },
+                        params.clear_color,
+                        surface_view,
+                        sprite_shader_id,
+                    );
+
+                    perf_counter("particle draws", 1);
+                    is_first = false;
+                }
             }
-
-            for ((blend_mode, texture), particle_group) in
-                &particles.into_iter().group_by(|x| (x.blend_mode, x.texture))
-            {
-                render_particles(
-                    c,
-                    is_first,
-                    ParticleDrawData {
-                        blend_mode,
-                        texture,
-                        data: particle_group.flat_map(|x| x.data).collect_vec(),
-                    },
-                    params.clear_color,
-                    surface_view,
-                    sprite_shader_id,
-                );
-
-                perf_counter_inc("real_particle_draw", 1);
-                is_first = false;
-            }
-
-            is_first = false;
         }
     }
 }
