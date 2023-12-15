@@ -21,7 +21,7 @@
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
 # EXAMPLE=single_particle
-EXAMPLE=particle_systems
+# EXAMPLE=particle_systems
 # EXAMPLE=perspective-camera
 # EXAMPLE=physics
 # EXAMPLE=post_processing
@@ -35,13 +35,13 @@ EXAMPLE=particle_systems
 # EXAMPLE=y_sort
 # EXAMPLE=z_index_test
 
-default: benchmarks
 # default: build-examples
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
 # default: crash
-# default: example
+# default: benchmarks
+default: example
 # default: fun
 # default: example-wasm
 # default: wasm-egui-scaling
