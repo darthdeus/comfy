@@ -73,7 +73,7 @@ egui-demo:
 	$(ENV_VARS) cargo run --bin egui-scaling
 
 benchmarks:
-	make -C ../comfy-benchmark
+	$(ENV_VARS) make -C ../comfy-benchmark
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
