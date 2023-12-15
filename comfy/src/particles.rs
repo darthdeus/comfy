@@ -464,6 +464,19 @@ impl Particle {
             ));
         }
     }
+
+    pub fn to_draw(&self) -> ParticleDraw {
+        ParticleDraw {
+            position: (self.position + self.offset).extend(self.z_index as f32),
+            rotation: self.rotation,
+            texture: self.texture,
+            // color: self.color,
+            color: self.current_color(),
+            size: self.size * self.current_size(),
+            source_rect: self.source_rect,
+            blend_mode: self.blend_mode,
+        }
+    }
 }
 
 const DEFAULT_EASE: fn(f32) -> f32 = quad_in_out;
