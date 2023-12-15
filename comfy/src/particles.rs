@@ -21,6 +21,7 @@ pub struct ParticleSystem {
     pub spawn_rate: Option<f32>,
     pub is_enabled: bool,
     pub start_when_texture_loaded: bool,
+    pub z_index: i32,
 
     spawn_timer: f32,
     next_particle: usize,
@@ -44,6 +45,7 @@ impl ParticleSystem {
             spawn_rate: Some(spawn_rate),
             spawn_timer: 0.0,
             next_particle: 0,
+            z_index: 0,
             particle_builder,
             spawn_on_death: false,
             is_enabled: true,
@@ -68,6 +70,7 @@ impl ParticleSystem {
             spawn_rate: None,
             spawn_timer: 0.0,
             next_particle: 0,
+            z_index: 0,
             particle_builder: Box::new(particle_builder),
             spawn_on_death: true,
             is_enabled: true,

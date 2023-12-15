@@ -577,8 +577,7 @@ pub struct DrawParams<'a> {
 
     pub frame: FrameParams,
 
-    pub particle_queue: Vec<ParticleDraw>,
-    pub egui: &'a egui::Context,
+    pub particle_queues: HashMap<MeshGroupKey, Vec<ParticleDraw>>,
 }
 
 #[derive(Copy, Clone, Debug)]
