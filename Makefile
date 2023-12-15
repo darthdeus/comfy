@@ -35,12 +35,13 @@ EXAMPLE=particle_systems
 # EXAMPLE=y_sort
 # EXAMPLE=z_index_test
 
+default: benchmarks
 # default: build-examples
 # default: wasm-build
 # default: profile-startup
 # default: bitmob
 # default: crash
-default: example
+# default: example
 # default: fun
 # default: example-wasm
 # default: wasm-egui-scaling
@@ -70,6 +71,9 @@ example-wasm:
 
 egui-demo:
 	$(ENV_VARS) cargo run --bin egui-scaling
+
+benchmarks:
+	make -C ../comfy-benchmark
 
 profile-startup:
 	cargo run --example shapes --features exit-after-startup
