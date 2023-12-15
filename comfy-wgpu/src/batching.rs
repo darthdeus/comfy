@@ -47,14 +47,14 @@ pub fn run_batched_render_passes(
             HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
 
         for (key, queue) in queues.into_iter() {
-            for draw in queue.meshes {
+            for mesh in queue {
                 render_passes.entry(key).or_default().push(RenderPassData {
-                    z_index: draw.mesh.z_index,
+                    z_index: key.z_index,
                     blend_mode: key.blend_mode,
                     shader: key.shader,
                     render_target: key.render_target,
                     texture: key.texture_id,
-                    data: [draw].into(),
+                    data: [mesh].into(),
                 });
             }
         }
@@ -158,10 +158,10 @@ pub fn render_meshes(
     let mut all_vertices: Vec<SpriteVertex> = vec![];
     let mut all_indices = vec![];
 
-    for draw in pass_data.data.into_iter() {
+    for mesh in pass_data.data.into_iter() {
         let offset = all_vertices.len() as u32;
-        all_vertices.extend(&draw.mesh.vertices);
-        all_indices.extend(draw.mesh.indices.iter().map(|x| *x + offset));
+        all_vertices.extend(&mesh.vertices);
+        all_indices.extend(mesh.indices.iter().map(|x| *x + offset));
     }
 
     c.vertex_buffer.ensure_size_and_copy(

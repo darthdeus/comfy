@@ -110,8 +110,7 @@ pub fn ensure_pipeline_exists(
 ) -> String {
     let shaders = c.shaders.borrow();
 
-    let maybe_shader_instance_id =
-        pass_data.data.first().and_then(|x| x.shader);
+    let maybe_shader_instance_id = pass_data.shader;
 
     let maybe_shader =
         maybe_shader_instance_id.as_ref().and_then(|instance_id| {
