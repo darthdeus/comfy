@@ -40,34 +40,31 @@ pub fn run_batched_render_passes(
 
     let queues = consume_render_queues();
 
-    let render_passes = {
-        span_with_timing!("collect_render_passes");
+    // let render_passes = {
+    //     span_with_timing!("collect_render_passes");
+    //
+    //     let mut render_passes =
+    //         HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
+    //
+    //     for (key, queue) in queues.into_iter() {
+    //         render_passes.entry(key).or_default().push(RenderPassData {
+    //             z_index: key.z_index,
+    //             blend_mode: key.blend_mode,
+    //             shader: key.shader,
+    //             render_target: key.render_target,
+    //             texture: key.texture_id,
+    //             data: queue.into(),
+    //         });
+    //     }
+    //
+    //     render_passes
+    // };
 
-        let mut render_passes =
-            HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
-
-        for (key, queue) in queues.into_iter() {
-            render_passes.entry(key).or_default().push(RenderPassData {
-                z_index: key.z_index,
-                blend_mode: key.blend_mode,
-                shader: key.shader,
-                render_target: key.render_target,
-                texture: key.texture_id,
-                data: queue.into(),
-            });
-        }
-
-        render_passes
-    };
-
-
-    for (key, render_pass_data) in
-        render_passes.into_iter().sorted_by_key(|(k, _)| k.z_index)
-    {
+    for (key, meshes) in queues.into_iter().sorted_by_key(|(k, _)| k.z_index) {
         let _span = span!("blend/shader/target group");
 
-        let meshes =
-            render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
+        // let meshes =
+        //     render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
 
         render_meshes(
             c,
