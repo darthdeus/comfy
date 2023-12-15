@@ -49,12 +49,14 @@ impl RandomRange for f32 {
         low + (high - low) * r
     }
 }
+
 impl RandomRange for f64 {
     fn gen_range(low: Self, high: Self) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
         low + (high - low) * r as f64
     }
 }
+
 impl RandomRange for i32 {
     fn gen_range(low: i32, high: i32) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
@@ -62,6 +64,7 @@ impl RandomRange for i32 {
         r as i32
     }
 }
+
 impl RandomRange for i64 {
     fn gen_range(low: Self, high: Self) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
@@ -69,6 +72,7 @@ impl RandomRange for i64 {
         r as i64
     }
 }
+
 impl RandomRange for u32 {
     fn gen_range(low: u32, high: u32) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
@@ -76,6 +80,7 @@ impl RandomRange for u32 {
         r as u32
     }
 }
+
 impl RandomRange for u64 {
     fn gen_range(low: u64, high: u64) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
@@ -83,6 +88,7 @@ impl RandomRange for u64 {
         r as u64
     }
 }
+
 impl RandomRange for i16 {
     fn gen_range(low: i16, high: i16) -> Self {
         let r = rand() as f32 / std::u32::MAX as f32;
@@ -100,7 +106,9 @@ impl RandomRange for usize {
 }
 
 pub fn gen_range<T>(low: T, high: T) -> T
-where T: RandomRange {
+where
+    T: RandomRange,
+{
     T::gen_range(low, high)
 }
 
@@ -142,13 +150,18 @@ impl<T> ChooseRandom<T> for Vec<T> {
     }
 
     fn choose_multiple(&self, amount: usize) -> VecChooseIter<T> {
-        let mut indices =
-            (0..self.len()).enumerate().map(|(i, _)| i).collect::<Vec<usize>>();
+        let mut indices = (0..self.len())
+            .enumerate()
+            .map(|(i, _)| i)
+            .collect::<Vec<usize>>();
 
         indices.shuffle();
         indices.resize(amount, 0);
 
-        VecChooseIter { source: self, indices: indices.into_iter() }
+        VecChooseIter {
+            source: self,
+            indices: indices.into_iter(),
+        }
     }
 }
 
@@ -160,7 +173,7 @@ pub struct FisherYates {
 }
 
 impl FisherYates {
-    pub fn shuffle<T>(&mut self, data: &mut Vec<T>) {
+    pub fn shuffle<T>(&mut self, data: &mut [T]) {
         for i in 1..data.len() {
             let j = self.gen_range(i);
             data.swap(i, j);
@@ -240,8 +253,8 @@ pub fn random_circle(radius: f32) -> Vec2 {
 }
 
 pub fn random_box(center: Vec2, size: Vec2) -> Vec2 {
-    center +
-        vec2(
+    center
+        + vec2(
             gen_range(-size.x, size.x) / 2.0,
             gen_range(-size.y, size.y) / 2.0,
         )
