@@ -47,16 +47,14 @@ pub fn run_batched_render_passes(
             HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
 
         for (key, queue) in queues.into_iter() {
-            for mesh in queue {
-                render_passes.entry(key).or_default().push(RenderPassData {
-                    z_index: key.z_index,
-                    blend_mode: key.blend_mode,
-                    shader: key.shader,
-                    render_target: key.render_target,
-                    texture: key.texture_id,
-                    data: [mesh].into(),
-                });
-            }
+            render_passes.entry(key).or_default().push(RenderPassData {
+                z_index: key.z_index,
+                blend_mode: key.blend_mode,
+                shader: key.shader,
+                render_target: key.render_target,
+                texture: key.texture_id,
+                data: queue.into(),
+            });
         }
 
         render_passes
