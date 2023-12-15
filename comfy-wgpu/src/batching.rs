@@ -9,6 +9,23 @@ pub fn run_batched_render_passes(
 ) {
     span_with_timing!("run_batched_render_passes");
 
+    let mut is_first = true;
+
+    // {
+    //     let mut blocks = 0;
+    //     let mut meshes = 0;
+    //
+    //     for (_, passes) in render_passes.iter() {
+    //         for _ in passes.iter() {
+    //             blocks += 1;
+    //             meshes += 1;
+    //         }
+    //     }
+    //
+    //     perf_counter("render pass blocks", blocks as u64);
+    //     perf_counter("mesh draws", meshes as u64);
+    // }
+
     let render_passes = {
         span_with_timing!("collect_render_passes");
 
@@ -29,86 +46,73 @@ pub fn run_batched_render_passes(
             }
 
             for draw in sorted_by_z {
-                result.push(RenderPassData {
+                result.push((key, RenderPassData {
                     z_index: draw.mesh.z_index,
                     blend_mode: key.blend_mode,
                     shader: key.shader,
                     render_target: key.render_target,
                     texture: key.texture_id,
                     data: [draw].into(),
-                });
+                }));
             }
         }
 
         let results = if result.is_empty() {
-            vec![RenderPassData {
-                z_index: 0,
-                blend_mode: BlendMode::Alpha,
-                texture: TextureHandle::from_path("1px"),
-                shader: None,
-                render_target: None,
-                data: SmallVec::new(),
-            }]
+            vec![(
+                MeshGroupKey {
+                    z_index: 0,
+                    blend_mode: BlendMode::Alpha,
+                    texture_id: TextureHandle::from_path("1px"),
+                    shader: None,
+                    render_target: None,
+                },
+                RenderPassData {
+                    z_index: 0,
+                    blend_mode: BlendMode::Alpha,
+                    texture: TextureHandle::from_path("1px"),
+                    shader: None,
+                    render_target: None,
+                    data: SmallVec::new(),
+                },
+            )]
         } else {
             result
         };
 
-        let mut render_passes = HashMap::<i32, Vec<RenderPassData>>::new();
+        let mut render_passes =
+            HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
 
-        for pass in results.into_iter() {
-            render_passes.entry(pass.z_index).or_default().push(pass);
+        for (key, pass) in results.into_iter() {
+            render_passes.entry(key).or_default().push(pass);
         }
 
         render_passes
     };
 
-    {
-        let mut blocks = 0;
-        let mut meshes = 0;
 
-        for (_, passes) in render_passes.iter() {
-            for _ in passes.iter() {
-                blocks += 1;
-                meshes += 1;
-            }
-        }
-
-        perf_counter("render pass blocks", blocks as u64);
-        perf_counter("mesh draws", meshes as u64);
-    }
-
-
-    let mut is_first = true;
-
-
-    for (_, render_pass_data) in
-        render_passes.into_iter().sorted_by_key(|(k, _)| *k)
+    for (key, render_pass_data) in
+        render_passes.into_iter().sorted_by_key(|(k, _)| k.z_index)
     {
         let _span = span!("blend/shader/target group");
 
-        let first = render_pass_data.first().cloned();
+        let meshes =
+            render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
 
-        if let Some(first) = first {
-            let meshes =
-                render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
-
-            render_meshes(
-                c,
-                is_first,
-                params.clear_color,
-                MeshDrawData {
-                    blend_mode: first.blend_mode,
-                    texture: first.texture,
-                    shader: first.shader,
-                    render_target: first.render_target,
-                    data: meshes.into(),
-                },
-                surface_view,
-                sprite_shader_id,
-                error_shader_id,
-            );
-        }
-
+        render_meshes(
+            c,
+            is_first,
+            params.clear_color,
+            MeshDrawData {
+                blend_mode: key.blend_mode,
+                texture: key.texture_id,
+                shader: key.shader,
+                render_target: key.render_target,
+                data: meshes.into(),
+            },
+            surface_view,
+            sprite_shader_id,
+            error_shader_id,
+        );
 
         perf_counter_inc("render passes", 1);
 
