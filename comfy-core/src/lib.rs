@@ -565,14 +565,6 @@ pub enum BlendMode {
     Alpha,
 }
 
-#[derive(Clone, Debug)]
-pub struct MeshDraw {
-    pub mesh: Mesh,
-    pub blend_mode: BlendMode,
-    pub shader: Option<ShaderInstanceId>,
-    pub render_target: Option<RenderTargetId>,
-}
-
 pub struct DrawParams<'a> {
     pub aspect_ratio: f32,
     pub projection: Mat4,

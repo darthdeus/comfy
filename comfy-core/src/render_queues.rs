@@ -35,14 +35,11 @@ static RENDER_QUEUES: Lazy<AtomicRefCell<RenderQueues>> =
     Lazy::new(|| AtomicRefCell::new(RenderQueues::default()));
 
 
+pub type RenderQueue = Vec<Mesh>;
+
 #[derive(Default)]
 struct RenderQueues {
     data: HashMap<MeshGroupKey, RenderQueue>,
-}
-
-#[derive(Default)]
-pub struct RenderQueue {
-    pub meshes: Vec<MeshDraw>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -79,8 +76,7 @@ pub fn queue_mesh_draw(mesh: Mesh, blend_mode: BlendMode) {
             render_target,
         })
         .or_default()
-        .meshes
-        .push(MeshDraw { mesh, blend_mode, shader, render_target });
+        .push(mesh);
 }
 
 pub fn draw_text_internal(
