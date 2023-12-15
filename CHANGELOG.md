@@ -2,6 +2,9 @@
 
 - `Mesh` now has a new `origin` field. This shouldn't affect most users as
   it's only exposed through `draw_mesh`.
+- Simplified `draw_mesh_ex` params, now accepting `BlendMode` instead of
+  `TextureParams` containing only `BlendMode`. There will be further breaking changes
+  around this API in the future, but none that should be complex for users to migrate.
 
 # v0.3.0
 

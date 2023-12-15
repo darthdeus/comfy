@@ -110,16 +110,18 @@ pub fn ensure_pipeline_exists(
 ) -> String {
     let shaders = c.shaders.borrow();
 
-    let maybe_shader_instance =
-        pass_data.data.first().and_then(|x| x.shader.clone());
+    let maybe_shader_instance_id =
+        pass_data.data.first().and_then(|x| x.shader);
 
-    let maybe_shader = maybe_shader_instance
-        .as_ref()
-        .and_then(|instance| shaders.get(instance.id));
+    let maybe_shader =
+        maybe_shader_instance_id.as_ref().and_then(|instance_id| {
+            let instance = get_shader_instance(*instance_id);
+            shaders.get(instance.id)
+        });
 
     let name = format!(
         "{} {:?} {:?} {:?}",
-        if maybe_shader_instance.is_some() {
+        if maybe_shader_instance_id.is_some() {
             "USER(Mesh)"
         } else {
             "BUILTIN(Mesh)"
@@ -162,7 +164,8 @@ pub fn ensure_pipeline_exists(
     };
 
     if let RenderPipeline::User(user_pipeline) = mesh_pipeline {
-        if let Some(shader_instance) = maybe_shader_instance {
+        if let Some(shader_instance_id) = maybe_shader_instance_id {
+            let shader_instance = get_shader_instance(shader_instance_id);
             let shader = shaders.get(shader_instance.id).unwrap();
 
             for (buffer_name, buffer) in

@@ -556,7 +556,7 @@ pub struct SpriteDraw {
 
 pub type TextureLoadQueue = Vec<LoadedImage>;
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum BlendMode {
     #[default]
     None,
@@ -565,17 +565,11 @@ pub enum BlendMode {
     Alpha,
 }
 
-// TODO: ... get rid of this
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct TextureParams {
-    pub blend_mode: BlendMode,
-}
-
 #[derive(Clone, Debug)]
 pub struct MeshDraw {
     pub mesh: Mesh,
-    pub texture_params: TextureParams,
-    pub shader: Option<ShaderInstance>,
+    pub blend_mode: BlendMode,
+    pub shader: Option<ShaderInstanceId>,
     pub render_target: Option<RenderTargetId>,
 }
 
