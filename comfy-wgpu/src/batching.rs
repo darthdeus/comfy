@@ -58,7 +58,7 @@ pub fn run_batched_render_passes(
                         DrawData::Meshes(mesh_draw) => {
                             acc.0.push(MeshDrawData {
                                 blend_mode,
-                                shader: shader.clone(),
+                                shader,
                                 render_target,
                                 texture: pass_data.texture,
                                 data: mesh_draw.clone(),

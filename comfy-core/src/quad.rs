@@ -147,7 +147,7 @@ pub fn draw_sprite_ex(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
+    draw_mesh_ex(mesh, params.blend_mode);
 }
 
 pub enum SpriteAlign {
@@ -323,7 +323,7 @@ pub fn draw_sprite_pro(
         texture: Some(texture),
     };
 
-    draw_mesh_ex(mesh, TextureParams { blend_mode: params.blend_mode });
+    draw_mesh_ex(mesh, params.blend_mode);
 }
 
 fn rotate_around_point(point: Vec3, pivot: Vec3, angle_rad: f32) -> Vec3 {
@@ -343,7 +343,7 @@ pub fn draw_rectangle_z_tex(
     color: Color,
     z_index: i32,
     texture: Option<TextureHandle>,
-    texture_params: TextureParams,
+    blend_mode: BlendMode,
 ) {
     let (x, y) = position.to_world().tuple();
 
@@ -369,7 +369,7 @@ pub fn draw_rectangle_z_tex(
             z_index,
             texture,
         },
-        texture_params,
+        blend_mode,
     );
 }
 
@@ -794,10 +794,7 @@ pub fn draw_rect_outline_rot(
 }
 
 pub fn draw_circle(center: Vec2, r: f32, color: Color, z_index: i32) {
-    // let _span = span!("circle");
-    draw_poly_z(center, 40, r, 0.0, color, z_index, TextureParams {
-        blend_mode: BlendMode::Alpha,
-    });
+    draw_poly_z(center, 40, r, 0.0, color, z_index, BlendMode::Alpha);
 }
 
 pub fn draw_circle_outline(
@@ -890,9 +887,9 @@ pub fn draw_circle_z(
     r: f32,
     color: Color,
     z_index: i32,
-    texture_params: TextureParams,
+    blend_mode: BlendMode,
 ) {
-    draw_poly_z(center, 40, r, 0.0, color, z_index, texture_params);
+    draw_poly_z(center, 40, r, 0.0, color, z_index, blend_mode);
 }
 
 pub fn draw_line(
@@ -925,7 +922,7 @@ pub fn draw_line_tex_y_uv_flex(
     uv_offset: f32,
     uv_size: f32,
     z_index: i32,
-    texture_params: TextureParams,
+    blend_mode: BlendMode,
 ) {
     let (x1, y1) = p1.to_world().tuple();
     let (x2, y2) = p2.to_world().tuple();
@@ -1021,7 +1018,7 @@ pub fn draw_line_tex_y_uv_flex(
             z_index,
             texture,
         },
-        texture_params,
+        blend_mode,
     )
 }
 
@@ -1089,7 +1086,7 @@ pub fn draw_poly_z(
     rotation: f32,
     color: Color,
     z_index: i32,
-    texture_params: TextureParams,
+    blend_mode: BlendMode,
 ) {
     let (x, y) = position.tuple();
     let z = z_index as f32 / Z_DIV;
@@ -1119,16 +1116,13 @@ pub fn draw_poly_z(
         }
     }
 
-    draw_mesh_ex(
-        Mesh {
-            origin: position.extend(z_index as f32),
-            vertices: vertices.into(),
-            indices: indices.into(),
-            z_index,
-            ..Default::default()
-        },
-        texture_params,
-    );
+    draw_mesh(Mesh {
+        origin: position.extend(z_index as f32),
+        vertices: vertices.into(),
+        indices: indices.into(),
+        z_index,
+        ..Default::default()
+    });
 }
 
 pub fn draw_arc(
@@ -1173,16 +1167,12 @@ pub fn draw_arc(
         }
     }
 
-    draw_mesh_ex(
-        Mesh {
-            vertices: vertices.into(),
-            indices: indices.into(),
-            z_index,
-            ..Default::default()
-        },
-        TextureParams::default(),
-        // texture_params,
-    );
+    draw_mesh(Mesh {
+        vertices: vertices.into(),
+        indices: indices.into(),
+        z_index,
+        ..Default::default()
+    });
 }
 
 pub fn draw_arc_outline(
@@ -1390,16 +1380,11 @@ pub fn draw_revs(position: Vec2, r: f32, rev: f32, color: Color, z_index: i32) {
 }
 
 pub fn draw_mesh(mesh: Mesh) {
-    draw_mesh_ex(mesh, TextureParams::default());
+    draw_mesh_ex(mesh, BlendMode::default());
 }
 
-pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
-    queue_mesh_draw(
-        mesh,
-        texture_params,
-        get_current_shader(),
-        get_current_render_target(),
-    );
+pub fn draw_mesh_ex(mesh: Mesh, blend_mode: BlendMode) {
+    queue_mesh_draw(mesh, blend_mode);
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -1443,7 +1428,7 @@ pub fn draw_line_tex_y_uv(
     texture: Option<TextureHandle>,
     y_uv: Range<f32>,
     z_index: i32,
-    texture_params: TextureParams,
+    blend_mode: BlendMode,
 ) {
     let (x1, y1) = p1.to_world().tuple();
     let (x2, y2) = p2.to_world().tuple();
@@ -1511,6 +1496,6 @@ pub fn draw_line_tex_y_uv(
             z_index: 0,
             texture,
         },
-        texture_params,
+        blend_mode,
     )
 }

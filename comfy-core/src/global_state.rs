@@ -92,10 +92,8 @@ pub fn set_unpaused_time(value: f64) {
     UNPAUSED_TIME.store(value.to_bits(), Ordering::SeqCst);
 }
 
-pub static GLOBAL_STATE: Lazy<AtomicRefCell<GlobalState>> = Lazy::new(|| {
-    let mut state = GlobalState::default();
-    AtomicRefCell::new(state)
-});
+pub static GLOBAL_STATE: Lazy<AtomicRefCell<GlobalState>> =
+    Lazy::new(|| AtomicRefCell::new(GlobalState::default()));
 
 #[derive(Default)]
 pub struct GlobalState {

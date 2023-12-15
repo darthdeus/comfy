@@ -75,7 +75,7 @@ pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
             0.1,
             mark.color,
             90,
-            TextureParams { blend_mode: BlendMode::Alpha },
+            BlendMode::Alpha,
         );
     }
 
