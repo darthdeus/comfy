@@ -49,6 +49,7 @@ pub struct RenderQueue {
 pub struct MeshGroupKey {
     pub z_index: i32,
     pub blend_mode: BlendMode,
+    pub texture_id: TextureHandle,
     pub shader: Option<ShaderInstanceId>,
     pub render_target: Option<RenderTargetId>,
 }
@@ -63,6 +64,7 @@ pub fn consume_render_queues() -> HashMap<MeshGroupKey, RenderQueue> {
 pub fn queue_mesh_draw(mesh: Mesh, blend_mode: BlendMode) {
     // let shader = get_current_shader();
     let render_target = get_current_render_target();
+    let white_px = TextureHandle::from_path("1px");
 
     let shader = None;
 
@@ -72,6 +74,7 @@ pub fn queue_mesh_draw(mesh: Mesh, blend_mode: BlendMode) {
         .entry(MeshGroupKey {
             z_index: mesh.z_index,
             blend_mode,
+            texture_id: mesh.texture.unwrap_or(white_px),
             shader,
             render_target,
         })

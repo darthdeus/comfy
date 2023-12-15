@@ -47,7 +47,7 @@ pub fn run_batched_render_passes(
         for ((blend_mode, shader, render_target), blend_group) in &z_index_group
             .iter()
             .sorted_by_key(|x| x.blend_mode)
-            .group_by(|x| (x.blend_mode, x.shader.clone(), x.render_target))
+            .group_by(|x| (x.blend_mode, x.shader, x.render_target))
         {
             let _span = span!("blend/shader/target group");
 
@@ -79,7 +79,7 @@ pub fn run_batched_render_passes(
 
             for ((blend_mode, texture, shader, render_target), mesh_group) in
                 &meshes.into_iter().sorted_by_key(|x| x.texture).group_by(|x| {
-                    (x.blend_mode, x.texture, x.shader.clone(), x.render_target)
+                    (x.blend_mode, x.texture, x.shader, x.render_target)
                 })
             {
                 render_meshes(
@@ -89,7 +89,7 @@ pub fn run_batched_render_passes(
                     MeshDrawData {
                         blend_mode,
                         texture,
-                        shader: shader.clone(),
+                        shader,
                         render_target,
                         data: mesh_group
                             .flat_map(|x| x.data)
