@@ -31,13 +31,6 @@ pub fn run_batched_render_passes(
 
     let mut is_first = true;
 
-    // TODO: add this back later
-    // if get_y_sort(key.z_index) {
-    //     sorted_by_z.sort_by_key(|draw| {
-    //         OrderedFloat::<f32>(-draw.mesh.origin.y)
-    //     });
-    // }
-
     let queues = consume_render_queues();
 
     // let render_passes = {
@@ -60,11 +53,15 @@ pub fn run_batched_render_passes(
     //     render_passes
     // };
 
-    for (key, meshes) in queues.into_iter().sorted_by_key(|(k, _)| k.z_index) {
+    for (key, mut meshes) in
+        queues.into_iter().sorted_by_key(|(k, _)| k.z_index)
+    {
         let _span = span!("blend/shader/target group");
 
-        // let meshes =
-        //     render_pass_data.into_iter().flat_map(|x| x.data).collect_vec();
+        // TODO: add this back later
+        if get_y_sort(key.z_index) {
+            meshes.sort_by_key(|mesh| OrderedFloat::<f32>(-mesh.origin.y));
+        }
 
         render_meshes(
             c,
@@ -126,6 +123,24 @@ pub fn run_batched_render_passes(
             }
         }
     }
+
+    if is_first {
+        render_meshes(
+            c,
+            is_first,
+            params.clear_color,
+            MeshDrawData {
+                blend_mode: BlendMode::Alpha,
+                texture: TextureHandle::from_path("1px"),
+                shader: None,
+                render_target: None,
+                data: SmallVec::new(),
+            },
+            surface_view,
+            sprite_shader_id,
+            error_shader_id,
+        );
+    }
 }
 
 // TODO: Pass shader separately
@@ -139,9 +154,6 @@ pub fn render_meshes(
     _error_shader_id: ShaderId,
 ) {
     let _span = span!("render_meshes");
-
-    let _span = span!("blend_mode");
-    // println!("shader: {}", default_hash(&name));
 
     let pipeline_name = ensure_pipeline_exists(c, &pass_data, sprite_shader_id);
 
