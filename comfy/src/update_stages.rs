@@ -999,7 +999,6 @@ fn renderer_update(c: &mut EngineContext) {
         particle.lifetime_current > 0.0
     });
 
-    // TODO: keep the same vec between frames
     let mut all_particles = Vec::new();
 
     for (_, (transform, particle_system)) in
@@ -1017,7 +1016,7 @@ fn renderer_update(c: &mut EngineContext) {
                     .filter(|p| {
                         p.lifetime_current > 0.0 && p.texture != err_texture
                     })
-                    .cloned(),
+                    .map(|p| p.to_draw()),
             )
         } else {
             all_particles.extend(
@@ -1025,7 +1024,7 @@ fn renderer_update(c: &mut EngineContext) {
                     .particles
                     .iter()
                     .filter(|p| p.lifetime_current > 0.0)
-                    .cloned(),
+                    .map(|p| p.to_draw()),
             )
         }
     }
@@ -1033,19 +1032,8 @@ fn renderer_update(c: &mut EngineContext) {
     let particle_queue = SINGLE_PARTICLES
         .borrow_mut()
         .iter()
-        .chain(all_particles.iter())
-        .map(|p| {
-            ParticleDraw {
-                position: (p.position + p.offset).extend(p.z_index as f32),
-                rotation: p.rotation,
-                texture: p.texture,
-                // color: p.color,
-                color: p.current_color(),
-                size: p.size * p.current_size(),
-                source_rect: p.source_rect,
-                blend_mode: p.blend_mode,
-            }
-        })
+        .map(|p| p.to_draw())
+        .chain(all_particles)
         .collect_vec();
 
     let clear_color = GLOBAL_STATE.borrow_mut().clear_color;
