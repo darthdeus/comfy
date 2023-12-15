@@ -19,6 +19,7 @@ mod math;
 mod perf_counters;
 mod quad;
 pub mod random;
+mod render_queues;
 mod shaders;
 pub mod spatial_hash;
 mod task_timer;
@@ -44,6 +45,7 @@ pub use crate::math::*;
 pub use crate::perf_counters::*;
 pub use crate::quad::*;
 pub use crate::random::*;
+pub use crate::render_queues::*;
 pub use crate::shaders::*;
 pub use crate::task_timer::*;
 pub use crate::text::*;
@@ -641,6 +643,7 @@ pub const QUAD_VERTICES: &[SpriteVertex] = &[
 
 #[derive(Clone, Debug, Default)]
 pub struct Mesh {
+    pub origin: Vec3,
     pub vertices: SmallVec<[SpriteVertex; 4]>,
     pub indices: SmallVec<[u32; 6]>,
     pub z_index: i32,

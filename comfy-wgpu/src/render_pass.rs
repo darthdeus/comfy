@@ -32,24 +32,21 @@ pub enum DrawData {
     Particles(Vec<ParticleDraw>),
 }
 
-pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
+pub fn collect_render_passes(
+    params: &DrawParams,
+) -> HashMap<i32, Vec<RenderPassData>> {
     span_with_timing!("collect_render_passes");
 
-    let mesh_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
-        .mesh_queue
-        .drain(..)
-        // .sorted_by_key(|x| x.mesh.z_index)
-        .collect_vec();
-
     let white_px = TextureHandle::from_path("1px");
+
     let mut result = vec![];
 
-    {
+    for (z_index, queue) in consume_render_queues().into_iter() {
         span_with_timing!("prepare meshes");
 
         // Meshes
         for ((blend_mode, shader, render_target), group) in
-            &mesh_queue.iter().group_by(|draw| {
+            &queue.meshes.iter().group_by(|draw| {
                 (
                     draw.texture_params.blend_mode,
                     &draw.shader,
@@ -77,17 +74,16 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
                     get_y_sort(sorted_by_z[0].mesh.z_index)
                 {
                     sorted_by_z.sort_by_cached_key(|draw| {
-                        OrderedFloat::<f32>(
-                            // TODO: This is completely disgusting, but it does work ...
-                            -draw
-                                .mesh
-                                .vertices
-                                .iter()
-                                .map(|v| v.position[1])
-                                .sum::<f32>() /
-                                draw.mesh.vertices.len() as f32,
-                        )
+                        OrderedFloat::<f32>(-draw.mesh.origin.y)
                     });
+
+                    //     -draw
+                    //         .mesh
+                    //         .vertices
+                    //         .iter()
+                    //         .map(|v| v.position[1])
+                    //         .sum::<f32>() /
+                    //         draw.mesh.vertices.len() as f32,
                 }
 
                 for draw in sorted_by_z {
@@ -128,7 +124,7 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         }
     }
 
-    let result = if result.is_empty() {
+    let results = if result.is_empty() {
         vec![RenderPassData {
             z_index: 0,
             blend_mode: BlendMode::Alpha,
@@ -141,5 +137,11 @@ pub fn collect_render_passes(params: &DrawParams) -> Vec<RenderPassData> {
         result
     };
 
-    result
+    let mut map = HashMap::<i32, Vec<RenderPassData>>::new();
+
+    for pass in results.into_iter() {
+        map.entry(pass.z_index).or_default().push(pass);
+    }
+
+    map
 }

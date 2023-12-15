@@ -20,6 +20,7 @@ pub fn draw_sprite_rot(
     const QUAD_INDICES_U32: &[u32] = &[0, 2, 1, 0, 3, 2];
 
     let mesh = Mesh {
+        origin: position.extend(z_index as f32),
         vertices: vertices.into(),
         indices: QUAD_INDICES_U32.into(),
         z_index,

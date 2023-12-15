@@ -8,6 +8,7 @@ pub struct DrawText {
     pub font: egui::FontId,
     pub color: Color,
     pub align: TextAlign,
+    pub z_index: i32,
     // Temporarily to allow both egui and comfy rasterization
     pub pro_params: Option<ProTextParams>,
 }
@@ -17,6 +18,7 @@ pub struct TextParams {
     pub font: egui::FontId,
     pub rotation: f32,
     pub color: Color,
+    pub z_index: i32,
 }
 
 impl Default for TextParams {
@@ -25,6 +27,7 @@ impl Default for TextParams {
             font: egui::FontId::new(20.0, egui::FontFamily::Monospace),
             color: WHITE,
             rotation: 0.0,
+            z_index: 0,
         }
     }
 }
@@ -103,26 +106,6 @@ pub fn gen_font_handle() -> FontHandle {
 /// The ID is exposed only for debugging purposes.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FontHandle(pub u64);
-
-fn draw_text_internal(
-    text: TextData,
-    position: Vec2,
-    align: TextAlign,
-    pro_params: Option<ProTextParams>,
-    params: TextParams,
-) {
-    let mut state = GLOBAL_STATE.borrow_mut();
-    let current_queue = state.current_draw_queue;
-
-    state.draw_queues[current_queue].text_queue.push(DrawText {
-        text,
-        position,
-        color: params.color,
-        font: params.font,
-        align,
-        pro_params,
-    });
-}
 
 #[doc(hidden)]
 /// Temporary while the API stabilizes.
