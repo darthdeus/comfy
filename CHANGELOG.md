@@ -1,3 +1,8 @@
+# v0.4.0
+
+- `Mesh` now has a new `origin` field. This shouldn't affect most users as
+  it's only exposed through `draw_mesh`.
+
 # v0.3.0
 
 **This release contains breaking changes, most notably around the `GameContext`

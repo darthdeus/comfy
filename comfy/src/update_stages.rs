@@ -177,14 +177,9 @@ fn render_text(c: &mut EngineContext) {
         egui::Id::new("text-painter"),
     ));
 
-    let text_queue = GLOBAL_STATE.borrow_mut().draw_queues[0]
-        .text_queue
-        .drain(..)
-        .collect_vec();
-
     let assets = ASSETS.borrow();
 
-    for text in text_queue {
+    for text in consume_text_queue().into_iter() {
         if let Some(pro_params) = text.pro_params {
             let mut t = c.renderer.text.borrow_mut();
 
@@ -853,7 +848,11 @@ pub fn update_perf_counters(c: &mut EngineContext, game_loop: &impl GameLoop) {
                         let mean = if !entry.history.is_empty() {
                             if entry.history.len() < entry.history.max_len() - 1
                             {
-                                entry.history.latest().unwrap_or_default().as_secs_f32()
+                                entry
+                                    .history
+                                    .latest()
+                                    .unwrap_or_default()
+                                    .as_secs_f32()
                             } else {
                                 entry
                                     .history

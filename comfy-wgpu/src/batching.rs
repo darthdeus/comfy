@@ -11,34 +11,41 @@ pub fn run_batched_render_passes(
 
     let render_passes = collect_render_passes(params);
 
-    perf_counter("render pass blocks", render_passes.len() as u64);
-    perf_counter(
-        "mesh draws",
-        render_passes
-            .iter()
-            .filter(|x| matches!(x.data, DrawData::Meshes(_)))
-            .count() as u64,
-    );
+    {
+        let mut blocks = 0;
+        let mut meshes = 0;
+        let mut particles = 0;
 
-    perf_counter(
-        "particle draws",
-        render_passes
-            .iter()
-            .filter(|x| matches!(x.data, DrawData::Particles(_)))
-            .count() as u64,
-    );
+        for (_, passes) in render_passes.iter() {
+            for pass in passes.iter() {
+                blocks += 1;
+
+                match &pass.data {
+                    DrawData::Meshes(_) => {
+                        meshes += 1;
+                    }
+                    DrawData::Particles(_) => {
+                        particles += 1;
+                    }
+                }
+            }
+        }
+
+        perf_counter("render pass blocks", blocks as u64);
+        perf_counter("mesh draws", meshes as u64);
+        perf_counter("particle draws", particles as u64);
+    }
+
 
     let mut is_first = true;
 
-    let grouped_render_passes = render_passes
-        .into_iter()
-        .sorted_by_key(|p| p.z_index)
-        .group_by(|p| p.z_index);
-
-    for (_, z_index_group) in &grouped_render_passes {
+    for (_, z_index_group) in
+        render_passes.into_iter().sorted_by_key(|(k, _)| *k)
+    {
         let _span = span!("z_index_group");
 
         for ((blend_mode, shader, render_target), blend_group) in &z_index_group
+            .iter()
             .sorted_by_key(|x| x.blend_mode)
             .group_by(|x| (x.blend_mode, x.shader.clone(), x.render_target))
         {
@@ -47,21 +54,21 @@ pub fn run_batched_render_passes(
             let (meshes, particles) = blend_group.into_iter().fold(
                 (vec![], vec![]),
                 |mut acc, pass_data| {
-                    match pass_data.data {
+                    match &pass_data.data {
                         DrawData::Meshes(mesh_draw) => {
                             acc.0.push(MeshDrawData {
                                 blend_mode,
                                 shader: shader.clone(),
                                 render_target,
                                 texture: pass_data.texture,
-                                data: mesh_draw,
+                                data: mesh_draw.clone(),
                             })
                         }
                         DrawData::Particles(particle_draw) => {
                             acc.1.push(ParticleDrawData {
                                 blend_mode,
                                 texture: pass_data.texture,
-                                data: particle_draw,
+                                data: particle_draw.clone(),
                             })
                         }
                     }

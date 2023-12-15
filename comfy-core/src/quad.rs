@@ -140,6 +140,7 @@ pub fn draw_sprite_ex(
     const QUAD_INDICES_U32: &[u32] = &[0, 2, 1, 0, 3, 2];
 
     let mesh = Mesh {
+        origin: position.extend(z_index as f32),
         vertices: SmallVec::from_slice(&vertices),
         indices: QUAD_INDICES_U32.into(),
         z_index,
@@ -315,6 +316,7 @@ pub fn draw_sprite_pro(
     const QUAD_INDICES_U32: &[u32] = &[0, 2, 1, 0, 3, 2];
 
     let mesh = Mesh {
+        origin: position.extend(z_index as f32),
         vertices: SmallVec::from_slice(&vertices),
         indices: QUAD_INDICES_U32.into(),
         z_index,
@@ -361,6 +363,7 @@ pub fn draw_rectangle_z_tex(
 
     draw_mesh_ex(
         Mesh {
+            origin: vec3(x, y, z_index as f32),
             vertices: SmallVec::from_slice(&vertices),
             indices: indices.into(),
             z_index,
@@ -456,6 +459,7 @@ pub fn draw_rect_outline(
         .collect_vec();
 
     draw_mesh(Mesh {
+        origin: center.extend(z_index as f32),
         vertices: vertices.into(),
         indices: indices.into(),
         z_index,
@@ -477,6 +481,7 @@ pub fn draw_labeled_rect_corners(
         center + vec2(-size.x, size.y) / 2.0,
         TextAlign::BottomLeft,
         TextParams {
+            z_index,
             font: egui::FontId::new(
                 12.0 / egui_scale_factor(),
                 egui::FontFamily::Proportional,
@@ -576,6 +581,7 @@ pub fn draw_rect_corners(
         .collect_vec();
 
     draw_mesh(Mesh {
+        origin: center.extend(z_index as f32),
         vertices: vertices.into(),
         indices: indices.into(),
         z_index,
@@ -779,6 +785,7 @@ pub fn draw_rect_outline_rot(
     ];
 
     draw_mesh(Mesh {
+        origin: center.extend(z_index as f32),
         vertices: SmallVec::from_slice(&vertices),
         indices: indices.into(),
         z_index,
@@ -870,6 +877,7 @@ pub fn draw_circle_outline(
     }
 
     draw_mesh(Mesh {
+        origin: center.extend(z_index as f32),
         vertices: vertices.into(),
         indices: indices.into(),
         z_index,
@@ -1007,6 +1015,7 @@ pub fn draw_line_tex_y_uv_flex(
 
     draw_mesh_ex(
         Mesh {
+            origin: vec3((x1 + x2) / 2.0, (y1 + y2) / 2.0, z_index as f32),
             vertices: SmallVec::from_slice(&vertices),
             indices: indices.into(),
             z_index,
@@ -1065,6 +1074,7 @@ pub fn draw_line_tex(
     let indices = [0, 1, 2, 2, 1, 3];
 
     draw_mesh(Mesh {
+        origin: vec3((x1 + x2) / 2.0, (y1 + y2) / 2.0, z_index as f32),
         vertices: SmallVec::from_slice(&vertices),
         indices: indices.into(),
         z_index,
@@ -1111,6 +1121,7 @@ pub fn draw_poly_z(
 
     draw_mesh_ex(
         Mesh {
+            origin: position.extend(z_index as f32),
             vertices: vertices.into(),
             indices: indices.into(),
             z_index,
@@ -1260,6 +1271,7 @@ pub fn draw_arc_outline(
     }
 
     draw_mesh(Mesh {
+        origin: center.extend(z_index as f32),
         vertices: vertices.into(),
         indices: indices.into(),
         z_index,
@@ -1382,15 +1394,12 @@ pub fn draw_mesh(mesh: Mesh) {
 }
 
 pub fn draw_mesh_ex(mesh: Mesh, texture_params: TextureParams) {
-    let mut state = GLOBAL_STATE.borrow_mut();
-    let current_queue = state.current_draw_queue;
-
-    state.draw_queues[current_queue].mesh_queue.push(MeshDraw {
+    queue_mesh_draw(
         mesh,
         texture_params,
-        shader: get_current_shader(),
-        render_target: get_current_render_target(),
-    });
+        get_current_shader(),
+        get_current_render_target(),
+    );
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -1496,6 +1505,7 @@ pub fn draw_line_tex_y_uv(
 
     draw_mesh_ex(
         Mesh {
+            origin: vec3((x1 + x2) / 2.0, (y1 + y2) / 2.0, z_index as f32),
             vertices: SmallVec::from_slice(&vertices),
             indices: indices.into(),
             z_index: 0,

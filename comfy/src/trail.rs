@@ -256,6 +256,13 @@ impl Trail {
 
         draw_mesh_ex(
             Mesh {
+                // TODO: might want the average instead
+                origin: self
+                    .positions
+                    .last()
+                    .copied()
+                    .unwrap_or_default()
+                    .extend(self.z_index as f32),
                 vertices: vertices.into(),
                 indices: indices.into(),
                 z_index: self.z_index,
