@@ -9,81 +9,54 @@ pub fn run_batched_render_passes(
 ) {
     span_with_timing!("run_batched_render_passes");
 
+    // TODO: ...
+    // TODO: ...
+    let _empty_pass = (
+        MeshGroupKey {
+            z_index: 0,
+            blend_mode: BlendMode::Alpha,
+            texture_id: TextureHandle::from_path("1px"),
+            shader: None,
+            render_target: None,
+        },
+        RenderPassData {
+            z_index: 0,
+            blend_mode: BlendMode::Alpha,
+            texture: TextureHandle::from_path("1px"),
+            shader: None,
+            render_target: None,
+            data: SmallVec::new(),
+        },
+    );
+
     let mut is_first = true;
 
-    // {
-    //     let mut blocks = 0;
-    //     let mut meshes = 0;
-    //
-    //     for (_, passes) in render_passes.iter() {
-    //         for _ in passes.iter() {
-    //             blocks += 1;
-    //             meshes += 1;
-    //         }
-    //     }
-    //
-    //     perf_counter("render pass blocks", blocks as u64);
-    //     perf_counter("mesh draws", meshes as u64);
+    // TODO: add this back later
+    // if get_y_sort(key.z_index) {
+    //     sorted_by_z.sort_by_key(|draw| {
+    //         OrderedFloat::<f32>(-draw.mesh.origin.y)
+    //     });
     // }
+
+    let queues = consume_render_queues();
 
     let render_passes = {
         span_with_timing!("collect_render_passes");
 
-        let mut result = vec![];
-        let queues = consume_render_queues();
-
-        perf_counter_inc("batch-count", queues.len() as u64);
+        let mut render_passes =
+            HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
 
         for (key, queue) in queues.into_iter() {
-            let _span = span!("mesh group");
-
-            let mut sorted_by_z = queue.meshes;
-
-            if get_y_sort(key.z_index) {
-                sorted_by_z.sort_by_key(|draw| {
-                    OrderedFloat::<f32>(-draw.mesh.origin.y)
-                });
-            }
-
-            for draw in sorted_by_z {
-                result.push((key, RenderPassData {
+            for draw in queue.meshes {
+                render_passes.entry(key).or_default().push(RenderPassData {
                     z_index: draw.mesh.z_index,
                     blend_mode: key.blend_mode,
                     shader: key.shader,
                     render_target: key.render_target,
                     texture: key.texture_id,
                     data: [draw].into(),
-                }));
+                });
             }
-        }
-
-        let results = if result.is_empty() {
-            vec![(
-                MeshGroupKey {
-                    z_index: 0,
-                    blend_mode: BlendMode::Alpha,
-                    texture_id: TextureHandle::from_path("1px"),
-                    shader: None,
-                    render_target: None,
-                },
-                RenderPassData {
-                    z_index: 0,
-                    blend_mode: BlendMode::Alpha,
-                    texture: TextureHandle::from_path("1px"),
-                    shader: None,
-                    render_target: None,
-                    data: SmallVec::new(),
-                },
-            )]
-        } else {
-            result
-        };
-
-        let mut render_passes =
-            HashMap::<MeshGroupKey, Vec<RenderPassData>>::new();
-
-        for (key, pass) in results.into_iter() {
-            render_passes.entry(key).or_default().push(pass);
         }
 
         render_passes
