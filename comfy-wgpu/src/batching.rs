@@ -3,7 +3,7 @@ use crate::*;
 pub fn run_batched_render_passes(
     c: &mut WgpuRenderer,
     surface_view: &wgpu::TextureView,
-    params: &DrawParams,
+    params: DrawParams,
     sprite_shader_id: ShaderId,
     error_shader_id: ShaderId,
 ) {
@@ -87,41 +87,59 @@ pub fn run_batched_render_passes(
     {
         span_with_timing!("prepare_particles");
 
-        for (blend_mode, group) in
-            &params.particle_queue.iter().group_by(|draw| draw.blend_mode)
-        {
-            for (tex_handle, group) in
-                &group.into_iter().group_by(|draw| draw.texture)
-            {
-                for draw in group {
-                    // particle_queue.push(RenderPassData {
-                    //     // TODO: this is probably wrong
-                    //     z_index: draw.position.z as i32,
-                    //     blend_mode,
-                    //     texture: tex_handle,
-                    //     shader: None,
-                    //     render_target: None,
-                    //     data: DrawData::Particles(vec![*draw]),
-                    // });
+        for (key, queue) in params.particle_queues.into_iter() {
+            render_particles(
+                c,
+                is_first,
+                ParticleDrawData {
+                    blend_mode: key.blend_mode,
+                    texture: key.texture_id,
+                    data: queue,
+                },
+                params.clear_color,
+                surface_view,
+                sprite_shader_id,
+            );
 
-                    render_particles(
-                        c,
-                        is_first,
-                        ParticleDrawData {
-                            blend_mode,
-                            texture: tex_handle,
-                            data: vec![*draw],
-                        },
-                        params.clear_color,
-                        surface_view,
-                        sprite_shader_id,
-                    );
-
-                    perf_counter("particle draws", 1);
-                    is_first = false;
-                }
-            }
+            perf_counter("particle draws", 1);
+            is_first = false;
         }
+
+        // for (blend_mode, group) in
+        //     &params.particle_queue.iter().group_by(|draw| draw.blend_mode)
+        // {
+        //     for (tex_handle, group) in
+        //         &group.into_iter().group_by(|draw| draw.texture)
+        //     {
+        //         for draw in group {
+        //             // particle_queue.push(RenderPassData {
+        //             //     // TODO: this is probably wrong
+        //             //     z_index: draw.position.z as i32,
+        //             //     blend_mode,
+        //             //     texture: tex_handle,
+        //             //     shader: None,
+        //             //     render_target: None,
+        //             //     data: DrawData::Particles(vec![*draw]),
+        //             // });
+        //
+        //             render_particles(
+        //                 c,
+        //                 is_first,
+        //                 ParticleDrawData {
+        //                     blend_mode,
+        //                     texture: tex_handle,
+        //                     data: vec![*draw],
+        //                 },
+        //                 params.clear_color,
+        //                 surface_view,
+        //                 sprite_shader_id,
+        //             );
+        //
+        //             perf_counter("particle draws", 1);
+        //             is_first = false;
+        //         }
+        //     }
+        // }
     }
 
     if is_first {
@@ -140,6 +158,22 @@ pub fn run_batched_render_passes(
             sprite_shader_id,
             error_shader_id,
         );
+
+        // MeshGroupKey {
+        //     z_index: 0,
+        //     blend_mode: BlendMode::Alpha,
+        //     texture_id: TextureHandle::from_path("1px"),
+        //     shader: None,
+        //     render_target: None,
+        // },
+        // RenderPassData {
+        //     z_index: 0,
+        //     blend_mode: BlendMode::Alpha,
+        //     texture: TextureHandle::from_path("1px"),
+        //     shader: None,
+        //     render_target: None,
+        //     data: SmallVec::new(),
+        // },
     }
 }
 

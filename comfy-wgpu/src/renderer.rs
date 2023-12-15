@@ -713,7 +713,7 @@ impl WgpuRenderer {
         self.context.queue.submit(std::iter::once(encoder.finish()));
     }
 
-    pub fn render_egui(&self, view: &wgpu::TextureView, params: &DrawParams) {
+    pub fn render_egui(&self, view: &wgpu::TextureView, egui: &egui::Context) {
         span_with_timing!("render_egui");
 
         let mut encoder =
@@ -721,7 +721,7 @@ impl WgpuRenderer {
 
         let paint_jobs =
             self.egui_render_routine.borrow_mut().end_frame_and_render(
-                params.egui,
+                egui,
                 &self.context.device,
                 &self.context.queue,
                 &mut encoder,
@@ -905,7 +905,7 @@ impl WgpuRenderer {
         );
     }
 
-    pub fn draw(&mut self, params: DrawParams) {
+    pub fn draw(&mut self, params: DrawParams, egui: &egui::Context) {
         span_with_timing!("render");
 
         let output = {
@@ -924,18 +924,20 @@ impl WgpuRenderer {
             output.texture.create_view(&wgpu::TextureViewDescriptor::default())
         };
 
+        let config = params.config.clone();
+
         run_batched_render_passes(
             self,
             &surface_view,
-            &params,
+            params,
             self.sprite_shader_id,
             self.error_shader_id,
         );
 
-        self.render_post_processing(&surface_view, params.config);
-        self.render_egui(&surface_view, &params);
+        self.render_post_processing(&surface_view, &config);
+        self.render_egui(&surface_view, egui);
 
-        if params.config.dev.show_buffers {
+        if config.dev.show_buffers {
             span_with_timing!("render_debug");
 
             let pp = self.post_processing_effects.borrow();

@@ -999,17 +999,27 @@ fn renderer_update(c: &mut EngineContext) {
         particle.lifetime_current > 0.0
     });
 
-    let mut all_particles = Vec::new();
+    let mut particle_queues = HashMap::<MeshGroupKey, Vec<ParticleDraw>>::new();
 
     for (_, (transform, particle_system)) in
         world_mut().query_mut::<(&Transform, &mut ParticleSystem)>()
     {
         particle_system.update(transform.position, delta);
 
+        let p = particle_system.particles.first().cloned().unwrap_or_default();
+
+        let key = MeshGroupKey {
+            z_index: particle_system.z_index,
+            blend_mode: p.blend_mode,
+            texture_id: p.texture,
+            shader: None,
+            render_target: None,
+        };
+
         let err_texture = texture_id("error");
 
         if particle_system.start_when_texture_loaded {
-            all_particles.extend(
+            particle_queues.entry(key).or_default().extend(
                 particle_system
                     .particles
                     .iter()
@@ -1017,9 +1027,9 @@ fn renderer_update(c: &mut EngineContext) {
                         p.lifetime_current > 0.0 && p.texture != err_texture
                     })
                     .map(|p| p.to_draw()),
-            )
+            );
         } else {
-            all_particles.extend(
+            particle_queues.entry(key).or_default().extend(
                 particle_system
                     .particles
                     .iter()
@@ -1029,12 +1039,18 @@ fn renderer_update(c: &mut EngineContext) {
         }
     }
 
-    let particle_queue = SINGLE_PARTICLES
-        .borrow_mut()
-        .iter()
-        .map(|p| p.to_draw())
-        .chain(all_particles)
-        .collect_vec();
+    for p in SINGLE_PARTICLES.borrow_mut().iter() {
+        particle_queues
+            .entry(MeshGroupKey {
+                z_index: p.z_index,
+                blend_mode: p.blend_mode,
+                texture_id: p.texture,
+                shader: None,
+                render_target: None,
+            })
+            .or_default()
+            .push(p.to_draw());
+    }
 
     let clear_color = GLOBAL_STATE.borrow_mut().clear_color;
     let frame_params =
@@ -1048,14 +1064,12 @@ fn renderer_update(c: &mut EngineContext) {
         clear_color,
         frame: frame_params,
         lights: LightingState::take_lights(),
-        // sprite_queue,
-        particle_queue,
-        egui: egui(),
+        particle_queues,
     };
 
     // TODO: cleanup unwraps and stuff :)
     c.renderer.update(&mut draw_params);
-    c.renderer.draw(draw_params);
+    c.renderer.draw(draw_params, egui());
     c.renderer.end_frame();
 }
 
