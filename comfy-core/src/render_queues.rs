@@ -71,7 +71,7 @@ pub fn get_current_shader() -> Option<ShaderInstanceId> {
     *CURRENT_SHADER.borrow()
 }
 
-use std::sync::atomic::AtomicU64;
+use std::{sync::atomic::AtomicU64, collections::BTreeMap};
 
 static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 
@@ -87,7 +87,7 @@ pub fn gen_shader_id() -> ShaderId {
 /// Represents a set of shader uniform parameters.
 ///
 /// u32 ID is exposed for debugging purposes only, do not modify by hand.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct ShaderInstanceId(pub u32);
 
 static TEXT_QUEUE: Lazy<AtomicRefCell<Vec<DrawText>>> =
@@ -108,10 +108,10 @@ pub type RenderQueue = Vec<Mesh>;
 
 #[derive(Default)]
 struct RenderQueues {
-    data: HashMap<MeshGroupKey, RenderQueue>,
+    data: BTreeMap<MeshGroupKey, RenderQueue>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct MeshGroupKey {
     pub z_index: i32,
     pub blend_mode: BlendMode,
@@ -120,9 +120,9 @@ pub struct MeshGroupKey {
     pub render_target: Option<RenderTargetId>,
 }
 
-pub fn consume_render_queues() -> HashMap<MeshGroupKey, RenderQueue> {
+pub fn consume_render_queues() -> BTreeMap<MeshGroupKey, RenderQueue> {
     let mut queues = RENDER_QUEUES.borrow_mut();
-    let mut new_data = HashMap::new();
+    let mut new_data = BTreeMap::new();
     std::mem::swap(&mut new_data, &mut queues.data);
     new_data
 }
