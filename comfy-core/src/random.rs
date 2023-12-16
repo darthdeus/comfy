@@ -106,9 +106,7 @@ impl RandomRange for usize {
 }
 
 pub fn gen_range<T>(low: T, high: T) -> T
-where
-    T: RandomRange,
-{
+where T: RandomRange {
     T::gen_range(low, high)
 }
 
@@ -150,18 +148,13 @@ impl<T> ChooseRandom<T> for Vec<T> {
     }
 
     fn choose_multiple(&self, amount: usize) -> VecChooseIter<T> {
-        let mut indices = (0..self.len())
-            .enumerate()
-            .map(|(i, _)| i)
-            .collect::<Vec<usize>>();
+        let mut indices =
+            (0..self.len()).enumerate().map(|(i, _)| i).collect::<Vec<usize>>();
 
         indices.shuffle();
         indices.resize(amount, 0);
 
-        VecChooseIter {
-            source: self,
-            indices: indices.into_iter(),
-        }
+        VecChooseIter { source: self, indices: indices.into_iter() }
     }
 }
 
@@ -253,8 +246,8 @@ pub fn random_circle(radius: f32) -> Vec2 {
 }
 
 pub fn random_box(center: Vec2, size: Vec2) -> Vec2 {
-    center
-        + vec2(
+    center +
+        vec2(
             gen_range(-size.x, size.x) / 2.0,
             gen_range(-size.y, size.y) / 2.0,
         )
