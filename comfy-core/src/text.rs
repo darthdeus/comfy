@@ -81,13 +81,14 @@ pub fn draw_text_pro_experimental(
     align: TextAlign,
     font_size: f32,
     font: FontHandle,
+    z_index: i32,
 ) {
     draw_text_internal(
         TextData::Rich(text),
         position,
         align,
         Some(ProTextParams { font_size, font }),
-        TextParams { color, ..Default::default() },
+        TextParams { color, z_index, ..Default::default() },
     );
 }
 
