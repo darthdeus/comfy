@@ -59,6 +59,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
                 TextAlign::Center,
                 32.0,
                 state.font,
+                100,
             );
 
             draw_circle(

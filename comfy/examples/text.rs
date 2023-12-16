@@ -47,6 +47,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
         } else {
             state.fonts[1]
         },
+        100,
     );
 
     let alignments = [
@@ -72,6 +73,7 @@ fn update(state: &mut GameState, _c: &mut EngineContext) {
             align,
             state.font_size,
             state.fonts[0],
+            100,
         );
     }
 
