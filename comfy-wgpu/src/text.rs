@@ -139,8 +139,6 @@ impl TextRasterizer {
                 inset_rect,
             );
 
-            // handle
-
             let glyph = Glyph { metrics, bitmap, rect: inset_rect };
 
             self.glyphs

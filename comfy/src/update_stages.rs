@@ -196,11 +196,21 @@ fn render_text(c: &mut EngineContext) {
             // let RichText { clean_text, styled_glyphs } =
             //     simple_styled_text(&text.text);
 
+            // use fontdue::layout::VerticalAlign as VA;
+            // use fontdue::layout::HorizontalAlign as HA;
+
             let layout = t.layout_text(
                 font,
                 &clean_text,
                 pro_params.font_size,
                 &fontdue::layout::LayoutSettings {
+                    // vertical_align: match text.align {
+                    //     TextAlign::TopLeft => VA::Top,
+                    //     TextAlign::TopRight => VA::Top,
+                    //     TextAlign::BottomLeft => VA::Bottom,
+                    //     TextAlign::BottomRight => VA::Bottom,
+                    //     TextAlign::Center => VA::Middle,
+                    // },
                     // vertical_align: fontdue::layout::VerticalAlign::Middle,
                     // horizontal_align: fontdue::layout::HorizontalAlign::Center,
                     ..Default::default()
@@ -241,6 +251,14 @@ fn render_text(c: &mut EngineContext) {
                 );
             }
 
+            let off = match text.align {
+                TextAlign::TopLeft => vec2(1.0, -1.0),
+                TextAlign::TopRight => vec2(-1.0, -1.0),
+                TextAlign::BottomLeft => vec2(1.0, 1.0),
+                TextAlign::BottomRight => vec2(-1.0, 1.0),
+                TextAlign::Center => vec2(0.0, 0.0),
+            };
+
             for (i, glyph) in layout.glyphs().iter().enumerate() {
                 let style = styled_glyphs.as_ref().map(|x| x[i]);
 
@@ -250,6 +268,7 @@ fn render_text(c: &mut EngineContext) {
 
                 let mut pos = vec2(glyph.x, glyph.y) * px() +
                     text.position +
+                    off * layout_rect.size * px() / 2.0 +
                     vec2(-layout_rect.size.x, layout_rect.size.y) * px() /
                         2.0;
 
