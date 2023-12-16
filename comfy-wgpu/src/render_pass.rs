@@ -3,7 +3,7 @@ use crate::*;
 pub struct MeshDrawData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
-    pub shader: Option<ShaderInstanceId>,
+    pub shader: ShaderInstanceId,
     pub render_target: RenderTargetId,
     pub data: smallvec::SmallVec<[Mesh; 1]>,
 }

@@ -21,16 +21,19 @@ pub fn get_shader_instance(
 }
 
 pub fn set_uniform(name: impl Into<String>, value: Uniform) {
-    if let Some(instance_id) = &mut *CURRENT_SHADER.borrow_mut() {
+    let instance_id = CURRENT_SHADER_INSTANCE_ID.load(Ordering::SeqCst);
+
+    if instance_id > 0 {
         let mut table = SHADER_UNIFORM_TABLE.borrow_mut();
 
-        if let Some(instance) = table.instances.get(instance_id.0 as usize) {
+        if let Some(instance) = table.instances.get(instance_id as usize) {
             let mut new_instance = instance.clone();
             new_instance.uniforms.insert(name.into(), value);
 
             table.instances.push(new_instance);
 
-            *instance_id = ShaderInstanceId(table.instances.len() as u32 - 1);
+            CURRENT_SHADER_INSTANCE_ID
+                .store(table.instances.len() as u32 - 1, Ordering::SeqCst);
         } else {
             panic!(
     "Current shader instance id is invalid.
@@ -45,8 +48,7 @@ pub fn set_uniform(name: impl Into<String>, value: Uniform) {
     }
 }
 
-static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstanceId>>> =
-    Lazy::new(|| AtomicRefCell::new(None));
+static CURRENT_SHADER_INSTANCE_ID: AtomicU32 = AtomicU32::new(0);
 
 /// Switches to the shader with the given ID. The shader must already exist. To revert back to the
 /// default shader simply call `use_default_shader()`.
@@ -57,21 +59,25 @@ pub fn use_shader(shader_id: ShaderId) {
         .instances
         .push(ShaderInstance { id: shader_id, uniforms: Default::default() });
 
-    *CURRENT_SHADER.borrow_mut() =
-        Some(ShaderInstanceId(table.instances.len() as u32 - 1));
+    CURRENT_SHADER_INSTANCE_ID
+        .store(table.instances.len() as u32 - 1, Ordering::SeqCst);
 }
 
 /// Switches back to the default shader.
 pub fn use_default_shader() {
-    *CURRENT_SHADER.borrow_mut() = None;
+    CURRENT_SHADER_INSTANCE_ID.store(0, Ordering::SeqCst);
 }
 
 /// Returns the current `ShaderInstance` if any. Currently intended only for internal use.
-pub fn get_current_shader() -> Option<ShaderInstanceId> {
-    *CURRENT_SHADER.borrow()
+pub fn get_current_shader() -> ShaderInstanceId {
+    // TODO: we probably don't need SeqCst for any of these, but that can be fixed later
+    ShaderInstanceId(CURRENT_SHADER_INSTANCE_ID.load(Ordering::SeqCst))
 }
 
-use std::{collections::BTreeMap, sync::atomic::AtomicU64};
+use std::{
+    collections::BTreeMap,
+    sync::atomic::{AtomicU32, AtomicU64, Ordering},
+};
 
 static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 
@@ -87,7 +93,7 @@ pub fn gen_shader_id() -> ShaderId {
 /// Represents a set of shader uniform parameters.
 ///
 /// u32 ID is exposed for debugging purposes only, do not modify by hand.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct ShaderInstanceId(pub u32);
 
 static TEXT_QUEUE: Lazy<AtomicRefCell<Vec<DrawText>>> =
@@ -108,7 +114,6 @@ pub type RenderQueue = Vec<Mesh>;
 #[derive(Default)]
 struct RenderQueues {
     data: BTreeMap<MeshGroupKey, RenderQueue>,
-    // data: FxHashMap<MeshGroupKey, RenderQueue>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -116,7 +121,7 @@ pub struct MeshGroupKey {
     pub z_index: i32,
     pub blend_mode: BlendMode,
     pub texture_id: TextureHandle,
-    pub shader: Option<ShaderInstanceId>,
+    pub shader: ShaderInstanceId,
     pub render_target: RenderTargetId,
 }
 

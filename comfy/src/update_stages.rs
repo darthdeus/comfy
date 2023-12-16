@@ -1032,7 +1032,7 @@ fn renderer_update(c: &mut EngineContext) {
             z_index: particle_system.z_index,
             blend_mode: p.blend_mode,
             texture_id: p.texture,
-            shader: None,
+            shader: ShaderInstanceId::default(),
             render_target: RenderTargetId::default(),
         };
 
@@ -1065,7 +1065,7 @@ fn renderer_update(c: &mut EngineContext) {
                 z_index: p.z_index,
                 blend_mode: p.blend_mode,
                 texture_id: p.texture,
-                shader: None,
+                shader: ShaderInstanceId::default(),
                 render_target: RenderTargetId::default(),
             })
             .or_default()

@@ -16,7 +16,7 @@ pub fn run_batched_render_passes(
             z_index: 0,
             blend_mode: BlendMode::Alpha,
             texture_id: TextureHandle::from_path("1px"),
-            shader: None,
+            shader: ShaderInstanceId::default(),
             render_target: RenderTargetId::default(),
         },
         RenderPassData {
@@ -150,7 +150,7 @@ pub fn run_batched_render_passes(
             MeshDrawData {
                 blend_mode: BlendMode::Alpha,
                 texture: TextureHandle::from_path("1px"),
-                shader: None,
+                shader: ShaderInstanceId::default(),
                 render_target: RenderTargetId::default(),
                 data: SmallVec::new(),
             },
