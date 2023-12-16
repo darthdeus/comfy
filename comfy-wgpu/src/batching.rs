@@ -17,7 +17,7 @@ pub fn run_batched_render_passes(
             blend_mode: BlendMode::Alpha,
             texture_id: TextureHandle::from_path("1px"),
             shader: None,
-            render_target: None,
+            render_target: RenderTargetId::default(),
         },
         RenderPassData {
             z_index: 0,
@@ -151,7 +151,7 @@ pub fn run_batched_render_passes(
                 blend_mode: BlendMode::Alpha,
                 texture: TextureHandle::from_path("1px"),
                 shader: None,
-                render_target: None,
+                render_target: RenderTargetId::default(),
                 data: SmallVec::new(),
             },
             surface_view,
@@ -225,9 +225,9 @@ pub fn render_meshes(
     {
         let clear_color = if is_first { Some(clear_color) } else { None };
 
-        let target_view = if let Some(render_target) = pass_data.render_target {
+        let target_view = if pass_data.render_target.0 > 0 {
             &render_targets
-                .get(&render_target)
+                .get(&pass_data.render_target)
                 .expect("user render target must exist when used")
                 .view
         } else if c.post_processing_effects.borrow().iter().any(|x| x.enabled) {

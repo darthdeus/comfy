@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicU32, Ordering};
+
 use crate::*;
 
 #[derive(Debug)]
@@ -73,19 +75,22 @@ pub enum Uniform {
     Custom(Vec<u8>),
 }
 
-static CURRENT_RENDER_TARGET: Lazy<AtomicRefCell<Option<RenderTargetId>>> =
-    Lazy::new(|| AtomicRefCell::new(None));
+// static CURRENT_RENDER_TARGET: Lazy<AtomicRefCell<Option<RenderTargetId>>> =
+//     Lazy::new(|| AtomicRefCell::new(None));
+
+static CURRENT_RENDER_TARGET: AtomicU32 = AtomicU32::new(0);
 
 pub fn use_render_target(id: RenderTargetId) {
-    *CURRENT_RENDER_TARGET.borrow_mut() = Some(id);
+    CURRENT_RENDER_TARGET.store(id.0, Ordering::SeqCst);
+    // *CURRENT_RENDER_TARGET.borrow_mut() = Some(id);
 }
 
 pub fn use_default_render_target() {
-    *CURRENT_RENDER_TARGET.borrow_mut() = None;
+    CURRENT_RENDER_TARGET.store(0, Ordering::SeqCst);
 }
 
-pub fn get_current_render_target() -> Option<RenderTargetId> {
-    *CURRENT_RENDER_TARGET.borrow()
+pub fn get_current_render_target() -> RenderTargetId {
+    RenderTargetId(CURRENT_RENDER_TARGET.load(Ordering::SeqCst))
 }
 
 /// Sets a `f32` uniform value by name. The uniform must exist in the shader.
@@ -176,8 +181,5 @@ pub fn build_shader_source(
     format!("{}\n{}", uniforms_src, fragment_source)
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum RenderTargetId {
-    Named(&'static str),
-    Generated(u64),
-}
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct RenderTargetId(pub u32);

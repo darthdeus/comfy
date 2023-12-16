@@ -4,7 +4,7 @@ pub struct MeshDrawData {
     pub blend_mode: BlendMode,
     pub texture: TextureHandle,
     pub shader: Option<ShaderInstanceId>,
-    pub render_target: Option<RenderTargetId>,
+    pub render_target: RenderTargetId,
     pub data: smallvec::SmallVec<[Mesh; 1]>,
 }
 

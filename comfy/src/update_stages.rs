@@ -1033,7 +1033,7 @@ fn renderer_update(c: &mut EngineContext) {
             blend_mode: p.blend_mode,
             texture_id: p.texture,
             shader: None,
-            render_target: None,
+            render_target: RenderTargetId::default(),
         };
 
         let err_texture = texture_id("error");
@@ -1066,7 +1066,7 @@ fn renderer_update(c: &mut EngineContext) {
                 blend_mode: p.blend_mode,
                 texture_id: p.texture,
                 shader: None,
-                render_target: None,
+                render_target: RenderTargetId::default(),
             })
             .or_default()
             .push(p.to_draw());

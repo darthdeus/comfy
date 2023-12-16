@@ -117,7 +117,7 @@ pub struct MeshGroupKey {
     pub blend_mode: BlendMode,
     pub texture_id: TextureHandle,
     pub shader: Option<ShaderInstanceId>,
-    pub render_target: Option<RenderTargetId>,
+    pub render_target: RenderTargetId,
 }
 
 pub fn consume_render_queues() -> BTreeMap<MeshGroupKey, RenderQueue> {

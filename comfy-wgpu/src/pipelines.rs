@@ -1,8 +1,8 @@
-use std::sync::atomic::AtomicU64;
+use std::sync::atomic::AtomicU32;
 
 use crate::*;
 
-static GENERATED_RENDER_TARGET_IDS: AtomicU64 = AtomicU64::new(0);
+static GENERATED_RENDER_TARGET_IDS: AtomicU32 = AtomicU32::new(1);
 
 #[derive(Clone, Debug)]
 pub struct RenderTargetParams {
@@ -100,7 +100,7 @@ fn gen_render_target() -> RenderTargetId {
     let id = GENERATED_RENDER_TARGET_IDS
         .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
-    RenderTargetId::Generated(id)
+    RenderTargetId(id)
 }
 
 pub fn ensure_pipeline_exists(
