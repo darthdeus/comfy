@@ -314,7 +314,7 @@ fn render_text(c: &mut EngineContext) {
                     texture,
                     pos,
                     color,
-                    100,
+                    text.z_index,
                     DrawTextureProParams {
                         source_rect: Some(source_rect),
                         align: SpriteAlign::BottomLeft,
