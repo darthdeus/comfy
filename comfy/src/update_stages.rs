@@ -101,6 +101,7 @@ pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
     show_errors(c);
     commands().run_on(&mut world_mut());
     world_mut().flush();
+    clear_shader_uniform_table();
 }
 
 fn dev_hotkeys(_c: &EngineContext) {

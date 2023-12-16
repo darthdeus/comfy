@@ -1,7 +1,4 @@
 use crate::*;
-use std::sync::atomic::AtomicU64;
-
-static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug)]
 pub struct ShaderMap {
@@ -65,7 +62,7 @@ impl UniformDef {
     pub fn to_wgsl(&self) -> &str {
         match self {
             UniformDef::F32(_) => "f32",
-            UniformDef::Custom { wgsl_decl, .. } => &wgsl_decl,
+            UniformDef::Custom { wgsl_decl, .. } => wgsl_decl,
         }
     }
 }
@@ -91,44 +88,9 @@ pub fn get_current_render_target() -> Option<RenderTargetId> {
     *CURRENT_RENDER_TARGET.borrow()
 }
 
-static CURRENT_SHADER: Lazy<AtomicRefCell<Option<ShaderInstance>>> =
-    Lazy::new(|| AtomicRefCell::new(None));
-
-/// Switches to the shader with the given ID. The shader must already exist. To revert back to the
-/// default shader simply call `use_default_shader()`.
-pub fn use_shader(shader_id: ShaderId) {
-    *CURRENT_SHADER.borrow_mut() =
-        Some(ShaderInstance { id: shader_id, uniforms: Default::default() });
-}
-
-/// Switches back to the default shader.
-pub fn use_default_shader() {
-    *CURRENT_SHADER.borrow_mut() = None;
-}
-
-/// Returns the current `ShaderInstance` if any. Currently intended only for internal use.
-pub fn get_current_shader() -> Option<ShaderInstance> {
-    CURRENT_SHADER.borrow().clone()
-}
-
-/// Generates a new ShaderId. This is intended for internal use only.
-pub fn gen_shader_id() -> ShaderId {
-    let id = SHADER_IDS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-
-    info!("Generated ShaderId: {}", id);
-
-    ShaderId(id)
-}
-
 /// Sets a `f32` uniform value by name. The uniform must exist in the shader.
 pub fn set_uniform_f32(name: impl Into<String>, value: f32) {
     set_uniform(name, Uniform::F32(OrderedFloat(value)));
-}
-
-pub fn set_uniform(name: impl Into<String>, value: Uniform) {
-    if let Some(shader) = &mut *CURRENT_SHADER.borrow_mut() {
-        shader.uniforms.insert(name.into(), value);
-    }
 }
 
 /// Creates a new shader and returns its ID. The `source` parameter should only contain the
