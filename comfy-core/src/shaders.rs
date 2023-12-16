@@ -62,10 +62,10 @@ pub enum UniformDef {
 }
 
 impl UniformDef {
-    pub fn to_wgsl(&self) -> &'static str {
+    pub fn to_wgsl(&self) -> &str {
         match self {
             UniformDef::F32(_) => "f32",
-            UniformDef::Custom { .. } => "X",
+            UniformDef::Custom { wgsl_decl, .. } => &wgsl_decl,
         }
     }
 }

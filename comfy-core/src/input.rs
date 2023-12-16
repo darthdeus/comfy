@@ -16,6 +16,14 @@ pub fn is_mouse_button_released(button: MouseButton) -> bool {
     GLOBAL_STATE.borrow().mouse_just_released.contains(&button)
 }
 
+pub fn set_cursor_hidden(hidden: bool) {
+    GLOBAL_STATE.borrow_mut().cursor_hidden = hidden;
+}
+
+pub fn set_mouse_locked(locked: bool) {
+    GLOBAL_STATE.borrow_mut().mouse_locked = locked;
+}
+
 pub fn is_key_pressed(keycode: KeyCode) -> bool {
     GLOBAL_STATE.borrow().just_pressed.contains(&keycode)
 }

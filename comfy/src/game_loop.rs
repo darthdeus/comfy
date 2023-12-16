@@ -172,7 +172,15 @@ pub async fn run_comfy_main_async(
                     global_state.mouse_just_pressed.clear();
                     global_state.mouse_just_released.clear();
                     global_state.mouse_wheel = (0.0, 0.0);
+
+                    engine
+                        .renderer
+                        .as_ref()
+                        .unwrap()
+                        .window
+                        .set_cursor_visible(!global_state.cursor_hidden);
                 }
+
 
                 set_frame_time(frame_start.elapsed().as_secs_f32());
                 inc_frame_num();
