@@ -1,5 +1,9 @@
 # v0.4.0
 
+- Greatly improved sprite batching performance. [Comfymark] was previously
+  running at ~15 FPS drawing 120000 Comfys, and with v0.4 this is now at
+  stable 60 FPS on my machine, meaning **at least 4x improvement in sprite
+  drawing performance**.
 - `Mesh` now has a new `origin` field. This shouldn't affect most users as
   it's only exposed through `draw_mesh`.
 - Simplified `draw_mesh_ex` params, now accepting `BlendMode` instead of
