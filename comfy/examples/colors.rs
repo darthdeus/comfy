@@ -119,6 +119,7 @@ fn draw_gradient(pos: Vec2, left: Color, right: Color) {
         let pos = pos.extend(0.0);
 
         draw_mesh(Mesh {
+            origin: Vec3::ZERO,
             vertices: vec![
                 SpriteVertex::new(pos + vec3(-hw, hh, 0.0), Vec2::ZERO, left),
                 SpriteVertex::new(pos + vec3(-hw, -hh, 0.0), Vec2::ZERO, left),
