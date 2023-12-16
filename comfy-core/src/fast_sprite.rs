@@ -10,12 +10,16 @@ pub fn draw_sprite_rot(
 ) {
     let _span = span!("draw_sprite_rot");
 
-    let vertices = simple_rotated_rect(
-        position.extend(z_index as f32),
-        tint,
-        dest_size,
-        rotation,
-    );
+    let vertices = if rotation != 0.0 {
+        simple_rotated_rect(
+            position.extend(z_index as f32),
+            tint,
+            dest_size,
+            rotation,
+        )
+    } else {
+        simple_rect(position.extend(z_index as f32), tint, dest_size)
+    };
 
     const QUAD_INDICES_U32: &[u32] = &[0, 2, 1, 0, 3, 2];
 
@@ -70,6 +74,49 @@ pub fn simple_rotated_rect(
             p[3].x * r.cos() - p[3].y * r.sin(),
             p[3].x * r.sin() + p[3].y * r.cos(),
         ) + m,
+    ];
+
+    [
+        SpriteVertex::new(
+            vec3(p[0].x, p[0].y, position.z),
+            vec2(0.0, 0.0),
+            color,
+        ),
+        SpriteVertex::new(
+            vec3(p[1].x, p[1].y, position.z),
+            vec2(1.0, 0.0),
+            color,
+        ),
+        SpriteVertex::new(
+            vec3(p[2].x, p[2].y, position.z),
+            vec2(1.0, 1.0),
+            color,
+        ),
+        SpriteVertex::new(
+            vec3(p[3].x, p[3].y, position.z),
+            vec2(0.0, 1.0),
+            color,
+        ),
+    ]
+}
+
+pub fn simple_rect(
+    position: Vec3,
+    color: Color,
+    dest_size: Vec2,
+) -> [SpriteVertex; 4] {
+    let x = position.x;
+    let y = position.y;
+
+    let (w, h) = (dest_size.x, dest_size.y);
+
+    let m = vec2(w / 2.0, h / 2.0);
+
+    let p = [
+        vec2(x, y) - m,
+        vec2(x + w, y) - m,
+        vec2(x + w, y + h) - m,
+        vec2(x, y + h) - m,
     ];
 
     [

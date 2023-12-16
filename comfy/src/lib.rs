@@ -247,8 +247,5 @@ fn maybe_setup_tracy() -> tracy_client::Client {
     //         .expect("setting default subscriber failed");
     // }
 
-    // let target_framerate = if cfg!(feature = "dev") { 10000 } else { 60 };
-    // let target_framerate = if cfg!(feature = "dev") { 60 } else { 60 };
-
     tracy_client::Client::start()
 }

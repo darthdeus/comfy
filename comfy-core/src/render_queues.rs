@@ -71,7 +71,7 @@ pub fn get_current_shader() -> Option<ShaderInstanceId> {
     *CURRENT_SHADER.borrow()
 }
 
-use std::{sync::atomic::AtomicU64, collections::BTreeMap};
+use std::{collections::BTreeMap, sync::atomic::AtomicU64};
 
 static SHADER_IDS: AtomicU64 = AtomicU64::new(0);
 
@@ -106,9 +106,12 @@ static RENDER_QUEUES: Lazy<AtomicRefCell<RenderQueues>> =
 
 pub type RenderQueue = Vec<Mesh>;
 
+use fxhash::FxHashMap;
+
 #[derive(Default)]
 struct RenderQueues {
     data: BTreeMap<MeshGroupKey, RenderQueue>,
+    // data: FxHashMap<MeshGroupKey, RenderQueue>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -130,7 +133,6 @@ pub fn consume_render_queues() -> BTreeMap<MeshGroupKey, RenderQueue> {
 pub fn queue_mesh_draw(mesh: Mesh, blend_mode: BlendMode) {
     let shader = get_current_shader();
     let render_target = get_current_render_target();
-    let white_px = TextureHandle::from_path("1px");
 
     RENDER_QUEUES
         .borrow_mut()
@@ -138,7 +140,9 @@ pub fn queue_mesh_draw(mesh: Mesh, blend_mode: BlendMode) {
         .entry(MeshGroupKey {
             z_index: mesh.z_index,
             blend_mode,
-            texture_id: mesh.texture.unwrap_or(white_px),
+            texture_id: mesh
+                .texture
+                .unwrap_or_else(|| TextureHandle::from_path("1px")),
             shader,
             render_target,
         })

@@ -40,14 +40,14 @@ EXAMPLE=fragment-shader
 # default: profile-startup
 # default: bitmob
 # default: crash
-# default: benchmarks
-default: example
 # default: fun
 # default: example-wasm
 # default: wasm-egui-scaling
 # default: egui-demo
 # default: lint
 # default: test
+default: benchmarks
+# default: example
 
 # FLAGS=--features=blobs,git-version,dev,ldtk,exr
 FLAGS=--features=git-version,dev,tracy
