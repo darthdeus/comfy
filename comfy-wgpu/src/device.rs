@@ -114,7 +114,7 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
                 if game_config().vsync_enabled {
                     wgpu::PresentMode::AutoVsync
                 } else {
-                    wgpu::PresentMode::AutoNoVsync
+                    wgpu::PresentMode::Immediate
                 }
             }
         };

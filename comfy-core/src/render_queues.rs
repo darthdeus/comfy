@@ -103,10 +103,7 @@ pub fn consume_text_queue() -> Vec<DrawText> {
 static RENDER_QUEUES: Lazy<AtomicRefCell<RenderQueues>> =
     Lazy::new(|| AtomicRefCell::new(RenderQueues::default()));
 
-
 pub type RenderQueue = Vec<Mesh>;
-
-use fxhash::FxHashMap;
 
 #[derive(Default)]
 struct RenderQueues {
