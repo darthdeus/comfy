@@ -9,26 +9,6 @@ pub fn run_batched_render_passes(
 ) {
     span_with_timing!("run_batched_render_passes");
 
-    // TODO: ...
-    // TODO: ...
-    let _empty_pass = (
-        MeshGroupKey {
-            z_index: 0,
-            blend_mode: BlendMode::Alpha,
-            texture_id: TextureHandle::from_path("1px"),
-            shader: ShaderInstanceId::default(),
-            render_target: RenderTargetId::default(),
-        },
-        RenderPassData {
-            z_index: 0,
-            blend_mode: BlendMode::Alpha,
-            texture: TextureHandle::from_path("1px"),
-            shader: None,
-            render_target: None,
-            data: SmallVec::new(),
-        },
-    );
-
     let mut is_first = true;
 
     let queues = consume_render_queues();
@@ -72,7 +52,7 @@ pub fn run_batched_render_passes(
                 texture: key.texture_id,
                 shader: key.shader,
                 render_target: key.render_target,
-                data: meshes.into(),
+                data: meshes,
             },
             surface_view,
             sprite_shader_id,
@@ -152,7 +132,7 @@ pub fn run_batched_render_passes(
                 texture: TextureHandle::from_path("1px"),
                 shader: ShaderInstanceId::default(),
                 render_target: RenderTargetId::default(),
-                data: SmallVec::new(),
+                data: Default::default(),
             },
             surface_view,
             sprite_shader_id,

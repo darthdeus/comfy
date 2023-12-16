@@ -137,6 +137,7 @@ pub struct StyledGlyph {
     pub color: Option<Color>,
 }
 
+#[derive(Debug)]
 pub struct RichText {
     pub clean_text: String,
     pub styled_glyphs: Vec<StyledGlyph>,

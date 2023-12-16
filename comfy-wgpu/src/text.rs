@@ -95,10 +95,10 @@ impl TextRasterizer {
             rgba_bitmap.push(*x);
         }
 
-        println!(
-            "metrics are {} {} for '{}'",
-            metrics.width, metrics.height, c
-        );
+        // println!(
+        //     "metrics are {} {} for '{}'",
+        //     metrics.width, metrics.height, c
+        // );
 
         if !(metrics.width == 0 || metrics.height == 0) {
             let mut image =

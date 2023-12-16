@@ -209,6 +209,7 @@ impl MainCamera {
             }
 
             self.center += offset * delta * self.smoothing_speed;
+            self.center = player_position;
         }
     }
 

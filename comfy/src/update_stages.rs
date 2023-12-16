@@ -21,9 +21,9 @@ pub(crate) fn run_early_update_stages(c: &mut EngineContext) {
         set_unpaused_time(get_unpaused_time() + delta as f64);
     }
 
-    render_text(c);
     update_blood_canvas(c);
     update_camera(c);
+    render_text(c);
 
     // TODO: not ideal
     clear_background(BLACK);
@@ -179,6 +179,7 @@ fn render_text(c: &mut EngineContext) {
     ));
 
     let assets = ASSETS.borrow();
+    let px = px();
 
     for text in consume_text_queue().into_iter() {
         if let Some(pro_params) = text.pro_params {
@@ -194,28 +195,11 @@ fn render_text(c: &mut EngineContext) {
             let font_handle = pro_params.font;
             let font = assets.fonts.get(&font_handle).unwrap();
 
-            // let RichText { clean_text, styled_glyphs } =
-            //     simple_styled_text(&text.text);
-
-            // use fontdue::layout::VerticalAlign as VA;
-            // use fontdue::layout::HorizontalAlign as HA;
-
             let layout = t.layout_text(
                 font,
                 &clean_text,
                 pro_params.font_size,
-                &fontdue::layout::LayoutSettings {
-                    // vertical_align: match text.align {
-                    //     TextAlign::TopLeft => VA::Top,
-                    //     TextAlign::TopRight => VA::Top,
-                    //     TextAlign::BottomLeft => VA::Bottom,
-                    //     TextAlign::BottomRight => VA::Bottom,
-                    //     TextAlign::Center => VA::Middle,
-                    // },
-                    // vertical_align: fontdue::layout::VerticalAlign::Middle,
-                    // horizontal_align: fontdue::layout::HorizontalAlign::Center,
-                    ..Default::default()
-                },
+                &fontdue::layout::LayoutSettings { ..Default::default() },
             );
 
             let mut min_x = f32::INFINITY;
@@ -243,7 +227,7 @@ fn render_text(c: &mut EngineContext) {
             if draw_outline {
                 draw_rect_outline(
                     text.position +
-                        layout_rect.size * px() / 2.0 * vec2(1.0, -1.0),
+                        layout_rect.size * px / 2.0 * vec2(1.0, -1.0),
                     Size::screen(layout_rect.size.x, layout_rect.size.y)
                         .to_world(),
                     0.1,
@@ -267,11 +251,10 @@ fn render_text(c: &mut EngineContext) {
                     continue;
                 }
 
-                let mut pos = vec2(glyph.x, glyph.y) * px() +
+                let mut pos = vec2(glyph.x, glyph.y) * px +
                     text.position +
-                    off * layout_rect.size * px() / 2.0 +
-                    vec2(-layout_rect.size.x, layout_rect.size.y) * px() /
-                        2.0;
+                    off * layout_rect.size * px / 2.0 +
+                    vec2(-layout_rect.size.x, layout_rect.size.y) * px / 2.0;
 
                 let mut color = text.color;
 
