@@ -797,6 +797,10 @@ pub fn draw_circle(center: Vec2, r: f32, color: Color, z_index: i32) {
     draw_poly_z(center, 40, r, 0.0, color, z_index, BlendMode::Alpha);
 }
 
+pub fn draw_ellipse(center: Vec2, radius: Vec2, color: Color, z_index: i32) {
+    draw_poly2_z(center, 40, radius, 0.0, color, z_index, BlendMode::Alpha);
+}
+
 pub fn draw_circle_outline(
     center: Vec2,
     radius: f32,
@@ -1088,6 +1092,26 @@ pub fn draw_poly_z(
     z_index: i32,
     blend_mode: BlendMode,
 ) {
+    draw_poly2_z(
+        position,
+        sides,
+        Vec2::splat(radius),
+        rotation,
+        color,
+        z_index,
+        blend_mode,
+    );
+}
+
+pub fn draw_poly2_z(
+    position: Vec2,
+    sides: u8,
+    radius: Vec2,
+    rotation: f32,
+    color: Color,
+    z_index: i32,
+    blend_mode: BlendMode,
+) {
     let (x, y) = position.tuple();
     let z = z_index as f32 / Z_DIV;
 
@@ -1104,7 +1128,7 @@ pub fn draw_poly_z(
             (i as f32 / sides as f32 * std::f32::consts::PI * 2. + rot).sin();
 
         let vertex = SpriteVertex::new(
-            vec3(x + radius * rx, y + radius * ry, z),
+            vec3(x + radius.x * rx, y + radius.y * ry, z),
             vec2(rx, ry),
             color,
         );
