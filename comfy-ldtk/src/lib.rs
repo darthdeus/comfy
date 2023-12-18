@@ -124,10 +124,13 @@ pub trait LdtkEntityExtensions {
 impl LdtkEntityExtensions for EntityInstance {
     fn world_pos(&self, layer_c_hei: i64, layer_grid_size: i64) -> Vec2 {
         let grid_size = layer_grid_size as f32;
+        let entity_size = self.world_size(layer_grid_size);
+
         vec2(
             self.px[0] as f32,
             (layer_c_hei as f32 - 1.0) * grid_size - self.px[1] as f32,
         ) / grid_size
+            + vec2(entity_size.x, -entity_size.y) / 2.0
     }
 
     fn world_size(&self, layer_grid_size: i64) -> Vec2 {
