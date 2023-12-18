@@ -106,7 +106,8 @@ impl BloodCanvas {
         let assets = ASSETS.borrow_mut();
         let image_map = assets.texture_image_map.lock();
 
-        if let Some(image) = image_map.get(&texture).clone() {
+        // TODO: bad bad bad & unnecessary
+        if let Some(image) = image_map.get(&texture).cloned() {
             let rect = source_rect.unwrap_or(IRect::new(
                 ivec2(0, 0),
                 ivec2(image.width() as i32, image.height() as i32),
