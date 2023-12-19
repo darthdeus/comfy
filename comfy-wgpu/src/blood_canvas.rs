@@ -56,6 +56,22 @@ pub fn blood_canvas_blit_at(
     );
 }
 
+pub fn blood_canvas_blit_at_sized(
+    texture: TextureHandle,
+    position: Vec2,
+    source_rect: Option<IRect>,
+    tint: Color,
+    size: Vec2,
+) {
+    BLOOD_CANVAS.get().unwrap().borrow_mut().blit_at_sized(
+        texture,
+        position,
+        source_rect,
+        tint,
+        size,
+    );
+}
+
 // TODO: move this out of blood_canvas
 #[derive(Debug)]
 pub struct WgpuTextureCreator {

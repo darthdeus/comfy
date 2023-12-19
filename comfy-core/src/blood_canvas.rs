@@ -96,6 +96,53 @@ impl BloodCanvas {
         );
     }
 
+    pub fn blit_at_sized(
+        &mut self,
+        texture: TextureHandle,
+        position: Vec2,
+        source_rect: Option<IRect>,
+        tint: Color,
+        dest_size: Vec2,
+    ) {
+        let assets = ASSETS.borrow_mut();
+        let image_map = assets.texture_image_map.lock();
+
+        if let Some(image) = image_map.get(&texture).cloned() {
+            drop(image_map);
+            drop(assets);
+
+            let source = source_rect.unwrap_or(IRect::new(
+                ivec2(0, 0),
+                ivec2(image.width() as i32, image.height() as i32),
+            ));
+
+            // Calculate scaling factors
+            let scale_x = dest_size.x / source.size.x as f32;
+            let scale_y = dest_size.y / source.size.y as f32;
+
+            for x in 0..dest_size.x as i32 {
+                for y in 0..dest_size.y as i32 {
+                    // Determine the corresponding pixel in the source image
+                    let src_x =
+                        ((x as f32 / scale_x) + source.offset.x as f32) as u32;
+                    let src_y =
+                        ((y as f32 / scale_y) + source.offset.y as f32) as u32;
+
+                    if src_x < image.width() && src_y < image.height() {
+                        let px = image.get_pixel(src_x, src_y);
+
+                        if px.0[3] > 0 {
+                            self.set_pixel(
+                                position + vec2(x as f32, y as f32) / 16.0,
+                                Into::<Color>::into(px) * tint,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn blit_at(
         &mut self,
         texture: TextureHandle,
@@ -106,8 +153,10 @@ impl BloodCanvas {
         let assets = ASSETS.borrow_mut();
         let image_map = assets.texture_image_map.lock();
 
-        // TODO: bad bad bad & unnecessary
         if let Some(image) = image_map.get(&texture).cloned() {
+            drop(image_map);
+            drop(assets);
+
             let rect = source_rect.unwrap_or(IRect::new(
                 ivec2(0, 0),
                 ivec2(image.width() as i32, image.height() as i32),
@@ -126,9 +175,7 @@ impl BloodCanvas {
                         self.set_pixel(
                             position + vec2(x as f32, y as f32) / 16.0 -
                                 size_offset / 16.0,
-                            // position,
                             Into::<Color>::into(px) * tint,
-                            // RED,
                         );
                     }
                 }
