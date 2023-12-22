@@ -185,42 +185,12 @@ fn render_text(c: &mut EngineContext) {
         if let Some(pro_params) = text.pro_params {
             let mut t = c.renderer.text.borrow_mut();
 
-            let (clean_text, styled_glyphs) = match text.text {
-                TextData::Raw(raw_text) => (raw_text, None),
-                TextData::Rich(rich_text) => {
-                    (rich_text.clean_text, Some(rich_text.styled_glyphs))
-                }
-            };
-
             let font_handle = pro_params.font;
             let font = assets.fonts.get(&font_handle).unwrap();
+            let font_size = pro_params.font_size;
 
-            let layout = t.layout_text(
-                font,
-                &clean_text,
-                pro_params.font_size,
-                &fontdue::layout::LayoutSettings { ..Default::default() },
-            );
-
-            let mut min_x = f32::INFINITY;
-            let mut min_y = f32::INFINITY;
-            let mut max_x = f32::NEG_INFINITY;
-            let mut max_y = f32::NEG_INFINITY;
-
-            for glyph in layout.glyphs() {
-                let glyph_min_x = glyph.x;
-                let glyph_min_y = glyph.y;
-                let glyph_max_x = glyph.x + glyph.width as f32;
-                let glyph_max_y = glyph.y + glyph.height as f32;
-
-                min_x = min_x.min(glyph_min_x);
-                min_y = min_y.min(glyph_min_y);
-                max_x = max_x.max(glyph_max_x);
-                max_y = max_y.max(glyph_max_y);
-            }
-
-            let layout_rect =
-                Rect::from_min_max(vec2(min_x, min_y), vec2(max_x, max_y));
+            let (layout, layout_rect, styled_glyphs) =
+                t.calculate_text_layout(&assets, text.text, pro_params);
 
             let draw_outline = false;
 
@@ -274,12 +244,8 @@ fn render_text(c: &mut EngineContext) {
                 // let pos = vec2(glyph.x, glyph.y + glyph.height as f32) * px() +
                 //     text.position;
 
-                let (texture, allocation) = t.get_glyph(
-                    font_handle,
-                    font,
-                    pro_params.font_size,
-                    glyph.parent,
-                );
+                let (texture, allocation) =
+                    t.get_glyph(font_handle, font, font_size, glyph.parent);
                 assert_ne!(texture, texture_id("1px"));
 
                 let mut source_rect = allocation;
