@@ -72,7 +72,7 @@ impl CachedImageLoader {
             let handle = ctx.load_texture(
                 path,
                 egui_image,
-                egui::TextureOptions::LINEAR,
+                egui::TextureOptions::NEAREST,
             );
 
             // let texture_id = ctx.add_image(handle);
