@@ -29,6 +29,7 @@ pub fn draw_sprite_rot(
         indices: QUAD_INDICES_U32.into(),
         z_index,
         texture: Some(texture),
+        y_sort_offset: 0.0,
     };
 
     draw_mesh_ex(mesh, BlendMode::None);

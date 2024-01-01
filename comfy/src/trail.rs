@@ -267,6 +267,7 @@ impl Trail {
                 indices: indices.into(),
                 z_index: self.z_index,
                 texture: Some(tex),
+                y_sort_offset: 0.0,
             },
             BlendMode::Additive,
         );
