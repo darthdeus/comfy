@@ -145,6 +145,7 @@ pub fn draw_sprite_ex(
         indices: QUAD_INDICES_U32.into(),
         z_index,
         texture: Some(texture),
+        y_sort_offset: params.y_sort_offset,
     };
 
     draw_mesh_ex(mesh, params.blend_mode);
@@ -326,6 +327,7 @@ pub fn draw_sprite_pro(
         indices: QUAD_INDICES_U32.into(),
         z_index,
         texture: Some(texture),
+        y_sort_offset: params.y_sort_offset,
     };
 
     draw_mesh_ex(mesh, params.blend_mode);
@@ -373,6 +375,7 @@ pub fn draw_rectangle_z_tex(
             indices: indices.into(),
             z_index,
             texture,
+            y_sort_offset: 0.0,
         },
         blend_mode,
     );
@@ -469,6 +472,7 @@ pub fn draw_rect_outline(
         indices: indices.into(),
         z_index,
         texture: None,
+        y_sort_offset: 0.0,
     });
 }
 
@@ -591,6 +595,7 @@ pub fn draw_rect_corners(
         indices: indices.into(),
         z_index,
         texture: None,
+        y_sort_offset: 0.0,
     });
 }
 
@@ -795,6 +800,7 @@ pub fn draw_rect_outline_rot(
         indices: indices.into(),
         z_index,
         texture: None,
+        y_sort_offset: 0.0,
     });
 }
 
@@ -884,6 +890,7 @@ pub fn draw_circle_outline(
         indices: indices.into(),
         z_index,
         texture: None,
+        y_sort_offset: 0.0,
     })
 }
 
@@ -1022,6 +1029,7 @@ pub fn draw_line_tex_y_uv_flex(
             indices: indices.into(),
             z_index,
             texture,
+            y_sort_offset: 0.0,
         },
         blend_mode,
     )
@@ -1081,6 +1089,7 @@ pub fn draw_line_tex(
         indices: indices.into(),
         z_index,
         texture,
+        y_sort_offset: 0.0,
     })
 }
 
@@ -1274,6 +1283,7 @@ pub fn draw_arc_outline(
         indices: indices.into(),
         z_index,
         texture: None,
+        y_sort_offset: 0.0,
     })
 }
 
@@ -1405,6 +1415,7 @@ pub struct DrawTextureParams {
     pub flip_y: bool,
     pub pivot: Option<Vec2>,
     pub blend_mode: BlendMode,
+    pub y_sort_offset: f32,
 }
 
 impl Default for DrawTextureParams {
@@ -1418,6 +1429,7 @@ impl Default for DrawTextureParams {
             flip_x: false,
             flip_y: false,
             blend_mode: BlendMode::None,
+            y_sort_offset: 0.0,
         }
     }
 }
@@ -1503,6 +1515,7 @@ pub fn draw_line_tex_y_uv(
             indices: indices.into(),
             z_index: 0,
             texture,
+            y_sort_offset: 0.0,
         },
         blend_mode,
     )
