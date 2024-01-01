@@ -132,6 +132,7 @@ fn draw_gradient(pos: Vec2, left: Color, right: Color) {
             // indices: vec![3, 2, 0, 1, 3, 0].into(),
             texture: None,
             z_index: 0,
+            y_sort_offset: 0.0,
         });
     }
 
