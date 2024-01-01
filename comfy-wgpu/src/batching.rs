@@ -40,7 +40,9 @@ pub fn run_batched_render_passes(
 
         // TODO: add this back later
         if get_y_sort(key.z_index) {
-            meshes.sort_by_key(|mesh| OrderedFloat::<f32>(-mesh.origin.y));
+            meshes.sort_by_key(|mesh| {
+                OrderedFloat::<f32>(-(mesh.origin.y + mesh.y_sort_offset))
+            });
         }
 
         render_meshes(

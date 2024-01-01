@@ -633,6 +633,7 @@ pub struct Mesh {
     pub indices: SmallVec<[u32; 6]>,
     pub z_index: i32,
     pub texture: Option<TextureHandle>,
+    pub y_sort_offset: f32,
 }
 
 #[repr(C)]

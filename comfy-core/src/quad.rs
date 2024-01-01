@@ -185,6 +185,10 @@ pub struct DrawTextureProParams {
     pub blend_mode: BlendMode,
     /// Rotation around the x axis for creating a 3d effect.
     pub rotation_x: f32,
+    /// Offset for y-sorting in world-space. This is useful for when sprites have different
+    /// sizes and pivots, for example when a tree should be "behind" something based on its bottom-most
+    /// pixel, and not based on its size.
+    pub y_sort_offset: f32,
 }
 
 impl Default for DrawTextureProParams {
@@ -199,6 +203,7 @@ impl Default for DrawTextureProParams {
             flip_y: false,
             blend_mode: Default::default(),
             rotation_x: 0.0,
+            y_sort_offset: 0.0,
         }
     }
 }
