@@ -17,6 +17,8 @@ pub struct AnimatedSprite {
     pub offset: Vec2,
 
     pub on_finished: ContextFn,
+
+    pub y_sort_offset: f32,
 }
 
 impl AnimatedSprite {
@@ -171,6 +173,7 @@ impl AnimatedSprite {
             rotation_x: self.rotation_x,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
+            y_sort_offset: self.y_sort_offset,
         }
     }
 }
@@ -217,6 +220,7 @@ pub struct AnimatedSpriteBuilder {
     pub blend_mode: BlendMode,
     pub offset: Vec2,
     pub on_finished: Option<ContextFn>,
+    pub y_sort_offset: f32,
 }
 
 impl AnimatedSpriteBuilder {
@@ -233,6 +237,7 @@ impl AnimatedSpriteBuilder {
             blend_mode: BlendMode::None,
             offset: Vec2::ZERO,
             on_finished: None,
+            y_sort_offset: 0.0,
         }
     }
 
@@ -268,6 +273,11 @@ impl AnimatedSpriteBuilder {
 
     pub fn blend_mode(mut self, blend_mode: BlendMode) -> Self {
         self.blend_mode = blend_mode;
+        self
+    }
+
+    pub fn y_sort_offset(mut self, y_sort_offset: f32) -> Self {
+        self.y_sort_offset = y_sort_offset;
         self
     }
 
@@ -349,6 +359,7 @@ impl AnimatedSpriteBuilder {
             blend_mode: self.blend_mode,
             offset: self.offset,
             on_finished: self.on_finished.unwrap_or_else(|| Box::new(|_| {})),
+            y_sort_offset: self.y_sort_offset,
         }
     }
 }

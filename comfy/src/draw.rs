@@ -12,6 +12,7 @@ pub struct QuadDraw {
     pub rotation_x: f32,
     pub flip_x: bool,
     pub flip_y: bool,
+    pub y_sort_offset: f32,
 }
 
 // // TODO: move this into quad

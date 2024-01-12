@@ -14,6 +14,8 @@ pub struct Sprite {
 
     pub flip_x: bool,
     pub flip_y: bool,
+
+    y_sort_offset: f32,
 }
 
 impl Sprite {
@@ -34,6 +36,7 @@ impl Sprite {
             rotation_x: 0.0,
             flip_x: false,
             flip_y: false,
+            y_sort_offset: 0.0,
         }
     }
 
@@ -53,6 +56,10 @@ impl Sprite {
         Self { z_index, ..self }
     }
 
+    pub fn with_y_sort_offset(self, y_sort_offset: f32) -> Self {
+        Self { y_sort_offset, ..self }
+    }
+
     pub fn set_rect(self, source_rect: Option<IRect>) -> Self {
         Self { source_rect, ..self }
     }
@@ -69,6 +76,7 @@ impl Sprite {
             rotation_x: self.rotation_x,
             flip_x: self.flip_x,
             flip_y: self.flip_y,
+            y_sort_offset: self.y_sort_offset,
         }
     }
 }

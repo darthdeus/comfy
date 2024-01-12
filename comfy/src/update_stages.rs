@@ -566,6 +566,7 @@ fn process_sprite_queue() {
                     blend_mode: draw.blend_mode,
                     flip_x: draw.flip_x,
                     flip_y: draw.flip_y,
+                    y_sort_offset: draw.y_sort_offset,
                     ..Default::default()
                 },
             );
