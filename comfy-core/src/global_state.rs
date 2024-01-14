@@ -24,6 +24,7 @@ static UNPAUSED_TIME: AtomicU64 =
 
 static ASSETS_QUEUED: AtomicUsize = AtomicUsize::new(0);
 static ASSETS_LOADED: AtomicUsize = AtomicUsize::new(0);
+static ASSETS_LOADED_THIS_FRAME: AtomicUsize = AtomicUsize::new(0);
 
 /// Returns the total number of assets queued for loading
 /// by the parallel asset loader.
@@ -46,9 +47,14 @@ pub fn assets_loaded() -> usize {
 }
 
 pub fn inc_assets_loaded(newly_loaded_count: usize) {
-    ASSETS_LOADED.fetch_add(newly_loaded_count, Ordering::SeqCst);
+    ASSETS_LOADED_THIS_FRAME.fetch_add(newly_loaded_count, Ordering::SeqCst);
 }
 
+pub fn apply_assets_loaded_this_frame() {
+    let assets_loaded_this_frame =
+        ASSETS_LOADED_THIS_FRAME.swap(0, Ordering::SeqCst);
+    ASSETS_LOADED.fetch_add(assets_loaded_this_frame, Ordering::SeqCst);
+}
 
 pub fn frame_time() -> f32 {
     f32::from_bits(FRAME_TIME.load(Ordering::SeqCst))
