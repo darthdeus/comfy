@@ -109,7 +109,8 @@ pub struct Assets {
     pub textures: HashMap<String, TextureHandle>,
     // pub texture_load_bytes_queue: Vec<String>,
     // TODO: private & fix?
-    pub texture_image_map: Arc<Mutex<HashMap<TextureHandle, image::RgbaImage>>>,
+    pub texture_image_map:
+        Arc<Mutex<HashMap<TextureHandle, Arc<image::RgbaImage>>>>,
 
     pub sound_ids: HashMap<String, Sound>,
     pub sounds: Arc<Mutex<HashMap<Sound, StaticSoundData>>>,
@@ -318,7 +319,7 @@ impl Assets {
     pub fn load_image_data(
         path: &str,
         texture: TextureHandle,
-    ) -> Option<RgbaImage> {
+    ) -> Option<Arc<RgbaImage>> {
         let assets = ASSETS.borrow();
 
         let image_map = assets.texture_image_map.lock();

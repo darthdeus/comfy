@@ -99,7 +99,11 @@ pub fn load_texture_with_image(
     );
 
     ASSETS.borrow_mut().insert_handle(name, handle);
-    ASSETS.borrow_mut().texture_image_map.lock().insert(handle, img.to_rgba8());
+    ASSETS
+        .borrow_mut()
+        .texture_image_map
+        .lock()
+        .insert(handle, Arc::new(img.to_rgba8()));
     textures.insert(handle, BindableTexture { bind_group, texture });
 }
 

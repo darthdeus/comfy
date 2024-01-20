@@ -86,7 +86,7 @@ impl AssetLoader {
 
     pub fn parse_texture_byte_queue(
         &mut self,
-        texture_image_map: Arc<Mutex<HashMap<TextureHandle, RgbaImage>>>,
+        texture_image_map: Arc<Mutex<HashMap<TextureHandle, Arc<RgbaImage>>>>,
     ) {
         let _span = span!("parse_texture_byte_queue");
 
@@ -101,7 +101,7 @@ impl AssetLoader {
                     Ok(image) => {
                         image_map
                             .lock()
-                            .insert(request.handle, image.to_rgba8());
+                            .insert(request.handle, Arc::new(image.to_rgba8()));
 
                         inc_assets_loaded(1);
 

@@ -119,7 +119,7 @@ impl TextureCreator for WgpuTextureCreator {
 
         let assets = ASSETS.borrow_mut();
         let mut image_map = assets.texture_image_map.lock();
-        image_map.insert(handle, image.clone());
+        image_map.insert(handle, Arc::new(image.clone()));
 
         handle
     }
