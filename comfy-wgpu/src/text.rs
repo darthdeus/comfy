@@ -160,7 +160,7 @@ impl TextRasterizer {
                 }
             }
 
-            let image = DynamicImage::ImageRgba8(image).flipv();
+            let image = DynamicImage::ImageRgba8(image).flipv().to_rgba8();
 
             let pad = 2;
 

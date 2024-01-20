@@ -1,11 +1,11 @@
 use crate::*;
 
-use image::{GenericImage, GenericImageView, RgbaImage};
+use image::RgbaImage;
 use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct CanvasBlock {
-    pub image: DynamicImage,
+    pub image: RgbaImage,
     pub handle: TextureHandle,
     pub modified: bool,
 }
@@ -44,7 +44,8 @@ impl BloodCanvas {
             let image = DynamicImage::ImageRgba8(RgbaImage::new(
                 BLOCK_SIZE as u32,
                 BLOCK_SIZE as u32,
-            ));
+            ))
+            .to_rgba8();
 
             let name = format!("blood-canvas-{}-{}", x, y);
 
@@ -134,7 +135,7 @@ impl BloodCanvas {
                         if px.0[3] > 0 {
                             self.set_pixel(
                                 position + vec2(x as f32, y as f32) / 16.0,
-                                Into::<Color>::into(px) * tint,
+                                Into::<Color>::into(*px) * tint,
                             );
                         }
                     }
@@ -175,7 +176,7 @@ impl BloodCanvas {
                         self.set_pixel(
                             position + vec2(x as f32, y as f32) / 16.0 -
                                 size_offset / 16.0,
-                            Into::<Color>::into(px) * tint,
+                            Into::<Color>::into(*px) * tint,
                         );
                     }
                 }
@@ -192,17 +193,14 @@ pub trait TextureCreator: Debug {
         fill: Color,
     ) -> TextureHandle;
 
-    fn handle_from_image(
-        &self,
-        name: &str,
-        image: &DynamicImage,
-    ) -> TextureHandle;
+    fn handle_from_image(&self, name: &str, image: &RgbaImage)
+        -> TextureHandle;
 
-    fn update_texture(&self, image: &DynamicImage, texture: TextureHandle);
+    fn update_texture(&self, image: &RgbaImage, texture: TextureHandle);
     fn update_texture_region(
         &self,
         handle: TextureHandle,
-        image: &DynamicImage,
+        image: &RgbaImage,
         region: IRect,
     );
 }

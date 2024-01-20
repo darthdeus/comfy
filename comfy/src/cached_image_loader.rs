@@ -61,7 +61,7 @@ impl CachedImageLoader {
             let (width, height) =
                 (image.width() as usize, image.height() as usize);
 
-            let rgba = image.into_rgba8();
+            let rgba = image;
             let image_data = rgba.as_raw();
 
             let egui_image = egui::ColorImage::from_rgba_unmultiplied(

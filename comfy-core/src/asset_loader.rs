@@ -1,3 +1,5 @@
+use image::RgbaImage;
+
 use crate::*;
 use std::sync::mpsc::{Receiver, Sender};
 
@@ -84,7 +86,7 @@ impl AssetLoader {
 
     pub fn parse_texture_byte_queue(
         &mut self,
-        texture_image_map: Arc<Mutex<HashMap<TextureHandle, DynamicImage>>>,
+        texture_image_map: Arc<Mutex<HashMap<TextureHandle, RgbaImage>>>,
     ) {
         let _span = span!("parse_texture_byte_queue");
 
@@ -97,7 +99,9 @@ impl AssetLoader {
 
                 let item = match image {
                     Ok(image) => {
-                        image_map.lock().insert(request.handle, image.clone());
+                        image_map
+                            .lock()
+                            .insert(request.handle, image.to_rgba8());
 
                         inc_assets_loaded(1);
 

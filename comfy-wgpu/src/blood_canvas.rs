@@ -1,6 +1,6 @@
 use crate::*;
 pub use comfy_core::*;
-use image::{GenericImageView, ImageBuffer};
+use image::{ImageBuffer, RgbaImage};
 
 pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
 
@@ -91,22 +91,22 @@ impl TextureCreator for WgpuTextureCreator {
         let buffer =
             ImageBuffer::from_pixel(size.x, size.y, color.to_image_rgba());
 
-        let image = DynamicImage::ImageRgba8(buffer);
-
-        self.handle_from_image(name, &image)
+        self.handle_from_image(name, &buffer)
     }
 
     fn handle_from_image(
         &self,
         name: &str,
-        image: &DynamicImage,
+        image: &RgbaImage,
     ) -> TextureHandle {
         let dims = image.dimensions();
         assert!(dims.0 > 0 && dims.1 > 0);
 
+        let dynamic_image = DynamicImage::ImageRgba8(image.clone());
+
         let texture =
             // Texture::from_image_uninit(&self.device, image, Some(name))
-            Texture::from_image(&self.device, &self.queue, image, Some(name), false)
+            Texture::from_image(&self.device, &self.queue, &dynamic_image, Some(name), false)
                 .unwrap();
 
         let bind_group =
@@ -127,7 +127,7 @@ impl TextureCreator for WgpuTextureCreator {
     fn update_texture_region(
         &self,
         handle: TextureHandle,
-        image: &DynamicImage,
+        image: &RgbaImage,
         region: IRect,
     ) {
         // assert_eq!(region.size.x, image.width() as i32);
@@ -153,7 +153,7 @@ impl TextureCreator for WgpuTextureCreator {
                     z: 0,
                 },
             },
-            &image.to_rgba8(),
+            &image,
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * image.width()),
@@ -163,7 +163,7 @@ impl TextureCreator for WgpuTextureCreator {
         );
     }
 
-    fn update_texture(&self, image: &DynamicImage, handle: TextureHandle) {
+    fn update_texture(&self, image: &RgbaImage, handle: TextureHandle) {
         let size = wgpu::Extent3d {
             width: image.width(),
             height: image.height(),
@@ -180,7 +180,7 @@ impl TextureCreator for WgpuTextureCreator {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            &image.to_rgba8(),
+            &image,
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * image.width()),
