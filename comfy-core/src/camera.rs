@@ -7,6 +7,11 @@ pub static MAIN_CAMERA: Lazy<AtomicRefCell<MainCamera>> =
 
 pub const LINE_W: f32 = 2.0;
 
+pub static CAMERA_BOUNDS: AtomicCell<Rect> = AtomicCell::new(Rect {
+    center: Vec2::ZERO,
+    size: Vec2 { x: 30.0, y: 30.0 },
+});
+
 static PX: AtomicU32 =
     AtomicU32::new(unsafe { std::mem::transmute(0.0347f32) });
 
@@ -211,6 +216,9 @@ impl MainCamera {
             self.center += offset * delta * self.smoothing_speed;
             self.center = player_position;
         }
+
+        CAMERA_BOUNDS
+            .store(Rect { center: self.center, size: self.world_viewport() });
     }
 
     pub fn push_center(&mut self, new_center: Vec2, new_zoom: f32) {

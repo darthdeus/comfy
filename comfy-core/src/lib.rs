@@ -523,6 +523,18 @@ impl Rect {
     pub fn h(&self) -> f32 {
         self.size.y
     }
+
+    pub fn expand(self, size: Vec2) -> Self {
+        Self { center: self.center, size: self.size + size }
+    }
+
+    pub fn contains(&self, point: Vec2) -> bool {
+        rect_contains(self.center, self.size, point)
+    }
+
+    pub fn contains_rect_safe(&self, point: Vec2, size: Vec2) -> bool {
+        self.expand(size).contains(point)
+    }
 }
 
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]

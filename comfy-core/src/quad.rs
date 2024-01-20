@@ -1,6 +1,25 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use crate::*;
 
 const Z_DIV: f32 = 1000.0;
+static SPRITE_CULLING_ENABLED: AtomicBool = AtomicBool::new(true);
+
+/// When set to `true` (default) sprites that are outside of the camera's viewport will
+/// not be drawn. This only affects sprites that are drawn using `draw_sprite_pro`, or using
+/// the `Sprite/AnimatedSprite` components.
+///
+/// Setting this to `false` disables this completely.
+///
+/// This setting has no effect
+pub fn set_sprite_culling(enabled: bool) {
+    SPRITE_CULLING_ENABLED.store(enabled, Ordering::SeqCst);
+}
+
+/// Returns the current setting of sprite culling.
+pub fn get_sprite_culling() -> bool {
+    SPRITE_CULLING_ENABLED.load(Ordering::SeqCst)
+}
 
 pub fn splat(v: f32) -> Vec2 {
     Vec2::splat(v)
@@ -98,7 +117,6 @@ pub fn draw_sprite(
     draw_sprite_rot(texture, position, tint, z_index, 0.0, world_size);
 }
 
-
 pub fn draw_sprite_ex(
     texture: TextureHandle,
     position: Vec2,
@@ -116,6 +134,13 @@ pub fn draw_sprite_ex(
         flip_y: params.flip_y,
         pivot: params.pivot,
     };
+
+    // if !CAMERA_BOUNDS
+    //     .load()
+    //     .contains_rect(position, raw.dest_size.unwrap_or(Vec2::ONE))
+    // {
+    //     return;
+    // }
 
     let size = match Assets::image_size(texture) {
         ImageSizeResult::Loaded(size) => size,
@@ -217,6 +242,12 @@ pub fn draw_sprite_pro(
     params: DrawTextureProParams,
 ) {
     let _span = span!("draw_sprite_pro");
+
+    if SPRITE_CULLING_ENABLED.load(Ordering::SeqCst) {
+        if !CAMERA_BOUNDS.load().contains_rect_safe(position, params.size) {
+            return;
+        }
+    }
 
     fn rotate_point_around_pivot(point: Vec2, pivot: Vec2, angle: f32) -> Vec2 {
         let s = angle.sin();

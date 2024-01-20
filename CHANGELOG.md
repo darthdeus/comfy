@@ -9,6 +9,15 @@
 - Simplified `draw_mesh_ex` params, now accepting `BlendMode` instead of
   `TextureParams` containing only `BlendMode`. There will be further breaking changes
   around this API in the future, but none that should be complex for users to migrate.
+- Greatly improved performance of blood canvas when a large number of writes are perfomed.
+  Also greatly improved performance of `blood_canvas_blit_at` by roughly 5x, depending
+  on the blitted sprite.
+- Added sprite culling for `draw_sprite_pro`, `Sprite` and `AnimatedSprite`. This is now
+  enabled by default and uses the `main_camera().viewport` to determine if the sprite
+  is visible. The check is performed a bit conservatively to avoid issues. If you want to
+  disable this for whatever reason, simply `set_cull_sprites(false)`. This can be toggled
+  at runtime as much as you want and won't affect performance. You can get the current value
+  with `get_sprite_culling`, e.g. if you wish to build an inspector window to control this.
 
 # v0.3.0
 
