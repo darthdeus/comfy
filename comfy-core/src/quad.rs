@@ -1375,12 +1375,23 @@ pub fn draw_arrow(
     color: Color,
     z_index: i32,
 ) {
-    let dir = end - start;
-
-    let angle = dir.angle();
-
     let len = 0.8;
     let spread = 0.15 * PI;
+
+    draw_arrow_pro(start, end, thickness, color, z_index, len, spread);
+}
+
+pub fn draw_arrow_pro(
+    start: Vec2,
+    end: Vec2,
+    thickness: f32,
+    color: Color,
+    z_index: i32,
+    len: f32,
+    spread: f32,
+) {
+    let dir = end - start;
+    let angle = dir.angle();
 
     // draw the arrow head
     draw_ray(
