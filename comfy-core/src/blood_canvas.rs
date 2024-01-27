@@ -173,6 +173,8 @@ impl BloodCanvas {
         flip_x: bool,
         flip_y: bool,
     ) {
+        let tint = tint.to_srgb();
+
         let assets = ASSETS.borrow_mut();
         let image_map = assets.texture_image_map.lock();
 
@@ -200,17 +202,17 @@ impl BloodCanvas {
                         read_y = rect.offset.y + rect.size.y - y - 1;
                     }
 
-                    let px = image.get_pixel(read_x as u32, read_y as u32);
+                    let src_px = image.get_pixel(read_x as u32, read_y as u32);
 
-                    if px.0[3] > 0 {
+                    if src_px.0[3] > 0 {
                         let px_pos = position + vec2(x as f32, y as f32) / 16.0 -
                             size_offset / 16.0;
 
                         if tint.a < 1.0 {
                             let existing = self.get_pixel(px_pos);
 
-                            let tinted =
-                                Into::<Color>::into(*px) * tint.alpha(1.0);
+                            let tinted = Into::<Color>::into(*src_px)
+                                .linear_space_tint(tint.alpha(1.0));
 
                             self.set_pixel(
                                 px_pos,
@@ -219,7 +221,8 @@ impl BloodCanvas {
                         } else {
                             self.set_pixel(
                                 px_pos,
-                                Into::<Color>::into(*px) * tint,
+                                Into::<Color>::into(*src_px)
+                                    .linear_space_tint(tint),
                             );
                         }
                     }

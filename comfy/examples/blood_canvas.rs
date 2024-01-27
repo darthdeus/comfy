@@ -50,6 +50,7 @@ fn setup(c: &mut EngineContext) {
         Player,
         AnimatedSpriteBuilder::new()
             .z_index(10)
+            .color(DARKRED)
             .add_animation("idle", 0.1, true, AnimationSource::Atlas {
                 name: "player".into(),
                 offset: ivec2(0, 0),

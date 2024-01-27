@@ -770,6 +770,37 @@ impl Color {
         Vec4::new(self.r, self.g, self.b, self.a)
     }
 
+    pub fn gamma_space_tint(self, tint: Color) -> Color {
+        let gamma_a = self.to_srgb();
+        let gamma_b = tint.to_srgb();
+
+        let result = gamma_a * gamma_b;
+
+        result.to_linear()
+    }
+
+    pub fn linear_space_tint(self, tint: Color) -> Color {
+        let lin_a = self.to_linear();
+        let lin_b = tint.to_linear();
+
+        let result = lin_a * lin_b;
+
+        result.to_srgb()
+    }
+
+    pub fn to_linear(self) -> Color {
+        Color::new(self.r.powf(2.2), self.g.powf(2.2), self.b.powf(2.2), self.a)
+    }
+
+    pub fn to_srgb(self) -> Color {
+        Color::new(
+            self.r.powf(1.0 / 2.2),
+            self.g.powf(1.0 / 2.2),
+            self.b.powf(1.0 / 2.2),
+            self.a,
+        )
+    }
+
     pub fn to_array(self) -> [u8; 4] {
         [
             (self.r * 255.0) as u8,
