@@ -67,8 +67,6 @@ pub fn set_time_scale(value: f32) {
 }
 
 pub fn delta() -> f32 {
-    // TODO: remove !!!!
-    span_with_timing!("delta");
     f32::from_bits(DELTA.load(Ordering::SeqCst)) * time_scale()
 }
 
