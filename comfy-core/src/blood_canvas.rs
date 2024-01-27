@@ -189,10 +189,18 @@ impl BloodCanvas {
 
             for x in 0..rect.size.x {
                 for y in 0..rect.size.y {
-                    let px = image.get_pixel(
-                        (x + rect.offset.x) as u32,
-                        (y + rect.offset.y) as u32,
-                    );
+                    let mut read_x = x + rect.offset.x;
+                    let mut read_y = y + rect.offset.y;
+
+                    if flip_x {
+                        read_x = rect.offset.x + rect.size.x - x - 1;
+                    }
+
+                    if !flip_y {
+                        read_y = rect.offset.y + rect.size.y - y - 1;
+                    }
+
+                    let px = image.get_pixel(read_x as u32, read_y as u32);
 
                     if px.0[3] > 0 {
                         let px_pos = position + vec2(x as f32, y as f32) / 16.0 -
@@ -214,8 +222,6 @@ impl BloodCanvas {
                                 Into::<Color>::into(*px) * tint,
                             );
                         }
-
-                        // self.set_pixel(px_pos, Into::<Color>::into(*px) * tint);
                     }
                 }
             }

@@ -58,6 +58,24 @@ pub fn blood_canvas_blit_at(
     );
 }
 
+pub fn blood_canvas_blit_at_pro(
+    texture: TextureHandle,
+    position: Vec2,
+    source_rect: Option<IRect>,
+    tint: Color,
+    flip_x: bool,
+    flip_y: bool,
+) {
+    BLOOD_CANVAS.get().unwrap().borrow_mut().blit_at(
+        texture,
+        position,
+        source_rect,
+        tint,
+        flip_x,
+        flip_y,
+    );
+}
+
 pub fn blood_canvas_blit_at_sized(
     texture: TextureHandle,
     position: Vec2,

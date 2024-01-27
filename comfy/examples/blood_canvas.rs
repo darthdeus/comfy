@@ -81,11 +81,13 @@ fn update(_c: &mut EngineContext) {
     }
 
     if is_mouse_button_pressed(MouseButton::Right) {
-        blood_canvas_blit_at(
+        blood_canvas_blit_at_pro(
             texture_id("error"),
             mouse_world(),
             None,
-            RED.alpha(0.5),
+            RED.alpha(0.7),
+            flip_coin(0.5),
+            flip_coin(0.5),
         );
     }
 
@@ -126,7 +128,11 @@ fn update(_c: &mut EngineContext) {
             animated_sprite.play("idle");
         }
 
-        if is_key_pressed(KeyCode::Space) {}
+        if is_key_pressed(KeyCode::Space) {
+            blood_canvas_blit_quad_draw(
+                animated_sprite.to_quad_draw(transform),
+            );
+        }
 
         main_camera_mut().center = transform.position;
     }

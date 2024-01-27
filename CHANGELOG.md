@@ -20,7 +20,11 @@
   with `get_sprite_culling`, e.g. if you wish to build an inspector window to control this.
 - Added `enable_child_transforms` on `GameConfig` allowing the user to disable child/parent
   transform update. If you have a lot of entities (10k+) but aren't using child transforms,
-  setting this to false may give you extra few percent of free performance. This is enabled by default.
+  setting this to false may give you extra few percent of free performance. This is enabled
+  by default.
+- Added `flip_x/y` and `blood_canvas_blit_at_pro` which allows blitting sprites with arbitrary
+  flipping. Note that this also fixes a long standing bug when in some cases sprites would be
+  blitted flipped upside down.
 
 # v0.3.0
 
