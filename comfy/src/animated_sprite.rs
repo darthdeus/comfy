@@ -158,8 +158,10 @@ impl AnimatedSprite {
     pub fn with_blend_mode(self, blend_mode: BlendMode) -> Self {
         Self { blend_mode, ..self }
     }
+}
 
-    pub fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
+impl ToQuadDraw for AnimatedSprite {
+    fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
         let (texture, source_rect) = self.state.current_rect();
 
         QuadDraw {

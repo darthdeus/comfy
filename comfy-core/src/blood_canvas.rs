@@ -31,6 +31,11 @@ impl BloodCanvas {
         Self { creator, blocks: HashMap::default() }
     }
 
+    pub fn get_pixel(&mut self, position: Vec2) -> Color {
+        let position = position * PIXELS_PER_WORLD_UNIT as f32;
+        self.get_pixel_internal(position.x as i32, position.y as i32)
+    }
+
     pub fn set_pixel(&mut self, position: Vec2, color: Color) {
         let position = position * PIXELS_PER_WORLD_UNIT as f32;
 
@@ -76,6 +81,21 @@ impl BloodCanvas {
                 }
             }
         }
+    }
+
+    fn get_pixel_internal(&mut self, x: i32, y: i32) -> Color {
+        let bx = (x as f32 / BLOCK_SIZE as f32).floor() as i32;
+        let by = (y as f32 / BLOCK_SIZE as f32).floor() as i32;
+
+        let block = self.get_block(bx, by);
+
+        block.modified = true;
+        let px = block.image.get_pixel(
+            (x - bx * BLOCK_SIZE) as u32,
+            (y - by * BLOCK_SIZE) as u32,
+        );
+
+        Into::<Color>::into(*px)
     }
 
     fn set_pixel_internal(&mut self, x: i32, y: i32, color: Color) {
@@ -150,6 +170,8 @@ impl BloodCanvas {
         position: Vec2,
         source_rect: Option<IRect>,
         tint: Color,
+        flip_x: bool,
+        flip_y: bool,
     ) {
         let assets = ASSETS.borrow_mut();
         let image_map = assets.texture_image_map.lock();
@@ -173,11 +195,27 @@ impl BloodCanvas {
                     );
 
                     if px.0[3] > 0 {
-                        self.set_pixel(
-                            position + vec2(x as f32, y as f32) / 16.0 -
-                                size_offset / 16.0,
-                            Into::<Color>::into(*px) * tint,
-                        );
+                        let px_pos = position + vec2(x as f32, y as f32) / 16.0 -
+                            size_offset / 16.0;
+
+                        if tint.a < 1.0 {
+                            let existing = self.get_pixel(px_pos);
+
+                            let tinted =
+                                Into::<Color>::into(*px) * tint.alpha(1.0);
+
+                            self.set_pixel(
+                                px_pos,
+                                existing.lerp(tinted, tint.a),
+                            );
+                        } else {
+                            self.set_pixel(
+                                px_pos,
+                                Into::<Color>::into(*px) * tint,
+                            );
+                        }
+
+                        // self.set_pixel(px_pos, Into::<Color>::into(*px) * tint);
                     }
                 }
             }

@@ -2,7 +2,7 @@
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
-# EXAMPLE=blood_canvas
+EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
@@ -16,7 +16,7 @@
 # EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
 # EXAMPLE=framerate_vsync
-EXAMPLE=fragment-shader
+# EXAMPLE=fragment-shader
 # EXAMPLE=music
 # EXAMPLE=ldtk
 # EXAMPLE=lighting
@@ -46,8 +46,8 @@ EXAMPLE=fragment-shader
 # default: egui-demo
 # default: lint
 # default: test
-default: benchmarks
-# default: example
+# default: benchmarks
+default: example
 
 # FLAGS=--features=blobs,git-version,dev,ldtk,exr
 FLAGS=--features=git-version,dev,tracy

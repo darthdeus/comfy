@@ -53,6 +53,8 @@ pub fn blood_canvas_blit_at(
         position,
         source_rect,
         tint,
+        false,
+        false,
     );
 }
 

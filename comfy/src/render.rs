@@ -63,8 +63,10 @@ impl Sprite {
     pub fn set_rect(self, source_rect: Option<IRect>) -> Self {
         Self { source_rect, ..self }
     }
+}
 
-    pub fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
+impl ToQuadDraw for Sprite {
+    fn to_quad_draw(&self, transform: &Transform) -> QuadDraw {
         QuadDraw {
             texture: texture_id(&self.name),
             transform: *transform,
@@ -80,7 +82,6 @@ impl Sprite {
         }
     }
 }
-
 
 pub fn fhd_ratio() -> f32 {
     1920.0 / 1080.0

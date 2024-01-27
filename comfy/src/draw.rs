@@ -15,6 +15,21 @@ pub struct QuadDraw {
     pub y_sort_offset: f32,
 }
 
+pub trait ToQuadDraw {
+    fn to_quad_draw(&self, transform: &Transform) -> QuadDraw;
+}
+
+pub fn blood_canvas_blit_quad_draw(quad: QuadDraw) {
+    BLOOD_CANVAS.get().unwrap().borrow_mut().blit_at(
+        quad.texture,
+        quad.transform.position,
+        quad.source_rect,
+        quad.color,
+        quad.flip_x,
+        quad.flip_y,
+    );
+}
+
 // // TODO: move this into quad
 // pub fn draw_collider_p(
 //     box_texture: TextureHandle,

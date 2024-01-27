@@ -25,11 +25,47 @@ use comfy::*;
 // _do not be afraid to call these functions_. In both BITGUN and BITGUN Survivors
 // we have "meat particles" which are simple objects that write a blood trail as they fly
 // on every frame, and it works just fine.
-simple_game!("Blood Canvas", update);
+simple_game!("Blood Canvas", setup, update);
 
 fn random_blood() -> Color {
     static BLOOD_COLOR: Color = Color { r: 0.454, g: 0.113, b: 0.19, a: 1.0 }; // "#411d31"
     BLOOD_COLOR.darken(random() * 0.2)
+}
+
+struct Player;
+
+fn setup(c: &mut EngineContext) {
+    // Load the player texture
+    c.load_texture_from_bytes(
+        "player",
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../assets/chicken.png"
+        )),
+    );
+
+    // Spawn the player entity and make sure z-index is above the grass
+    commands().spawn((
+        Transform::position(vec2(25.0, 25.0)),
+        Player,
+        AnimatedSpriteBuilder::new()
+            .z_index(10)
+            .add_animation("idle", 0.1, true, AnimationSource::Atlas {
+                name: "player".into(),
+                offset: ivec2(0, 0),
+                step: ivec2(16, 0),
+                size: isplat(16),
+                frames: 1,
+            })
+            .add_animation("walk", 0.05, true, AnimationSource::Atlas {
+                name: "player".into(),
+                offset: ivec2(16, 0),
+                step: ivec2(16, 0),
+                size: isplat(16),
+                frames: 6,
+            })
+            .build(),
+    ));
 }
 
 fn update(_c: &mut EngineContext) {
@@ -42,5 +78,56 @@ fn update(_c: &mut EngineContext) {
 
     if is_mouse_button_pressed(MouseButton::Left) {
         blood_circle_at(mouse_world(), 4, 0.6, random_blood);
+    }
+
+    if is_mouse_button_pressed(MouseButton::Right) {
+        blood_canvas_blit_at(
+            texture_id("error"),
+            mouse_world(),
+            None,
+            RED.alpha(0.5),
+        );
+    }
+
+    clear_background(TEAL);
+
+    let dt = delta();
+
+    for (_, (_, animated_sprite, transform)) in
+        world().query::<(&Player, &mut AnimatedSprite, &mut Transform)>().iter()
+    {
+        // Handle movement and animation
+        let mut moved = false;
+        let speed = 3.0;
+        let mut move_dir = Vec2::ZERO;
+
+        if is_key_down(KeyCode::W) {
+            move_dir.y += 1.0;
+            moved = true;
+        }
+        if is_key_down(KeyCode::S) {
+            move_dir.y -= 1.0;
+            moved = true;
+        }
+        if is_key_down(KeyCode::A) {
+            move_dir.x -= 1.0;
+            moved = true;
+        }
+        if is_key_down(KeyCode::D) {
+            move_dir.x += 1.0;
+            moved = true;
+        }
+
+        if moved {
+            animated_sprite.flip_x = move_dir.x < 0.0;
+            transform.position += move_dir.normalize_or_zero() * speed * dt;
+            animated_sprite.play("walk");
+        } else {
+            animated_sprite.play("idle");
+        }
+
+        if is_key_pressed(KeyCode::Space) {}
+
+        main_camera_mut().center = transform.position;
     }
 }
