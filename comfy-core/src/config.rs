@@ -91,6 +91,7 @@ pub struct GameConfig {
     pub wasm_append_id: Option<String>,
 
     pub enable_dynamic_camera: bool,
+    pub enable_child_transforms: bool,
 
     pub dev: DevConfig,
 
@@ -135,6 +136,7 @@ impl Default for GameConfig {
             dev: DevConfig::default(),
 
             enable_dynamic_camera: false,
+            enable_child_transforms: true,
 
             scroll_speed: 7.0,
             music_enabled: false,

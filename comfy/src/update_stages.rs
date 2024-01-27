@@ -37,7 +37,10 @@ pub(crate) fn run_early_update_stages(c: &mut EngineContext) {
     }
 
     lighting_parameters_window(c);
-    update_child_transforms();
+
+    if game_config().enable_child_transforms {
+        update_child_transforms();
+    }
 
     run_mid_update_stages(c);
 }
