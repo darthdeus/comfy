@@ -18,6 +18,9 @@
   disable this for whatever reason, simply `set_cull_sprites(false)`. This can be toggled
   at runtime as much as you want and won't affect performance. You can get the current value
   with `get_sprite_culling`, e.g. if you wish to build an inspector window to control this.
+- Added `enable_child_transforms` on `GameConfig` allowing the user to disable child/parent
+  transform update. If you have a lot of entities (10k+) but aren't using child transforms,
+  setting this to false may give you extra few percent of free performance. This is enabled by default.
 
 # v0.3.0
 
