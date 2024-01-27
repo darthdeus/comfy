@@ -25,6 +25,7 @@
 - Added `flip_x/y` and `blood_canvas_blit_at_pro` which allows blitting sprites with arbitrary
   flipping. Note that this also fixes a long standing bug when in some cases sprites would be
   blitted flipped upside down.
+- Fix linear vs sRGB tinting in blood canvas, see [this commit](https://github.com/darthdeus/comfy/commit/80a0ee8e81d036aadf3da56c2a6ecb3750306dff) for more details.
 
 # v0.3.0
 
