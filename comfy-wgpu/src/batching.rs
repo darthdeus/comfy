@@ -45,6 +45,9 @@ pub fn run_batched_render_passes(
             });
         }
 
+        perf_counter_inc("render passes", 1);
+        perf_counter_inc("meshes", meshes.len() as u64);
+
         render_meshes(
             c,
             is_first,
@@ -61,7 +64,6 @@ pub fn run_batched_render_passes(
             error_shader_id,
         );
 
-        perf_counter_inc("render passes", 1);
 
         is_first = false;
     }

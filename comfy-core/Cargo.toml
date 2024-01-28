@@ -26,6 +26,8 @@ blobs = ["dep:blobs"]
 wayland = ["winit/wayland"]
 exr = ["half", "image/exr"]
 
+sprite-pro-counter = []
+
 [dependencies]
 smallvec = "1.10.0"
 

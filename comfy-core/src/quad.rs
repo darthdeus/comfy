@@ -243,6 +243,9 @@ pub fn draw_sprite_pro(
 ) {
     let _span = span!("draw_sprite_pro");
 
+    #[cfg(feature = "sprite-pro-counter")]
+    perf_counter_inc("draw_sprite_pro", 1);
+
     if SPRITE_CULLING_ENABLED.load(Ordering::SeqCst) {
         if !CAMERA_BOUNDS.load().contains_rect_safe(position, params.size) {
             return;
