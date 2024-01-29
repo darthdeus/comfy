@@ -13,8 +13,7 @@ default = []
 
 ci-release = []
 tracy = []
-
-record-pngs = ["dep:futures-intrusive"]
+record-pngs = []
 
 [dependencies]
 comfy-core = { path = "../comfy-core", version = "0.3.0" }
@@ -34,7 +33,9 @@ image = { version = "0.24", default-features = false, features = [
 ] }
 
 bytemuck = { version = "1.12", default-features = false, features = ["derive"] }
-futures-intrusive = { version = "0.5.0", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+futures-intrusive = { version = "0.5.0" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wgpu = { version = "0.18.0", features = [

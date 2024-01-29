@@ -93,12 +93,11 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
             fallback
         };
 
-    #[cfg(feature = "record-pngs")]
+    #[cfg(not(target_arch = "wasm32"))]
     let surface_usage =
         wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
-    #[cfg(not(feature = "record-pngs"))]
+    #[cfg(target_arch = "wasm32")]
     let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
-
 
     let desired_present_mode =
         match std::env::var("COMFY_VSYNC_OVERRIDE").as_deref() {

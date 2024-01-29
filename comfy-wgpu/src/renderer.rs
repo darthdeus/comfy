@@ -2,8 +2,10 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::*;
 
-use image::Rgba;
+use image::{Rgba, RgbaImage};
 use winit::window::Window;
+
+use self::screenshot::ScreenshotParams;
 
 pub enum RenderPipeline<'a> {
     User(&'a UserRenderPipeline),
@@ -112,6 +114,9 @@ pub struct WgpuRenderer {
 
     pub sprite_shader_id: ShaderId,
     pub error_shader_id: ShaderId,
+
+    pub screenshot_params: ScreenshotParams,
+    pub screenshot_history_buffer: VecDeque<RgbaImage>,
 }
 
 impl WgpuRenderer {
@@ -522,6 +527,8 @@ impl WgpuRenderer {
             window,
 
             context,
+            screenshot_history_buffer: VecDeque::new(),
+            screenshot_params: screenshot::ScreenshotParams::default(),
         };
 
         {
@@ -965,12 +972,24 @@ impl WgpuRenderer {
             );
         }
 
-        #[cfg(feature = "record-pngs")]
         {
             let config = self.context.config.borrow();
+            let screen = uvec2(config.width, config.height);
 
+            if self.screenshot_params.record_screenshots {
+                screenshot::record_screenshot_history(
+                    screen,
+                    &self.context,
+                    &self.screenshot_buffer,
+                    &output,
+                    &mut self.screenshot_params,
+                    &mut self.screenshot_history_buffer,
+                );
+            }
+
+            #[cfg(feature = "record-pngs")]
             screenshot::record_pngs(
-                uvec2(config.width, config.height),
+                screen,
                 &self.context,
                 &self.screenshot_buffer,
                 &output,
