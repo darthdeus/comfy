@@ -15,25 +15,41 @@ pub fn parse_ldtk_map(
 }
 
 pub struct LdtkWorldMap {
+    #[cfg(not(feature = "ci-release"))]
     pub watcher: RecommendedWatcher,
     pub json: LdtkJson,
+    #[cfg(not(feature = "ci-release"))]
     pub recv: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
     pub path: String,
 }
 
 impl LdtkWorldMap {
     pub fn new(json: LdtkJson, path: &str) -> Self {
+        #[cfg(not(feature = "ci-release"))]
         let (send, recv) = std::sync::mpsc::channel();
 
+        #[cfg(not(feature = "ci-release"))]
         let mut watcher =
             RecommendedWatcher::new(send, Config::default()).unwrap();
+        #[cfg(not(feature = "ci-release"))]
         watcher
             .watch(Path::new(path), notify::RecursiveMode::NonRecursive)
             .unwrap();
 
-        Self { json, watcher, recv, path: path.to_string() }
+        Self {
+            json,
+            #[cfg(not(feature = "ci-release"))]
+            watcher,
+            #[cfg(not(feature = "ci-release"))]
+            recv,
+            path: path.to_string(),
+        }
     }
 
+    #[cfg(feature = "ci-release")]
+    pub fn maybe_reload(&mut self) {}
+
+    #[cfg(not(feature = "ci-release"))]
     pub fn maybe_reload(&mut self) {
         let mut reload_level = false;
 
