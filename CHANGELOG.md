@@ -4,6 +4,17 @@
   running at ~15 FPS drawing 120000 Comfys, and with v0.4 this is now at
   stable 60 FPS on my machine, meaning **at least 4x improvement in sprite
   drawing performance**.
+- Added automated screenshot capture mechanism with a fixed history, meaning you can
+  nost simply set `c.renderer.screenshot_params.record_screenshots = true` (and optionally
+  `screenshot_interval_n` and `history_length`) to take a screenshot every `n` frames,
+  keeping up to `history_length` screenshots in memory. The whole screenshot buffer can
+  then be saved by calling `save_screenshots_to_folder`. Note that just enabling screenshot
+  capture has a _significant_ performance overhead (around 20ms per frame in fullhd on my machine), meaning you probably don't want this turned on in release builds. It is however
+  very useful for capturing interesting moments in your game e.g. for marketing purposes,
+  since you can just play and hit a "save" hotkey a bit later, while still being able to pick
+  the perfect screenshot. There is a [`screenshot_history example`](https://github.com/darthdeus/comfy/blob/master/comfy/examples/screenshot_history.rs) that showcases this, together with
+  how one can copy the screenshots back into a `TextureHandle` on each frame to display them.
+  Note that none of this is optimal, and many things could be improved.
 - `Mesh` now has a new `origin` field. This shouldn't affect most users as
   it's only exposed through `draw_mesh`.
 - Simplified `draw_mesh_ex` params, now accepting `BlendMode` instead of
