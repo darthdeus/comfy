@@ -2,7 +2,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 
 use crate::*;
 
-use image::{Rgba, RgbaImage};
+use image::Rgba;
 use winit::window::Window;
 
 use self::screenshot::ScreenshotParams;
@@ -116,7 +116,7 @@ pub struct WgpuRenderer {
     pub error_shader_id: ShaderId,
 
     pub screenshot_params: ScreenshotParams,
-    pub screenshot_history_buffer: VecDeque<RgbaImage>,
+    pub screenshot_history_buffer: VecDeque<ScreenshotItem>,
 }
 
 impl WgpuRenderer {

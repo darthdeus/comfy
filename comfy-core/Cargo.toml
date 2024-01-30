@@ -14,7 +14,7 @@ default = []
 dev = []
 ci-release = ["file_logger"]
 
-file_logger = ["log4rs", "chrono"]
+file_logger = ["log4rs"]
 
 git-version = ["dep:comfy-git-version"]
 
@@ -33,7 +33,7 @@ smallvec = "1.10.0"
 
 ahash = "0.8.3"
 hecs = "0.10.3"
-chrono = { version = "0.4.23", optional = true }
+chrono = "0.4.23"
 
 anyhow = "1.0.40"
 

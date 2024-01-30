@@ -43,6 +43,7 @@ pub use crate::pipelines::*;
 pub use crate::post_processing::*;
 pub use crate::render_pass::*;
 pub use crate::renderer::*;
+pub use crate::screenshot::*;
 pub use crate::text::*;
 pub use crate::texture::*;
 pub use crate::utils::*;

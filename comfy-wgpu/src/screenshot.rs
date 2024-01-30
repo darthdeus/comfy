@@ -1,7 +1,16 @@
-use comfy_core::perf_counter;
+use chrono::Utc;
+use comfy_core::{
+    chrono::{DateTime, Timelike},
+    perf_counter,
+};
 use image::RgbaImage;
 
 use crate::*;
+
+pub struct ScreenshotItem {
+    pub image: RgbaImage,
+    pub time: DateTime<Utc>,
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct ScreenshotParams {
@@ -32,8 +41,33 @@ pub fn record_screenshot_history(
     _screenshot_buffer: &SizedBuffer,
     _output: &wgpu::SurfaceTexture,
     _params: &mut ScreenshotParams,
-    _screenshot_history_buffer: &mut VecDeque<RgbaImage>,
+    _screenshot_history_buffer: &mut VecDeque<ScreenshotItem>,
 ) {
+}
+
+pub fn save_screenshots_to_folder(
+    folder: &str,
+    screenshot_history_buffer: &VecDeque<ScreenshotItem>,
+) {
+    if std::fs::create_dir_all(&folder).log_err_ok().is_none() {
+        return;
+    }
+
+    for (i, screenshot) in screenshot_history_buffer.iter().enumerate() {
+        let t = &screenshot.time;
+
+        let name = format!(
+            "{}/image {} {}-{}-{} [{}].png",
+            &folder,
+            t.date_naive(),
+            t.hour(),
+            t.minute(),
+            t.second(),
+            i,
+        );
+
+        screenshot.image.save(name).log_err_ok();
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,7 +77,7 @@ pub fn record_screenshot_history(
     screenshot_buffer: &SizedBuffer,
     output: &wgpu::SurfaceTexture,
     params: &mut ScreenshotParams,
-    screenshot_history_buffer: &mut VecDeque<RgbaImage>,
+    screenshot_history_buffer: &mut VecDeque<ScreenshotItem>,
 ) {
     let start_time = Instant::now();
 
@@ -110,14 +144,7 @@ pub fn record_screenshot_history(
         )
         .unwrap();
 
-        let resized = image::imageops::resize(
-            &buffer,
-            screen.x / 3,
-            screen.y / 3,
-            image::imageops::FilterType::Nearest,
-        );
-
-        resized
+        buffer
     });
 
     if params.counter % params.screenshot_interval_n == 0 {
@@ -125,7 +152,10 @@ pub fn record_screenshot_history(
             screenshot_history_buffer.pop_front();
         }
 
-        screenshot_history_buffer.push_back(screenshot_image);
+        screenshot_history_buffer.push_back(ScreenshotItem {
+            image: screenshot_image,
+            time: Utc::now(),
+        });
     }
 
     params.counter += 1;

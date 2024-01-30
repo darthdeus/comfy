@@ -1,4 +1,5 @@
 use comfy::*;
+use comfy_core::image::imageops;
 
 comfy_game!("Screenshot History Example", ScreenshotHistoryExample);
 
@@ -22,7 +23,6 @@ impl GameLoop for ScreenshotHistoryExample {
             c.renderer.screenshot_params.screenshot_interval_n = 10;
             c.renderer.screenshot_params.history_length = 5;
 
-
             for i in 0..c.renderer.screenshot_params.history_length {
                 self.handles.push(
                     c.renderer
@@ -38,26 +38,48 @@ impl GameLoop for ScreenshotHistoryExample {
             }
         }
 
+        if is_key_pressed(KeyCode::F) {
+            let start = Instant::now();
+
+            save_screenshots_to_folder(
+                "screenshot-history",
+                &c.renderer.screenshot_history_buffer,
+            );
+
+            println!(
+                "Saved screenshots to folder 'screenshot-history', time: {}ms",
+                start.elapsed().as_millis()
+            );
+        }
+
         for (screenshot, handle) in
             c.renderer.screenshot_history_buffer.iter().zip(self.handles.iter())
         {
-            c.renderer
-                .context
-                .texture_creator
-                .borrow_mut()
-                .update_texture(screenshot, *handle);
+            c.renderer.context.texture_creator.borrow_mut().update_texture(
+                &imageops::flip_vertical(&screenshot.image),
+                *handle,
+            );
         }
 
-        // draw history
+        let ratio = screen_size.x as f32 / screen_size.y as f32;
+        let w = 2.0;
+
         for (i, handle) in self.handles.iter().enumerate() {
             draw_sprite(
                 *handle,
                 vec2(i as f32 * 2.0 + 2.0, 2.0),
                 WHITE,
                 100,
-                splat(2.0),
+                vec2(w, w / ratio),
             );
         }
+
+        draw_text_ex(
+            "Press F to save screenshots to disk",
+            Vec2::ZERO,
+            TextAlign::Center,
+            TextParams::default(),
+        );
 
         let time = get_time() as f32;
 

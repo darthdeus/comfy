@@ -107,6 +107,7 @@ pub use backtrace::Backtrace;
 pub use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 pub use bytemuck;
 pub use cfg_if::cfg_if;
+pub use chrono;
 pub use crossbeam::atomic::AtomicCell;
 pub use egui;
 pub use egui_plot;
