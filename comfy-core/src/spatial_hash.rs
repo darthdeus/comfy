@@ -377,7 +377,15 @@ pub fn draw_spatial(spatial: &SpatialHash) {
     for (_, bucket) in spatial.inner.iter() {
         for item in bucket.iter() {
             match &item.shape {
-                Shape::Circle(_) => todo!(),
+                Shape::Circle(circle) => {
+                    draw_circle_outline(
+                        circle.center,
+                        circle.radius,
+                        0.1,
+                        RED,
+                        499,
+                    )
+                }
                 Shape::Aabb(aabb) => {
                     draw_rect_outline(
                         aabb.center(),
