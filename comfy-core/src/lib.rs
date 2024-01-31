@@ -1297,7 +1297,7 @@ pub fn initialize_logger() {
             log_root: &std::path::Path,
         ) -> Result<(), Box<dyn std::error::Error>> {
             use chrono::Timelike;
-            use log4rs::{append::file::*, config::*, Config};
+            use log4rs::{append::file::*, config::*};
 
             let now = chrono::Utc::now();
             let (is_pm, hour) = now.hour12();
