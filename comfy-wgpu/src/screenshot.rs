@@ -57,12 +57,13 @@ pub fn save_screenshots_to_folder(
         let t = &screenshot.time;
 
         let name = format!(
-            "{}/image {} {}-{}-{} [{}].png",
+            "{}/image {} {}-{}-{}.{} [{}].png",
             &folder,
             t.date_naive(),
             t.hour(),
             t.minute(),
             t.second(),
+            t.timestamp_subsec_millis(),
             i,
         );
 
