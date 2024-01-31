@@ -8,6 +8,9 @@
 
 # What is `comfy`?
 
+**Currently there's many performance improvements on Comfy's master branch that haven't
+been released yet. If you're struggling with performance, consider using the master branch. More info can be found [in the CHANGELOG](https://github.com/darthdeus/comfy/blob/master/CHANGELOG.md).**
+
 **If you're new here, check out the [comfy announcement on our
 blog](https://comfyengine.org/blog/first/) and the [v0.2 release
 announcement](https://comfyengine.org/blog/release-v0-2/).**
