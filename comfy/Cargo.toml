@@ -24,7 +24,12 @@ git-version = ["comfy-core/git-version"]
 demo = []
 embedded-assets = []
 quick-exit = []
-ci-release = ["comfy-core/ci-release", "comfy-wgpu/ci-release", "wayland"]
+ci-release = [
+  "comfy-core/ci-release",
+  "comfy-wgpu/ci-release",
+  "comfy-ldtk/ci-release",
+  "wayland",
+]
 
 tracy = ["comfy-core/tracy", "comfy-wgpu/tracy"]
 

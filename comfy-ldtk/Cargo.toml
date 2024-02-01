@@ -8,7 +8,11 @@ authors = ["Jakub Arnold <darthdeus@gmail.com>"]
 homepage = "https://comfyengine.org/"
 repository = "https://github.com/darthdeus/comfy"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+ci-release = []
+
 [lib]
 # crate-type = ["dylib"]
 
