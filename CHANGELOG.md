@@ -37,6 +37,8 @@
   flipping. Note that this also fixes a long standing bug when in some cases sprites would be
   blitted flipped upside down.
 - Fix linear vs sRGB tinting in blood canvas, see [this commit](https://github.com/darthdeus/comfy/commit/80a0ee8e81d036aadf3da56c2a6ecb3750306dff) for more details.
+- Remove implicitly enabled pause system that would toggle `is_paused` on `EngineContext` when
+  Esc is pressed. This was never really intended and was an oversight.
 
 # v0.3.0
 

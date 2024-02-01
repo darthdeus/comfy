@@ -481,21 +481,6 @@ fn update_animated_sprites(c: &mut EngineContext) {
 }
 
 fn pause_system(c: &mut EngineContext) {
-    // TODO: configurable pause
-    if is_key_pressed(KeyCode::Escape) {
-        if *c.is_paused.borrow() && *c.show_pause_menu {
-            info!("Resuming");
-            *c.is_paused.borrow_mut() = false;
-            *c.show_pause_menu = false;
-        } else if !*c.is_paused.borrow() && !*c.show_pause_menu {
-            info!("Pausing");
-            *c.is_paused.borrow_mut() = true;
-            *c.show_pause_menu = true;
-        } else {
-            info!("Nothing");
-        }
-    }
-
     if !*c.is_paused.borrow() && !c.flags.borrow().contains(PAUSE_PHYSICS) {
         cooldowns().tick(c.delta);
         notifications().tick(c.delta);
