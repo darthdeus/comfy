@@ -80,40 +80,6 @@ pub fn timed_two_frames(
 
 pub struct DespawnAfter(pub f32);
 
-// TODO: remove
-type DamagedCallback = fn(health_dmg: f32, shield_dmg: f32, c: &EngineContext);
-
-// TODO: remove
-pub struct Health {
-    pub health_cur: f32,
-    pub health_max: f32,
-    pub health_regen: f32,
-
-    pub shields_cur: f32,
-    pub shields_max: f32,
-
-    pub on_damaged: Option<DamagedCallback>,
-}
-
-impl Health {
-    pub fn new(
-        health_max: f32,
-        shields_max: f32,
-        // on_damaged: Option<DamagedCallback>,
-    ) -> Self {
-        Self {
-            health_cur: health_max,
-            health_max,
-            health_regen: 0.0,
-
-            shields_cur: shields_max,
-            shields_max,
-
-            on_damaged: None,
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct ImageButtonParams {
     pub font: egui::FontId,
