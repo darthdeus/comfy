@@ -40,6 +40,9 @@
 - Removed implicitly enabled pause system that would toggle `is_paused` on `EngineContext` when
   Esc is pressed. This was never really intended and was an oversight.
 - Removed a few components that were never intended to be part of Comfy (e.g. `Health`, `DamagedCallback`).
+- Allow changing `game_config_mut().target_framerate` during gameplay. Previously this was only possible
+  at initialization, but Comfy will now update its frame timer at the end of each frame, allowing this
+  to be configurable at will.
 
 # v0.3.0
 
