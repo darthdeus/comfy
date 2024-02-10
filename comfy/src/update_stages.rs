@@ -464,7 +464,9 @@ fn update_animated_sprites(c: &mut EngineContext) {
     if !*c.is_paused.borrow() {
         for (entity, sprite) in world().query::<&mut AnimatedSprite>().iter() {
             if sprite.state.update_and_finished(c.delta) {
-                commands().despawn(entity);
+                if sprite.despawn_on_finish {
+                    commands().despawn(entity);
+                }
 
                 // TODO: maybe not needed? replace with option
                 let mut temp: ContextFn = Box::new(|_| {});
