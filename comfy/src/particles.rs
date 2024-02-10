@@ -219,6 +219,9 @@ pub struct Particle {
     pub z_index: i32,
     pub size: Vec2,
 
+    pub distance_traveled: f32,
+    pub max_distance: Option<f32>,
+
     pub angular_velocity: f32,
 
     pub start_time: f32,
@@ -260,7 +263,17 @@ impl Particle {
     }
 
     pub fn update(&mut self, delta: f32) {
-        self.position += self.current_velocity() * delta;
+        let move_vec = self.current_velocity() * delta;
+
+        if let Some(max_distance) = self.max_distance {
+            self.distance_traveled += move_vec.length();
+
+            if self.distance_traveled > max_distance {
+                self.lifetime_current = 0.0;
+            }
+        }
+
+        self.position += move_vec;
         self.rotation += self.angular_velocity * delta;
         self.lifetime_current -= delta;
 
@@ -511,6 +524,9 @@ impl Default for Particle {
             lifetime_current: 0.0,
             lifetime_max: 1.0,
 
+            max_distance: None,
+            distance_traveled: 0.0,
+
             texture: texture_id("error"),
             source_rect: None,
             spritesheet: None,
@@ -552,6 +568,35 @@ pub fn spawn_particle_fan(
 
         let particle = map(Particle {
             direction,
+            velocity: gen_range(velocity_range.start, velocity_range.end),
+            ..Default::default()
+        });
+
+        spawn_particle(particle);
+    }
+}
+
+pub fn spawn_particle_fan_ex(
+    num: i32,
+    dir: Vec2,
+    wiggle_radians: f32,
+    max_distance: Option<f32>,
+    max_distance_spread: Option<f32>,
+    velocity_range: Range<f32>,
+    map: impl Fn(Particle) -> Particle,
+) {
+    for _ in 0..num {
+        let direction = dir.normalize_or_right().wiggle(wiggle_radians);
+
+        let particle = map(Particle {
+            direction,
+            max_distance: max_distance.map(|d| {
+                if let Some(spread) = max_distance_spread {
+                    gen_range(d - spread, d + spread)
+                } else {
+                    d
+                }
+            }),
             velocity: gen_range(velocity_range.start, velocity_range.end),
             ..Default::default()
         });

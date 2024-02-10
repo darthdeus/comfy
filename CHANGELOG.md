@@ -43,6 +43,8 @@
 - Allow changing `game_config_mut().target_framerate` during gameplay. Previously this was only possible
   at initialization, but Comfy will now update its frame timer at the end of each frame, allowing this
   to be configurable at will.
+- Added `max_distance` to `Particle` allowing particles to only travel a set maximum distance.
+- Added `spawn_particle_fan_ex` with more flexible parameters for max particle distance.
 
 # v0.3.0
 
