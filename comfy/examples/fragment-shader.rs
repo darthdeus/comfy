@@ -18,6 +18,7 @@ fn setup(_state: &mut GameState, _c: &mut EngineContext) {
 }
 
 fn update(state: &mut GameState, c: &mut EngineContext) {
+    debug!("shader instance: {:?}", get_current_shader());
     if state.my_shader_id.is_none() {
         state.my_shader_id = Some(
             // Comfy now supports shader hot reloading. We'll create a simple shader and provide
@@ -57,7 +58,7 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     }
 
     let shader_id = state.my_shader_id.unwrap();
-
+    debug!("shader instance: {:?}", get_current_shader());
     // First draw with a default shader.
     draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
 
@@ -69,14 +70,17 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
         });
 
     // When we switch a shader the uniforms will get their default value
+    // Loading of this uniform has something to do with change to Ordering::seqCst 
+    debug!("shader_id: {:?}", shader_id.0);
+
     use_shader(shader_id);
+    debug!("shader instance: {:?}", get_current_shader());
 
     let time = get_time() as f32;
+    set_uniform_f32("time", time);
 
     // We can only set one and then draw and the other uniform will be set
     // to the default value we specified when creating the shader.
-    set_uniform_f32("time", time);
-
     draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
 
     // This will set "intensity" while retaining "time" from the previous set in this frame, as
