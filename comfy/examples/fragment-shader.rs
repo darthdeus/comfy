@@ -1,18 +1,16 @@
-use comfy::{num_traits::One, *};
+use comfy::{*};
 
 simple_game!("Fragment Shader Example", GameState, setup, update);
 
 
 pub struct GameState {
     pub my_shader_id: Option<ShaderId>,
-    // pub my_shader_instance : Option<ShaderInstanceId>,
     pub intensity: f32,
 }
 
 impl GameState {
     pub fn new(_c: &mut EngineState) -> Self {
         Self { my_shader_id: None, intensity: 2.0 , }
-            //my_shader_instance: None}
     }
 }
 
@@ -24,7 +22,6 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     debug!("get_current_shader : id: {:?}", get_current_shader().0);
     debug!("shader id: {:?}", state.my_shader_id);
     if state.my_shader_id.is_none() {
-        //state.my_shader_instance = Some(ShaderInstanceId(1));
         state.my_shader_id = Some(
             // Comfy now supports shader hot reloading. We'll create a simple shader and provide
             // both `static_source` which would be used in release builds allowing the game to be
@@ -65,7 +62,6 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
     let shader_id = state.my_shader_id.unwrap();
     
     
-    debug!("shader_instance_id: {:?}", get_current_shader());
     //debug!("shader instance id {:?}", state.my_shader_instance.unwrap());
     // First draw with a default shader.
     draw_comfy(vec2(-2.0, 0.0), WHITE, 0, splat(1.0));
@@ -79,13 +75,10 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
 
     // When we switch a shader the uniforms will get their default value
     // Loading of this uniform has something to do with change to Ordering::seqCst 
-    debug!("shader_id: {:?}", shader_id);
     use_shader(shader_id);
     use_shader(shader_id);
 
     //debug!("shader instance id {:?}", state.my_shader_instance.unwrap());
-    debug!("shader_id after use_shader 2X: {:?}", shader_id);
-    debug!("shader_instance_id after use_shader 2X : {:?}", get_current_shader());
 
     let time = get_time() as f32;
 
