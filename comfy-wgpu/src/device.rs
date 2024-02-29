@@ -94,8 +94,7 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         };
 
     #[cfg(not(target_arch = "wasm32"))]
-    let surface_usage =
-        wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
+    let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
     #[cfg(target_arch = "wasm32")]
     let surface_usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
 
