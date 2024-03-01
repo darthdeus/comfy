@@ -1,7 +1,5 @@
 use crate::*;
 
-use std::hash::Hash;
-
 static NOTIFICATIONS: Lazy<AtomicRefCell<Notifications>> =
     Lazy::new(|| AtomicRefCell::new(Notifications::new()));
 

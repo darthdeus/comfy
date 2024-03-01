@@ -1,6 +1,5 @@
 use crate::*;
 
-use image::DynamicImage;
 use image::GenericImageView;
 use image::ImageResult;
 

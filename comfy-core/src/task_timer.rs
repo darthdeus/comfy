@@ -1,7 +1,4 @@
-use std::{
-    mem,
-    sync::{Arc, Mutex},
-};
+use std::{mem, sync::Mutex};
 
 
 use crate::*;

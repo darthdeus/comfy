@@ -1,5 +1,3 @@
-use comfy_wgpu::WgpuRenderer;
-
 use crate::*;
 
 pub trait GameLoop: Sized {
