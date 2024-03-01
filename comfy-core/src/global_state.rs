@@ -1,5 +1,7 @@
 use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
+use winit::event::TouchPhase;
+
 use crate::*;
 
 static EGUI_CONTEXT: Lazy<egui::Context> = Lazy::new(egui::Context::default);
@@ -48,7 +50,6 @@ pub fn assets_loaded() -> usize {
 pub fn inc_assets_loaded(newly_loaded_count: usize) {
     ASSETS_LOADED.fetch_add(newly_loaded_count, Ordering::SeqCst);
 }
-
 
 pub fn frame_time() -> f32 {
     f32::from_bits(FRAME_TIME.load(Ordering::SeqCst))
@@ -102,6 +103,10 @@ pub struct GlobalState {
 
     pub mouse_locked: bool,
     pub cursor_hidden: bool,
+
+    pub touch_location: Vec2,
+    pub touch_id: u64,
+    pub touch_phase: HashSet<TouchPhase>,
 
     pub egui_scale_factor: f32,
 

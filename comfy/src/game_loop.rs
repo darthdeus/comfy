@@ -171,6 +171,7 @@ pub async fn run_comfy_main_async(
                     global_state.just_released.clear();
                     global_state.mouse_just_pressed.clear();
                     global_state.mouse_just_released.clear();
+                    global_state.touch_phase.clear();
                     global_state.mouse_wheel = (0.0, 0.0);
 
                     engine
@@ -180,7 +181,6 @@ pub async fn run_comfy_main_async(
                         .window
                         .set_cursor_visible(!global_state.cursor_hidden);
                 }
-
 
                 set_frame_time(frame_start.elapsed().as_secs_f32());
                 inc_frame_num();
@@ -228,6 +228,17 @@ pub async fn run_comfy_main_async(
                                 }
                             }
                         }
+                    }
+
+                    WindowEvent::Touch(touch) => {
+                        let mut state = GLOBAL_STATE.borrow_mut();
+
+                        state.touch_location = Vec2 {
+                            x: touch.location.x as f32,
+                            y: touch.location.y as f32,
+                        };
+                        state.touch_id = touch.id;
+                        state.touch_phase.insert(touch.phase);
                     }
 
                     WindowEvent::CursorMoved { position, .. } => {
@@ -290,8 +301,8 @@ pub async fn run_comfy_main_async(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        if physical_size.width > min_resolution.0 &&
-                            physical_size.height > min_resolution.1
+                        if physical_size.width > min_resolution.0
+                            && physical_size.height > min_resolution.1
                         {
                             engine.resize(uvec2(
                                 physical_size.width,

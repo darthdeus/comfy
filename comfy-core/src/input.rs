@@ -1,3 +1,5 @@
+use winit::event::TouchPhase;
+
 use crate::*;
 
 pub fn mouse_wheel() -> (f32, f32) {
@@ -34,6 +36,19 @@ pub fn is_key_released(keycode: KeyCode) -> bool {
 
 pub fn is_key_down(keycode: KeyCode) -> bool {
     GLOBAL_STATE.borrow().pressed.contains(&keycode)
+}
+
+pub fn get_touch_location() -> Vec2 {
+    GLOBAL_STATE.borrow().touch_location
+}
+
+pub fn get_touch_id() -> u64 {
+    GLOBAL_STATE.borrow().touch_id
+}
+
+pub fn get_touch_phase() -> Option<TouchPhase> {
+    let touch_phase = &GLOBAL_STATE.borrow().touch_phase;
+    touch_phase.iter().next().cloned()
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
