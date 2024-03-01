@@ -171,7 +171,6 @@ pub async fn run_comfy_main_async(
                     global_state.just_released.clear();
                     global_state.mouse_just_pressed.clear();
                     global_state.mouse_just_released.clear();
-                    global_state.touch_phase.clear();
                     global_state.mouse_wheel = (0.0, 0.0);
 
                     engine
@@ -230,15 +229,29 @@ pub async fn run_comfy_main_async(
                         }
                     }
 
-                    WindowEvent::Touch(touch) => {
-                        let mut state = GLOBAL_STATE.borrow_mut();
-
-                        state.touch_location = Vec2 {
-                            x: touch.location.x as f32,
-                            y: touch.location.y as f32,
-                        };
-                        state.touch_id = touch.id;
-                        state.touch_phase.insert(touch.phase);
+                    WindowEvent::Touch(touch_event) => {
+                        match touch_event.phase {
+                            winit::event::TouchPhase::Started
+                            | winit::event::TouchPhase::Moved => {
+                                GLOBAL_STATE
+                                    .borrow_mut()
+                                    .touch_locations
+                                    .insert(
+                                        touch_event.id,
+                                        Vec2 {
+                                            x: touch_event.location.x as f32,
+                                            y: touch_event.location.y as f32,
+                                        },
+                                    );
+                            }
+                            winit::event::TouchPhase::Ended
+                            | winit::event::TouchPhase::Cancelled => {
+                                GLOBAL_STATE
+                                    .borrow_mut()
+                                    .touch_locations
+                                    .remove(&touch_event.id);
+                            }
+                        }
                     }
 
                     WindowEvent::CursorMoved { position, .. } => {

@@ -1,7 +1,5 @@
 use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
-use winit::event::TouchPhase;
-
 use crate::*;
 
 static EGUI_CONTEXT: Lazy<egui::Context> = Lazy::new(egui::Context::default);
@@ -104,9 +102,7 @@ pub struct GlobalState {
     pub mouse_locked: bool,
     pub cursor_hidden: bool,
 
-    pub touch_location: Vec2,
-    pub touch_id: u64,
-    pub touch_phase: HashSet<TouchPhase>,
+    pub touch_locations: HashMap<u64, Vec2>,
 
     pub egui_scale_factor: f32,
 
