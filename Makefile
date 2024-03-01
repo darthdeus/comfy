@@ -105,7 +105,7 @@ publish-crates:
 test:
 	cargo fmt --check
 	cargo clippy
-	cargo test --all --features=blobs
+	cargo test --all --features=blobs,ldtk,exr
 	./build-examples.sh
 
 duplicates:

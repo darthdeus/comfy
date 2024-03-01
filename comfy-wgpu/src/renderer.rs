@@ -3,9 +3,6 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use crate::*;
 
 use image::Rgba;
-use winit::window::Window;
-
-use self::screenshot::ScreenshotParams;
 
 pub enum RenderPipeline<'a> {
     User(&'a UserRenderPipeline),

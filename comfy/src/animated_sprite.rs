@@ -334,12 +334,10 @@ impl AnimationState {
 
         if self.looping {
             self.current_frame = idx % frames;
+        } else if idx >= frames {
+            self.current_frame = frames - 1;
         } else {
-            if idx >= frames {
-                self.current_frame = frames - 1;
-            } else {
-                self.current_frame = idx;
-            }
+            self.current_frame = idx;
         }
 
         should_despawn
