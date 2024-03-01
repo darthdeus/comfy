@@ -1,8 +1,5 @@
 use chrono::Utc;
-use comfy_core::{
-    chrono::{DateTime, Timelike},
-    perf_counter,
-};
+use comfy_core::chrono::{DateTime, Timelike};
 use image::RgbaImage;
 
 use crate::*;

@@ -1,7 +1,4 @@
-use std::{
-    path::{Path, PathBuf},
-    sync::mpsc::Receiver,
-};
+use std::{path::PathBuf, sync::mpsc::Receiver};
 
 use crate::*;
 use notify::{event::AccessKind, Event, EventKind, RecursiveMode, Watcher};

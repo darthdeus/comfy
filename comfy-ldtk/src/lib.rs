@@ -3,7 +3,6 @@ mod quicktype;
 use comfy_core::*;
 use grids::Grid;
 use notify::{Config, RecommendedWatcher, Watcher};
-use std::path::Path;
 
 pub use quicktype::*;
 pub use serde_json;
