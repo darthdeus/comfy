@@ -1,3 +1,4 @@
+use comfy_core::winit::event::KeyEvent;
 use winit::event_loop::ControlFlow;
 
 use crate::*;
@@ -114,7 +115,9 @@ pub async fn run_comfy_main_async(
     info!("scale factor = {}", window.scale_factor());
 
     let egui_winit = egui_winit::State::new(
-        egui(),
+        // TODO: this is wrong, since we'll likely just end up with two contexts,
+        // but for now trying to just get things to compile
+        *egui(),
         egui().viewport_id(),
         &window,
         Some(window.scale_factor() as f32),
@@ -206,11 +209,11 @@ pub async fn run_comfy_main_async(
 
                 match event {
                     WindowEvent::KeyboardInput {
-                        input: KeyboardInput { state, virtual_keycode, .. },
+                        event: KeyEvent { state, logical_key, .. },
                         ..
                     } => {
                         if let Some(keycode) =
-                            virtual_keycode.and_then(KeyCode::try_from_winit)
+                            KeyCode::try_from_winit(logical_key)
                         {
                             match state {
                                 ElementState::Pressed => {
@@ -250,6 +253,12 @@ pub async fn run_comfy_main_async(
                             }
                             winit::event::MouseButton::Other(num) => {
                                 MouseButton::Other(*num)
+                            }
+                            winit::event::MouseButton::Back => {
+                                MouseButton::Back
+                            }
+                            winit::event::MouseButton::Forward => {
+                                MouseButton::Forward
                             }
                         };
 

@@ -43,6 +43,8 @@ pub enum MouseButton {
     Left,
     Right,
     Middle,
+    Back,
+    Forward,
     Other(u16),
 }
 
@@ -288,7 +290,7 @@ pub enum KeyCode {
 
 #[rustfmt::skip]
 impl KeyCode {
-    pub fn try_from_winit(code: Key) -> Option<KeyCode> {
+    pub fn try_from_winit(code: &Key) -> Option<KeyCode> {
         match code {
             Key::Character(c) => {
                 match c.as_str() {
