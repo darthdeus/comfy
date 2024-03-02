@@ -74,7 +74,7 @@ pub struct WgpuRenderer {
 
     pub texture_layout: Arc<wgpu::BindGroupLayout>,
 
-    pub window: Window,
+    pub window: &'static Window,
 
     pub depth_texture: Arc<Texture>,
 
@@ -117,8 +117,11 @@ pub struct WgpuRenderer {
 }
 
 impl WgpuRenderer {
-    pub async fn new(window: Window, egui_winit: egui_winit::State) -> Self {
-        let context = create_graphics_context(&window).await;
+    pub async fn new(
+        window: &'static Window,
+        egui_winit: egui_winit::State,
+    ) -> Self {
+        let context = create_graphics_context(window).await;
 
         trace!("Loading builtin engine textures");
 
@@ -751,9 +754,9 @@ impl WgpuRenderer {
     pub fn on_event(
         &mut self,
         event: &winit::event::WindowEvent,
-        egui_ctx: &egui::Context,
+        _egui_ctx: &egui::Context,
     ) -> bool {
-        self.egui_winit.on_window_event(egui_ctx, event).consumed
+        self.egui_winit.on_window_event(self.window, event).consumed
     }
 
     pub fn as_mut_any(&mut self) -> &mut dyn Any {

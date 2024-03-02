@@ -29,7 +29,7 @@ pub async fn run_comfy_main_async(
         }
     };
 
-    let event_loop = winit::event_loop::EventLoop::new();
+    let event_loop = winit::event_loop::EventLoop::new().unwrap();
 
     let title = {
         let game_name = game_config().game_name.clone();
@@ -62,6 +62,7 @@ pub async fn run_comfy_main_async(
     };
 
     let window = window.build(&event_loop).unwrap();
+    let window = Box::leak(Box::new(window));
 
     let min_resolution = match game_config_mut()
         .min_resolution
@@ -127,7 +128,7 @@ pub async fn run_comfy_main_async(
     engine.texture_creator = Some(renderer.texture_creator.clone());
     engine.renderer = Some(renderer);
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, control_flow| {
         match event {
             Event::MainEventsCleared => {
                 let _span = span!("frame with vsync");
