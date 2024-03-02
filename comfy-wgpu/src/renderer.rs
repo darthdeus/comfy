@@ -38,7 +38,7 @@ pub fn shader_to_wgpu(shader: &Shader) -> wgpu::ShaderModuleDescriptor<'_> {
 // TODO: reducing number of Arc's?
 #[derive(Clone)]
 pub struct GraphicsContext {
-    pub surface: Arc<wgpu::Surface>,
+    pub surface: Arc<wgpu::Surface<'static>>,
     pub instance: Arc<wgpu::Instance>,
     pub adapter: Arc<wgpu::Adapter>,
     pub device: Arc<wgpu::Device>,
