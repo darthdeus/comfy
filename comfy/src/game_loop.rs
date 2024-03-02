@@ -113,6 +113,7 @@ pub async fn run_comfy_main_async(
     info!("scale factor = {}", window.scale_factor());
 
     let egui_winit = egui_winit::State::new(
+        egui(),
         egui().viewport_id(),
         &window,
         Some(window.scale_factor() as f32),

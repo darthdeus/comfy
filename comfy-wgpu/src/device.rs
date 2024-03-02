@@ -54,8 +54,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
     let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
-                features: wgpu::Features::empty(),
-                limits,
+                required_features: wgpu::Features::empty(),
+                required_limits: limits,
                 label: None,
             },
             None,
@@ -134,6 +134,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         present_mode,
         alpha_mode: caps.alpha_modes[0],
         view_formats: vec![],
+        desired_maximum_frame_latency: game_config()
+            .desired_maximum_frame_latency,
     };
 
     trace!("Configuring surface");

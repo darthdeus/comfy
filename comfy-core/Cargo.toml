@@ -79,7 +79,7 @@ itertools = "0.12.1"
 bytemuck = { version = "1.13", default-features = false, features = ["derive"] }
 once_cell = "1.17.1"
 
-winit = { version = "0.28", default-features = false, features = ["x11"] }
+winit = { version = "0.29", default-features = false, features = ["x11"] }
 
 log = "0.4.17"
 env_logger = { version = "0.10.0", default-features = false, features = [

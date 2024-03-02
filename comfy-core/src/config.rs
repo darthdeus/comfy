@@ -82,6 +82,7 @@ pub struct GameConfig {
 
     pub target_framerate: u32,
     pub vsync_enabled: bool,
+    pub desired_maximum_frame_latency: u32,
 
     pub bloom_enabled: bool,
     pub tonemapping_enabled: bool,
@@ -125,6 +126,7 @@ impl Default for GameConfig {
 
             target_framerate: 60,
             vsync_enabled: true,
+            desired_maximum_frame_latency: 2,
 
             bloom_enabled: false,
             tonemapping_enabled: false,

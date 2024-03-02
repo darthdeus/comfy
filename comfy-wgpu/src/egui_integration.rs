@@ -2,7 +2,7 @@ use egui::ClippedPrimitive;
 
 pub struct EguiRenderRoutine {
     pub render_pass: egui_wgpu::Renderer,
-    pub screen_descriptor: egui_wgpu::renderer::ScreenDescriptor,
+    pub screen_descriptor: egui_wgpu::ScreenDescriptor,
     #[allow(dead_code)]
     textures_to_free: Vec<egui::TextureId>,
 }
@@ -25,7 +25,7 @@ impl EguiRenderRoutine {
 
         Self {
             render_pass,
-            screen_descriptor: egui_wgpu::renderer::ScreenDescriptor {
+            screen_descriptor: egui_wgpu::ScreenDescriptor {
                 size_in_pixels: [width, height],
                 pixels_per_point: scale_factor,
             },
@@ -39,7 +39,7 @@ impl EguiRenderRoutine {
         new_height: u32,
         new_scale_factor: f32,
     ) {
-        self.screen_descriptor = egui_wgpu::renderer::ScreenDescriptor {
+        self.screen_descriptor = egui_wgpu::ScreenDescriptor {
             size_in_pixels: [new_width, new_height],
             pixels_per_point: new_scale_factor,
         };

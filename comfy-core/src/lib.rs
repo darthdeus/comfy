@@ -147,10 +147,7 @@ pub use fontdue;
 pub use tracy_client;
 pub use winit::{
     self,
-    event::{
-        ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode,
-        WindowEvent,
-    },
+    event::{ElementState, Event, MouseScrollDelta, WindowEvent},
     window::Window,
 };
 
