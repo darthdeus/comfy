@@ -1,4 +1,4 @@
-use comfy_core::winit::event::KeyEvent;
+use comfy_core::winit::event::{DeviceEvent, KeyEvent};
 use winit::event_loop::ControlFlow;
 
 use crate::*;
@@ -202,39 +202,38 @@ pub async fn run_comfy_main_async(
                 tracy_client::frame_mark();
             }
 
+            Event::DeviceEvent { device_id, event } => match event {
+                DeviceEvent::Key(input) => {
+                    if let Some(keycode) =
+                        KeyCode::try_from_winit(input.physical_key)
+                    {
+                        match input.state {
+                            ElementState::Pressed => {
+                                let mut state = GLOBAL_STATE.borrow_mut();
+
+                                state.pressed.insert(keycode);
+                                state.just_pressed.insert(keycode);
+                                state.just_released.remove(&keycode);
+                            }
+
+                            ElementState::Released => {
+                                let mut state = GLOBAL_STATE.borrow_mut();
+
+                                state.pressed.remove(&keycode);
+                                state.just_pressed.remove(&keycode);
+                                state.just_released.insert(keycode);
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            },
             Event::WindowEvent { ref event, window_id: _ } => {
                 if engine.renderer.as_mut().unwrap().on_event(event, egui()) {
                     return;
                 }
 
                 match event {
-                    WindowEvent::KeyboardInput {
-                        event: KeyEvent { state, logical_key, .. },
-                        ..
-                    } => {
-                        if let Some(keycode) =
-                            KeyCode::try_from_winit(logical_key)
-                        {
-                            match state {
-                                ElementState::Pressed => {
-                                    let mut state = GLOBAL_STATE.borrow_mut();
-
-                                    state.pressed.insert(keycode);
-                                    state.just_pressed.insert(keycode);
-                                    state.just_released.remove(&keycode);
-                                }
-
-                                ElementState::Released => {
-                                    let mut state = GLOBAL_STATE.borrow_mut();
-
-                                    state.pressed.remove(&keycode);
-                                    state.just_pressed.remove(&keycode);
-                                    state.just_released.insert(keycode);
-                                }
-                            }
-                        }
-                    }
-
                     WindowEvent::CursorMoved { position, .. } => {
                         GLOBAL_STATE.borrow_mut().mouse_position =
                             vec2(position.x as f32, position.y as f32);
