@@ -58,6 +58,7 @@ fn run_mid_update_stages(c: &mut EngineContext) {
 
 // TODO: Some of the ordering in the update stages is definitely incorrect.
 pub(crate) fn run_late_update_stages(c: &mut EngineContext, delta: f32) {
+    apply_assets_loaded_this_frame();
     update_animated_sprites(c);
     update_trails(c);
     update_drawables(c);
