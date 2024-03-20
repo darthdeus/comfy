@@ -5,7 +5,7 @@
   stable 60 FPS on my machine, meaning **at least 4x improvement in sprite
   drawing performance**.
 - Added automated screenshot capture mechanism with a fixed history, meaning you can
-  nost simply set `c.renderer.screenshot_params.record_screenshots = true` (and optionally
+  now simply set `c.renderer.screenshot_params.record_screenshots = true` (and optionally
   `screenshot_interval_n` and `history_length`) to take a screenshot every `n` frames,
   keeping up to `history_length` screenshots in memory. The whole screenshot buffer can
   then be saved by calling `save_screenshots_to_folder`. Note that just enabling screenshot
