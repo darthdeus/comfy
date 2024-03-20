@@ -864,7 +864,7 @@ impl WgpuRenderer {
                     RecordingMode::Landscape => (landscape_res, false),
                 };
 
-            self.window.request_inner_size(resolution);
+            self.window.request_inner_size(resolution).log_err();
             // self.window.center();
         }
 

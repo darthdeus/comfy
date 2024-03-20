@@ -1,4 +1,4 @@
-use comfy_core::winit::event::{DeviceEvent, KeyEvent};
+use comfy_core::winit::event::DeviceEvent;
 use winit::event_loop::ControlFlow;
 
 use crate::*;
@@ -205,7 +205,7 @@ pub async fn run_comfy_main_async(
                     tracy_client::frame_mark();
                 }
 
-                Event::DeviceEvent { device_id, event } => {
+                Event::DeviceEvent { event, .. } => {
                     match event {
                         DeviceEvent::Key(input) => {
                             if let Some(keycode) =
