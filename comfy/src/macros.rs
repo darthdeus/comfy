@@ -24,7 +24,7 @@ macro_rules! define_main {
             let _tracy = $crate::maybe_setup_tracy();
 
             let mut engine = $crate::EngineState::new();
-            let game = $game::new(&mut engine);
+            let mut game = $game::new(&mut engine);
 
             let renderer = QuadRenderer::new().await;
 
@@ -32,7 +32,7 @@ macro_rules! define_main {
             engine.renderer = Some(renderer);
 
             loop {
-                $crate::comfy_one_frame(&mut game, &mut engine).await;
+                $crate::comfy_one_frame(&mut game, &mut engine);
                 $crate::macroquad::prelude::next_frame().await;
             }
         }
