@@ -50,7 +50,6 @@ glam = { version = "0.24.1" }
 egui = "0.26.2"
 egui_plot = "0.26.2"
 epaint = "0.26.2"
-egui-winit = { version = "0.26.2", default-features = false, features = [] }
 
 num-traits = "0.2.16"
 

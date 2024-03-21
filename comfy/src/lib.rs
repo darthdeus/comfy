@@ -57,8 +57,8 @@ pub use std::{
 
 pub use comfy_core::{self, Assets, *};
 
-pub use comfy_wgpu;
-pub use comfy_wgpu::*;
+pub use comfy_quad;
+pub use comfy_quad::*;
 
 #[cfg(feature = "ldtk")]
 pub use comfy_ldtk::*;

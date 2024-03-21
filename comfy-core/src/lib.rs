@@ -111,7 +111,6 @@ pub use chrono;
 pub use crossbeam::atomic::AtomicCell;
 pub use egui;
 pub use egui_plot;
-pub use egui_winit;
 pub use env_logger;
 pub use epaint;
 pub use glam::{

@@ -1,0 +1,18 @@
+[package]
+name = "comfy-quad"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+
+ci-release = []
+tracy = []
+record-pngs = []
+
+[dependencies]
+comfy-core = { path = "../comfy-core", version = "0.3.0" }
+
+macroquad = "0.4.5"
