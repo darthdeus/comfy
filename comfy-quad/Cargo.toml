@@ -17,4 +17,6 @@ comfy-core = { path = "../comfy-core", version = "0.3.0" }
 
 macroquad = { version = "=0.4.4", default-features = false, features = [] }
 # egui-macroquad = { version = "0.15.0", default-features = false, features = [] }
-egui-macroquad = { git = "https://github.com/optozorax/egui-macroquad.git", default-features = false, features = [] }
+# egui-macroquad = { git = "https://github.com/optozorax/egui-macroquad.git", default-features = false, features = [] }
+egui-macroquad = { git = "https://github.com/darthdeus/egui-macroquad.git", default-features = false, features = [
+], branch = "pub-things" }

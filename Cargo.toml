@@ -1,7 +1,13 @@
 [workspace]
 resolver = "2"
 
-members = ["comfy", "comfy-core", "comfy-quad", "demos/egui-scaling", "demos/fun"]
+members = [
+  "comfy",
+  "comfy-core",
+  "comfy-quad",
+  "demos/egui-scaling",
+  "demos/fun",
+]
 
 [profile.dev]
 opt-level = 3
@@ -15,3 +21,5 @@ opt-level = 3
 # egui-wgpu = { path = "../egui/crates/egui-wgpu" }
 # egui-winit = { path = "../egui/crates/egui-winit" }
 # egui_plot = { path = "../egui/crates/egui_plot" }
+
+# egui-macroquad = { path = "../egui-macroquad" }
