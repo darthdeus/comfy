@@ -46,6 +46,7 @@
   to be configurable at will.
 - Added `max_distance` to `Particle` allowing particles to only travel a set maximum distance.
 - Added `spawn_particle_fan_ex` with more flexible parameters for max particle distance.
+- Upgraded `wgpu: 0.18 -> 0.19.3, winit: 0.28 -> 0.29, egui: 0.24 -> 0.26`.
 
 # v0.3.0
 
