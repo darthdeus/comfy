@@ -15,9 +15,13 @@ macro_rules! define_main {
     ($name:literal, $game:ident, $config:ident $(,)?) => {
         $crate::define_versions!();
 
-        pub async fn run() {
+        #[macroquad::main("Comfy :)")]
+        async fn main() {
+            #[cfg(feature = "color-backtrace")]
+            $crate::color_backtrace::install();
+
             $crate::init_game_config($name.to_string(), version_str(), $config);
-            let _tracy = maybe_setup_tracy();
+            let _tracy = $crate::maybe_setup_tracy();
 
             let mut engine = $crate::EngineState::new();
             let game = $game::new(&mut engine);
@@ -27,23 +31,9 @@ macro_rules! define_main {
             engine.texture_creator = Some(renderer.texture_creator.clone());
             engine.renderer = Some(renderer);
 
-            // $crate::run_comfy_main_async(game, engine).await;
-            $crate::comfy_one_frame(game, engine).await;
-        }
-
-        #[macroquad::main("Comfy :)")]
-        fn main() {
-            #[cfg(feature = "color-backtrace")]
-            $crate::color_backtrace::install();
-
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                $crate::pollster::block_on(run());
-            }
-
-            #[cfg(target_arch = "wasm32")]
-            {
-                $crate::wasm_bindgen_futures::spawn_local(run());
+            loop {
+                $crate::comfy_one_frame(&mut game, &mut engine).await;
+                $crate::macroquad::prelude::next_frame().await;
             }
         }
     };

@@ -1,6 +1,8 @@
 use comfy_core::*;
 use std::sync::mpsc::Sender;
 
+pub use macroquad;
+
 mod text;
 
 pub use crate::text::*;
@@ -88,6 +90,8 @@ pub struct QuadRenderer {
     pub texture_creator: Arc<AtomicRefCell<QuadTextureCreator>>,
     pub loaded_image_send: Sender<LoadedImage>,
     pub text: RefCell<TextRasterizer>,
+    pub screenshot_params: ScreenshotParams,
+    pub screenshot_history_buffer: VecDeque<ScreenshotItem>,
 }
 
 impl QuadRenderer {
@@ -108,4 +112,11 @@ impl QuadRenderer {
     pub fn draw(&mut self, params: DrawParams, egui: &egui::Context) {}
 
     pub fn end_frame(&mut self) {}
+}
+
+pub fn save_screenshots_to_folder(
+    folder: &str,
+    screenshot_history_buffer: &VecDeque<ScreenshotItem>,
+) {
+    todo!()
 }

@@ -180,14 +180,14 @@ pub fn image_button_without_c(
 }
 
 #[cfg(not(feature = "tracy"))]
-fn maybe_setup_tracy() -> i32 {
+pub fn maybe_setup_tracy() -> i32 {
     info!("TRACING DISABLED");
     // We don't really care about the value, but if () is returned rustc complains about binding ()
     0
 }
 
 #[cfg(feature = "tracy")]
-fn maybe_setup_tracy() -> tracy_client::Client {
+pub fn maybe_setup_tracy() -> tracy_client::Client {
     info!("CONNECTING TO TRACY");
 
     // let file_appender = tracing_appender::rolling::daily("logs", "log"); //
