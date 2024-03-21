@@ -39,7 +39,8 @@
 - Fix linear vs sRGB tinting in blood canvas, see [this commit](https://github.com/darthdeus/comfy/commit/80a0ee8e81d036aadf3da56c2a6ecb3750306dff) for more details.
 - Removed implicitly enabled pause system that would toggle `is_paused` on `EngineContext` when
   Esc is pressed. This was never really intended and was an oversight.
-- Removed a few components that were never intended to be part of Comfy (e.g. `Health`, `DamagedCallback`).
+- Removed a few components that were never intended to be part of Comfy (e.g. `Health`, `DamagedCallback`, `Damage`).
+  Users who need them can re-implement e.g. `pub struct Damage(pub f32)`, as all of these are trivial types.
 - Allow changing `game_config_mut().target_framerate` during gameplay. Previously this was only possible
   at initialization, but Comfy will now update its frame timer at the end of each frame, allowing this
   to be configurable at will.

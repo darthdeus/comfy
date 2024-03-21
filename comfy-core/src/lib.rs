@@ -147,10 +147,7 @@ pub use fontdue;
 pub use tracy_client;
 pub use winit::{
     self,
-    event::{
-        ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode,
-        WindowEvent,
-    },
+    event::{ElementState, Event, MouseScrollDelta, WindowEvent},
     window::Window,
 };
 
@@ -256,8 +253,6 @@ impl ComplexExt for Complex<f32> {
         Complex::new(real, imag)
     }
 }
-
-pub struct Damage(pub f32);
 
 #[derive(Copy, Clone, Debug)]
 pub struct ValueRange<T> {

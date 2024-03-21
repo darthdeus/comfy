@@ -1,3 +1,4 @@
+use comfy_core::winit::event::DeviceEvent;
 use winit::event_loop::ControlFlow;
 
 use crate::*;
@@ -29,7 +30,9 @@ pub async fn run_comfy_main_async(
         }
     };
 
-    let event_loop = winit::event_loop::EventLoop::new();
+    let event_loop = winit::event_loop::EventLoop::new().unwrap();
+
+    event_loop.set_control_flow(ControlFlow::Poll);
 
     let title = {
         let game_name = game_config().game_name.clone();
@@ -62,6 +65,7 @@ pub async fn run_comfy_main_async(
     };
 
     let window = window.build(&event_loop).unwrap();
+    let window = Box::leak(Box::new(window));
 
     let min_resolution = match game_config_mut()
         .min_resolution
@@ -113,6 +117,9 @@ pub async fn run_comfy_main_async(
     info!("scale factor = {}", window.scale_factor());
 
     let egui_winit = egui_winit::State::new(
+        // TODO: this is wrong, since we'll likely just end up with two contexts,
+        // but for now trying to just get things to compile
+        egui().clone(),
         egui().viewport_id(),
         &window,
         Some(window.scale_factor() as f32),
@@ -126,196 +133,212 @@ pub async fn run_comfy_main_async(
     engine.texture_creator = Some(renderer.texture_creator.clone());
     engine.renderer = Some(renderer);
 
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::MainEventsCleared => {
-                let _span = span!("frame with vsync");
-                #[cfg(not(target_arch = "wasm32"))]
-                let _ = loop_helper.loop_start();
-                let frame_start = Instant::now();
+    event_loop
+        .run(move |event, control_flow| {
+            match event {
+                Event::AboutToWait => {
+                    let _span = span!("frame with vsync");
+                    #[cfg(not(target_arch = "wasm32"))]
+                    let _ = loop_helper.loop_start();
+                    let frame_start = Instant::now();
 
-                set_delta(delta);
-                set_time(get_time() + delta as f64);
-                use_default_shader();
+                    set_delta(delta);
+                    set_time(get_time() + delta as f64);
+                    use_default_shader();
 
-                if engine.quit_flag {
-                    *control_flow = ControlFlow::Exit;
-                }
-
-                {
-                    span_with_timing!("frame");
-                    {
-                        let _span = span!("begin_frame");
-                        let renderer = engine.renderer.as_mut().unwrap();
-
-                        egui().begin_frame(
-                            renderer
-                                .egui_winit
-                                .take_egui_input(&renderer.window),
-                        );
+                    if engine.quit_flag {
+                        control_flow.exit();
                     }
 
-                    engine.frame += 1;
-
-                    // All internal engine code expect an `EngineContext`.
-                    let mut c = engine.make_context();
-                    run_early_update_stages(&mut c);
-                    game.update(&mut c);
-                    update_perf_counters(&mut c, &game);
-                    run_late_update_stages(&mut c, delta);
-                }
-
-                {
-                    let mut global_state = GLOBAL_STATE.borrow_mut();
-                    global_state.just_pressed.clear();
-                    global_state.just_released.clear();
-                    global_state.mouse_just_pressed.clear();
-                    global_state.mouse_just_released.clear();
-                    global_state.mouse_wheel = (0.0, 0.0);
-
-                    engine
-                        .renderer
-                        .as_ref()
-                        .unwrap()
-                        .window
-                        .set_cursor_visible(!global_state.cursor_hidden);
-                }
-
-
-                set_frame_time(frame_start.elapsed().as_secs_f32());
-                inc_frame_num();
-
-                let _span = span!("loop_sleep");
-                #[cfg(not(target_arch = "wasm32"))]
-                loop_helper.loop_sleep();
-                delta = frame_start.elapsed().as_secs_f32();
-                delta = delta.clamp(1.0 / 5000.0, 1.0 / 10.0);
-                #[cfg(not(target_arch = "wasm32"))]
-                loop_helper.set_target_rate(game_config().target_framerate);
-
-                #[cfg(feature = "tracy")]
-                tracy_client::frame_mark();
-            }
-
-            Event::WindowEvent { ref event, window_id: _ } => {
-                if engine.renderer.as_mut().unwrap().on_event(event, egui()) {
-                    return;
-                }
-
-                match event {
-                    WindowEvent::KeyboardInput {
-                        input: KeyboardInput { state, virtual_keycode, .. },
-                        ..
-                    } => {
-                        if let Some(keycode) =
-                            virtual_keycode.and_then(KeyCode::try_from_winit)
+                    {
+                        span_with_timing!("frame");
                         {
+                            let _span = span!("begin_frame");
+                            let renderer = engine.renderer.as_mut().unwrap();
+
+                            egui().begin_frame(
+                                renderer
+                                    .egui_winit
+                                    .take_egui_input(&renderer.window),
+                            );
+                        }
+
+                        engine.frame += 1;
+
+                        // All internal engine code expect an `EngineContext`.
+                        let mut c = engine.make_context();
+                        run_early_update_stages(&mut c);
+                        game.update(&mut c);
+                        update_perf_counters(&mut c, &game);
+                        run_late_update_stages(&mut c, delta);
+                    }
+
+                    {
+                        let mut global_state = GLOBAL_STATE.borrow_mut();
+                        global_state.just_pressed.clear();
+                        global_state.just_released.clear();
+                        global_state.mouse_just_pressed.clear();
+                        global_state.mouse_just_released.clear();
+                        global_state.mouse_wheel = (0.0, 0.0);
+
+                        engine
+                            .renderer
+                            .as_ref()
+                            .unwrap()
+                            .window
+                            .set_cursor_visible(!global_state.cursor_hidden);
+                    }
+
+
+                    set_frame_time(frame_start.elapsed().as_secs_f32());
+                    inc_frame_num();
+
+                    let _span = span!("loop_sleep");
+                    #[cfg(not(target_arch = "wasm32"))]
+                    loop_helper.loop_sleep();
+                    delta = frame_start.elapsed().as_secs_f32();
+                    delta = delta.clamp(1.0 / 5000.0, 1.0 / 10.0);
+                    #[cfg(not(target_arch = "wasm32"))]
+                    loop_helper.set_target_rate(game_config().target_framerate);
+
+                    #[cfg(feature = "tracy")]
+                    tracy_client::frame_mark();
+                }
+
+                Event::DeviceEvent { event, .. } => {
+                    match event {
+                        DeviceEvent::Key(input) => {
+                            if let Some(keycode) =
+                                KeyCode::try_from_winit(input.physical_key)
+                            {
+                                match input.state {
+                                    ElementState::Pressed => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.insert(keycode);
+                                        state.just_pressed.insert(keycode);
+                                        state.just_released.remove(&keycode);
+                                    }
+
+                                    ElementState::Released => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.remove(&keycode);
+                                        state.just_pressed.remove(&keycode);
+                                        state.just_released.insert(keycode);
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                Event::WindowEvent { ref event, window_id: _ } => {
+                    if engine.renderer.as_mut().unwrap().on_event(event, egui())
+                    {
+                        return;
+                    }
+
+                    match event {
+                        WindowEvent::CursorMoved { position, .. } => {
+                            GLOBAL_STATE.borrow_mut().mouse_position =
+                                vec2(position.x as f32, position.y as f32);
+                        }
+
+                        WindowEvent::MouseInput { state, button, .. } => {
+                            let quad_button = match button {
+                                winit::event::MouseButton::Left => {
+                                    MouseButton::Left
+                                }
+                                winit::event::MouseButton::Right => {
+                                    MouseButton::Right
+                                }
+                                winit::event::MouseButton::Middle => {
+                                    MouseButton::Middle
+                                }
+                                winit::event::MouseButton::Other(num) => {
+                                    MouseButton::Other(*num)
+                                }
+                                winit::event::MouseButton::Back => {
+                                    MouseButton::Back
+                                }
+                                winit::event::MouseButton::Forward => {
+                                    MouseButton::Forward
+                                }
+                            };
+
+                            let mut global_state = GLOBAL_STATE.borrow_mut();
+
                             match state {
                                 ElementState::Pressed => {
-                                    let mut state = GLOBAL_STATE.borrow_mut();
-
-                                    state.pressed.insert(keycode);
-                                    state.just_pressed.insert(keycode);
-                                    state.just_released.remove(&keycode);
+                                    global_state
+                                        .mouse_pressed
+                                        .insert(quad_button);
+                                    global_state
+                                        .mouse_just_pressed
+                                        .insert(quad_button);
                                 }
-
                                 ElementState::Released => {
-                                    let mut state = GLOBAL_STATE.borrow_mut();
-
-                                    state.pressed.remove(&keycode);
-                                    state.just_pressed.remove(&keycode);
-                                    state.just_released.insert(keycode);
+                                    global_state
+                                        .mouse_pressed
+                                        .remove(&quad_button);
+                                    global_state
+                                        .mouse_just_pressed
+                                        .remove(&quad_button);
+                                    global_state
+                                        .mouse_just_released
+                                        .insert(quad_button);
                                 }
                             }
                         }
-                    }
 
-                    WindowEvent::CursorMoved { position, .. } => {
-                        GLOBAL_STATE.borrow_mut().mouse_position =
-                            vec2(position.x as f32, position.y as f32);
-                    }
+                        WindowEvent::MouseWheel { delta, .. } => {
+                            let mut global_state = GLOBAL_STATE.borrow_mut();
 
-                    WindowEvent::MouseInput { state, button, .. } => {
-                        let quad_button = match button {
-                            winit::event::MouseButton::Left => {
-                                MouseButton::Left
-                            }
-                            winit::event::MouseButton::Right => {
-                                MouseButton::Right
-                            }
-                            winit::event::MouseButton::Middle => {
-                                MouseButton::Middle
-                            }
-                            winit::event::MouseButton::Other(num) => {
-                                MouseButton::Other(*num)
-                            }
-                        };
-
-                        let mut global_state = GLOBAL_STATE.borrow_mut();
-
-                        match state {
-                            ElementState::Pressed => {
-                                global_state.mouse_pressed.insert(quad_button);
-                                global_state
-                                    .mouse_just_pressed
-                                    .insert(quad_button);
-                            }
-                            ElementState::Released => {
-                                global_state.mouse_pressed.remove(&quad_button);
-                                global_state
-                                    .mouse_just_pressed
-                                    .remove(&quad_button);
-                                global_state
-                                    .mouse_just_released
-                                    .insert(quad_button);
+                            match delta {
+                                MouseScrollDelta::LineDelta(x, y) => {
+                                    global_state.mouse_wheel = (*x, *y);
+                                }
+                                MouseScrollDelta::PixelDelta(delta) => {
+                                    error!(
+                                        "MouseScrollDelta::PixelDelta not \
+                                         implemented! {:?}",
+                                        delta
+                                    );
+                                }
                             }
                         }
-                    }
 
-                    WindowEvent::MouseWheel { delta, .. } => {
-                        let mut global_state = GLOBAL_STATE.borrow_mut();
-
-                        match delta {
-                            MouseScrollDelta::LineDelta(x, y) => {
-                                global_state.mouse_wheel = (*x, *y);
-                            }
-                            MouseScrollDelta::PixelDelta(delta) => {
-                                error!(
-                                    "MouseScrollDelta::PixelDelta not \
-                                     implemented! {:?}",
-                                    delta
-                                );
+                        WindowEvent::Resized(physical_size) => {
+                            if physical_size.width > min_resolution.0 &&
+                                physical_size.height > min_resolution.1
+                            {
+                                engine.resize(uvec2(
+                                    physical_size.width,
+                                    physical_size.height,
+                                ));
                             }
                         }
-                    }
 
-                    WindowEvent::Resized(physical_size) => {
-                        if physical_size.width > min_resolution.0 &&
-                            physical_size.height > min_resolution.1
-                        {
-                            engine.resize(uvec2(
-                                physical_size.width,
-                                physical_size.height,
-                            ));
+                        // TODO: handle new scale factor
+                        // WindowEvent::ScaleFactorChanged {
+                        //     new_inner_size, ..
+                        // } => {
+                        //     engine.resize(uvec2(
+                        //         new_inner_size.width,
+                        //         new_inner_size.height,
+                        //     ));
+                        // }
+                        WindowEvent::CloseRequested => {
+                            control_flow.exit();
                         }
+                        _ => {}
                     }
-
-                    WindowEvent::ScaleFactorChanged {
-                        new_inner_size, ..
-                    } => {
-                        engine.resize(uvec2(
-                            new_inner_size.width,
-                            new_inner_size.height,
-                        ));
-                    }
-
-                    WindowEvent::CloseRequested => {
-                        *control_flow = ControlFlow::Exit;
-                    }
-                    _ => {}
                 }
+                _ => {}
             }
-            _ => {}
-        }
-    });
+        })
+        .unwrap();
 }

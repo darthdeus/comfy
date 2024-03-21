@@ -1,6 +1,8 @@
 use crate::*;
 
-pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
+pub async fn create_graphics_context(
+    window: &'static Window,
+) -> GraphicsContext {
     let size = window.inner_size();
 
     let backends =
@@ -19,9 +21,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
     });
 
-    let surface = unsafe {
-        instance.create_surface(&window).expect("surface config must be valid")
-    };
+    let surface =
+        instance.create_surface(window).expect("surface config must be valid");
 
     trace!("Requesting adapter");
 
@@ -54,8 +55,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
     let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
-                features: wgpu::Features::empty(),
-                limits,
+                required_features: wgpu::Features::empty(),
+                required_limits: limits,
                 label: None,
             },
             None,
@@ -134,6 +135,8 @@ pub async fn create_graphics_context(window: &Window) -> GraphicsContext {
         present_mode,
         alpha_mode: caps.alpha_modes[0],
         view_formats: vec![],
+        desired_maximum_frame_latency: game_config()
+            .desired_maximum_frame_latency,
     };
 
     trace!("Configuring surface");

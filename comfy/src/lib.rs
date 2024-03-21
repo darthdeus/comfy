@@ -170,8 +170,11 @@ pub fn image_button_without_c(
 
     let image_rect = rect;
 
-    painter
-        .galley(image_rect.center() - galley.mesh_bounds.size() / 2.0, galley);
+    painter.galley(
+        image_rect.center() - galley.mesh_bounds.size() / 2.0,
+        galley,
+        egui::Color32::PLACEHOLDER,
+    );
 
     response
 }

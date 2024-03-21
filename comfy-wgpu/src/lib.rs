@@ -4,10 +4,7 @@
 pub use comfy_core::*;
 pub use wgpu::util::DeviceExt;
 
-pub use winit::event::{
-    ElementState, Event, KeyboardInput, MouseScrollDelta, VirtualKeyCode,
-    WindowEvent,
-};
+pub use winit::event::{ElementState, Event, MouseScrollDelta, WindowEvent};
 
 pub use fontdue;
 
