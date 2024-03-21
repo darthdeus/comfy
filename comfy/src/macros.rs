@@ -15,7 +15,14 @@ macro_rules! define_main {
     ($name:literal, $game:ident, $config:ident $(,)?) => {
         $crate::define_versions!();
 
-        #[macroquad::main("Comfy :)")]
+        fn window_conf() -> $crate::macroquad::prelude::Conf {
+            $crate::macroquad::prelude::Conf {
+                window_title: "Comfy DEV".to_string(),
+                ..Default::default()
+            }
+        }
+
+        #[macroquad::main(window_conf)]
         async fn main() {
             #[cfg(feature = "color-backtrace")]
             $crate::color_backtrace::install();
@@ -32,7 +39,9 @@ macro_rules! define_main {
             engine.renderer = Some(renderer);
 
             loop {
-                $crate::comfy_one_frame(&mut game, &mut engine);
+                $crate::egui_macroquad::ui(|egui_ctx| {
+                    $crate::comfy_one_frame(&mut game, &mut engine);
+                });
                 $crate::macroquad::prelude::next_frame().await;
             }
         }

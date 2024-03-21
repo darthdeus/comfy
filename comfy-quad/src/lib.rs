@@ -1,7 +1,9 @@
 use comfy_core::*;
-use std::sync::mpsc::Sender;
+use macroquad::window::{screen_height, screen_width};
+use std::sync::mpsc::{channel, Receiver, Sender};
 
 pub use macroquad;
+pub use egui_macroquad;
 
 mod text;
 
@@ -47,6 +49,12 @@ pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {}
 #[derive(Debug)]
 pub struct QuadTextureCreator {}
 
+impl QuadTextureCreator {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl TextureCreator for QuadTextureCreator {
     fn handle_from_size(
         &self,
@@ -54,7 +62,8 @@ impl TextureCreator for QuadTextureCreator {
         size: UVec2,
         fill: Color,
     ) -> TextureHandle {
-        todo!()
+        // TODO:
+        TextureHandle::Raw(0)
     }
 
     fn handle_from_image(
@@ -62,11 +71,12 @@ impl TextureCreator for QuadTextureCreator {
         name: &str,
         image: &image::RgbaImage,
     ) -> TextureHandle {
-        todo!()
+        // TODO:
+        TextureHandle::Raw(0)
     }
 
     fn update_texture(&self, image: &image::RgbaImage, texture: TextureHandle) {
-        todo!()
+        // TODO:
     }
 
     fn update_texture_region(
@@ -75,12 +85,13 @@ impl TextureCreator for QuadTextureCreator {
         image: &image::RgbaImage,
         region: IRect,
     ) {
-        todo!()
+        // TODO:
     }
 }
 
 pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
 
+#[derive(Clone)]
 pub struct GraphicsContext {
     pub texture_creator: Arc<AtomicRefCell<QuadTextureCreator>>,
 }
@@ -88,6 +99,7 @@ pub struct GraphicsContext {
 pub struct QuadRenderer {
     pub context: GraphicsContext,
     pub texture_creator: Arc<AtomicRefCell<QuadTextureCreator>>,
+    pub loaded_image_recv: Receiver<LoadedImage>,
     pub loaded_image_send: Sender<LoadedImage>,
     pub text: RefCell<TextRasterizer>,
     pub screenshot_params: ScreenshotParams,
@@ -96,15 +108,31 @@ pub struct QuadRenderer {
 
 impl QuadRenderer {
     pub async fn new() -> Self {
-        todo!()
+        let texture_creator =
+            Arc::new(AtomicRefCell::new(QuadTextureCreator::new()));
+
+        let (tx_texture, rx_texture) = channel::<LoadedImage>();
+
+        let context =
+            GraphicsContext { texture_creator: texture_creator.clone() };
+
+        QuadRenderer {
+            text: RefCell::new(TextRasterizer::new(context.clone())),
+            context,
+            texture_creator,
+            loaded_image_recv: rx_texture,
+            loaded_image_send: tx_texture,
+            screenshot_params: ScreenshotParams::default(),
+            screenshot_history_buffer: VecDeque::new(),
+        }
     }
 
     pub fn width(&self) -> f32 {
-        todo!();
+        screen_width()
     }
 
     pub fn height(&self) -> f32 {
-        todo!();
+        screen_height()
     }
 
     pub fn update(&mut self, params: &mut DrawParams) {}
