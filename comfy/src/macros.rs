@@ -42,6 +42,9 @@ macro_rules! define_main {
                 $crate::egui_macroquad::ui(|egui_ctx| {
                     $crate::comfy_one_frame(&mut game, &mut engine);
                 });
+
+                egui_macroquad::draw();
+
                 $crate::macroquad::prelude::next_frame().await;
             }
         }
