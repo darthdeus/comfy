@@ -181,7 +181,6 @@ pub async fn run_comfy_main_async(
                         .set_cursor_visible(!global_state.cursor_hidden);
                 }
 
-
                 set_frame_time(frame_start.elapsed().as_secs_f32());
                 inc_frame_num();
 
@@ -226,6 +225,31 @@ pub async fn run_comfy_main_async(
                                     state.just_pressed.remove(&keycode);
                                     state.just_released.insert(keycode);
                                 }
+                            }
+                        }
+                    }
+
+                    WindowEvent::Touch(touch_event) => {
+                        match touch_event.phase {
+                            winit::event::TouchPhase::Started
+                            | winit::event::TouchPhase::Moved => {
+                                GLOBAL_STATE
+                                    .borrow_mut()
+                                    .touch_locations
+                                    .insert(
+                                        touch_event.id,
+                                        Vec2 {
+                                            x: touch_event.location.x as f32,
+                                            y: touch_event.location.y as f32,
+                                        },
+                                    );
+                            }
+                            winit::event::TouchPhase::Ended
+                            | winit::event::TouchPhase::Cancelled => {
+                                GLOBAL_STATE
+                                    .borrow_mut()
+                                    .touch_locations
+                                    .remove(&touch_event.id);
                             }
                         }
                     }
@@ -290,8 +314,8 @@ pub async fn run_comfy_main_async(
                     }
 
                     WindowEvent::Resized(physical_size) => {
-                        if physical_size.width > min_resolution.0 &&
-                            physical_size.height > min_resolution.1
+                        if physical_size.width > min_resolution.0
+                            && physical_size.height > min_resolution.1
                         {
                             engine.resize(uvec2(
                                 physical_size.width,

@@ -49,7 +49,6 @@ pub fn inc_assets_loaded(newly_loaded_count: usize) {
     ASSETS_LOADED.fetch_add(newly_loaded_count, Ordering::SeqCst);
 }
 
-
 pub fn frame_time() -> f32 {
     f32::from_bits(FRAME_TIME.load(Ordering::SeqCst))
 }
@@ -102,6 +101,8 @@ pub struct GlobalState {
 
     pub mouse_locked: bool,
     pub cursor_hidden: bool,
+
+    pub touch_locations: HashMap<u64, Vec2>,
 
     pub egui_scale_factor: f32,
 

@@ -36,6 +36,10 @@ pub fn is_key_down(keycode: KeyCode) -> bool {
     GLOBAL_STATE.borrow().pressed.contains(&keycode)
 }
 
+pub fn get_touch_locations() -> Vec<Vec2> {
+    GLOBAL_STATE.borrow().touch_locations.clone().into_values().collect()
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MouseButton {
     Left,
