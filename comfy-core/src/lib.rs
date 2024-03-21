@@ -254,8 +254,6 @@ impl ComplexExt for Complex<f32> {
     }
 }
 
-pub struct Damage(pub f32);
-
 #[derive(Copy, Clone, Debug)]
 pub struct ValueRange<T> {
     pub min: T,

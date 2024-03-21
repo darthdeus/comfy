@@ -45,6 +45,8 @@
   to be configurable at will.
 - Added `max_distance` to `Particle` allowing particles to only travel a set maximum distance.
 - Added `spawn_particle_fan_ex` with more flexible parameters for max particle distance.
+- Removed `Damage` component as it's way too specific. Users who need it can
+  re-implement it by just defining it as `pub struct Damage(pub f32)`.
 
 # v0.3.0
 
