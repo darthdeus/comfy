@@ -232,7 +232,7 @@ impl Texture {
         let format = if is_normal_map {
             wgpu::TextureFormat::Rgba8Unorm
         } else {
-            wgpu::TextureFormat::Rgba8UnormSrgb
+            wgpu::TextureFormat::Rgba8Unorm
         };
 
         Self::from_image_with_format(
