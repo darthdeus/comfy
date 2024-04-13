@@ -489,7 +489,10 @@ impl KeyCode {
                 // winit::keyboard::KeyCode::F33 => todo!(),
                 // winit::keyboard::KeyCode::F34 => todo!(),
                 // winit::keyboard::KeyCode::F35 => todo!(),
-                _ => todo!(),
+                k => {
+                    info!("Unrecognized key {:?}", k);
+                    None
+                },
             },
             PhysicalKey::Unidentified(_) => None,
         }
