@@ -35,75 +35,23 @@ pub trait RandomRange {
     fn gen_range(low: Self, high: Self) -> Self;
 }
 
-impl RandomRange for u8 {
-    fn gen_range(low: Self, high: Self) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as u8
+macro_rules! impl_random_range{
+    ($($ty:ty),*,)=>{
+      $(
+        impl RandomRange for $ty{
+          #[inline]
+          fn gen_range(low: Self, high: Self) -> Self {
+            let r = rand() as f64 / (u32::MAX as f64 + 1.0);
+            let r = low as f64 + (high as f64 - low as f64) * r;
+            r as Self
+          }
+        }
+      )*
     }
-}
-
-impl RandomRange for f32 {
-    fn gen_range(low: Self, high: Self) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        low + (high - low) * r
-    }
-}
-
-impl RandomRange for f64 {
-    fn gen_range(low: Self, high: Self) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        low + (high - low) * r as f64
-    }
-}
-
-impl RandomRange for i32 {
-    fn gen_range(low: i32, high: i32) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as i32
-    }
-}
-
-impl RandomRange for i64 {
-    fn gen_range(low: Self, high: Self) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as i64
-    }
-}
-
-impl RandomRange for u32 {
-    fn gen_range(low: u32, high: u32) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as u32
-    }
-}
-
-impl RandomRange for u64 {
-    fn gen_range(low: u64, high: u64) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as u64
-    }
-}
-
-impl RandomRange for i16 {
-    fn gen_range(low: i16, high: i16) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as i16
-    }
-}
-
-impl RandomRange for usize {
-    fn gen_range(low: usize, high: usize) -> Self {
-        let r = rand() as f32 / std::u32::MAX as f32;
-        let r = low as f32 + (high as f32 - low as f32) * r;
-        r as usize
-    }
-}
+  }
+impl_random_range!(
+    f32, f64, u8, u16, u32, u64, usize, i8, i16, i32, i64, isize,
+);
 
 pub fn gen_range<T>(low: T, high: T) -> T
 where T: RandomRange {
@@ -259,4 +207,18 @@ pub fn random_around(position: Vec2, min: f32, max: f32) -> Vec2 {
 
 pub fn random() -> f32 {
     gen_range(0.0, 1.0)
+}
+
+#[test]
+fn crash_poop_gen_range() {
+    let things = vec![1, 2, 3];
+
+    let mut i: usize = 0;
+
+    for _ in 0..1000000000usize {
+        i += 1;
+        if things.choose().is_none() {
+            panic!("EXITING AFTER {} ITERATIONS", i);
+        }
+    }
 }
