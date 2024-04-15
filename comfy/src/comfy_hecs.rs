@@ -1,11 +1,10 @@
 use crate::*;
 
-// TODO: this should eventually turn into a comfy-hecs crate
-pub static WORLD: Lazy<Arc<AtomicRefCell<World>>> =
-    Lazy::new(|| Arc::new(AtomicRefCell::new(World::new())));
+pub static WORLD: Lazy<AtomicRefCell<World>> =
+    Lazy::new(|| AtomicRefCell::new(World::new()));
 
-pub static COMMANDS: Lazy<Arc<AtomicRefCell<CommandBuffer>>> =
-    Lazy::new(|| Arc::new(AtomicRefCell::new(CommandBuffer::new())));
+pub static COMMANDS: Lazy<AtomicRefCell<CommandBuffer>> =
+    Lazy::new(|| AtomicRefCell::new(CommandBuffer::new()));
 
 pub fn world() -> AtomicRef<'static, World> {
     WORLD.borrow()
@@ -22,11 +21,3 @@ pub fn commands() -> AtomicRefMut<'static, CommandBuffer> {
 pub fn reset_world() {
     *world_mut() = World::new();
 }
-
-// pub fn query<Q: hecs::Query>() -> hecs::QueryBorrow<'static, Q> {
-//     world().query::<Q>()
-// }
-
-// pub fn query_mut<'a, Q: hecs::Query>() -> hecs::QueryMut<'a, Q> {
-//     world_mut().query_mut::<Q>()
-// }
