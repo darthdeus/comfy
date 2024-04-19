@@ -359,7 +359,7 @@ fn render_text(c: &mut EngineContext) {
 }
 
 fn update_blood_canvas(_c: &mut EngineContext) {
-    let _span = span!("blood_canvas");
+    span_with_timing!("blood_canvas");
 
     // TODO: this really doesn't belong here
     blood_canvas_update_and_draw(|key, block| {

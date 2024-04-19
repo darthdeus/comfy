@@ -2,7 +2,7 @@
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
-# EXAMPLE=blood_canvas
+EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
@@ -26,7 +26,7 @@
 # EXAMPLE=physics
 # EXAMPLE=post_processing
 # EXAMPLE=render-target
-EXAMPLE=screenshot_history
+# EXAMPLE=screenshot_history
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound

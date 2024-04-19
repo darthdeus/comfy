@@ -9,6 +9,8 @@ pub fn blood_canvas_update_and_draw(f: fn(IVec2, &CanvasBlock)) {
     let canvas = &mut *canvas;
 
     for (_, block) in canvas.blocks.iter_mut() {
+        let _span = span!("canvas_block");
+
         if block.modified {
             // info!("updating block at {}", key);
             block.modified = false;
