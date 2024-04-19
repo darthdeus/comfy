@@ -15,7 +15,7 @@ pub struct Sprite {
     pub flip_x: bool,
     pub flip_y: bool,
 
-    y_sort_offset: f32,
+    pub y_sort_offset: f32,
 }
 
 impl Sprite {
