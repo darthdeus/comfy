@@ -29,6 +29,10 @@ pub fn blood_canvas_reset() {
     BLOOD_CANVAS.get().unwrap().borrow_mut().blocks = HashMap::default();
 }
 
+pub fn blood_pixel_at(position: Vec2, color: Color) {
+    BLOOD_CANVAS.get().unwrap().borrow_mut().set_pixel(position, color);
+}
+
 pub fn blood_circle_at(
     position: Vec2,
     radius: i32,
