@@ -54,7 +54,7 @@ pub async fn run_comfy_main_async(
 
     let window = winit::window::WindowBuilder::new().with_title(title);
 
-    let window = match resolution {
+    let mut window = match resolution {
         ResolutionConfig::Physical(w, h) => {
             window.with_inner_size(winit::dpi::PhysicalSize::new(w, h))
         }
@@ -63,6 +63,11 @@ pub async fn run_comfy_main_async(
             window.with_inner_size(winit::dpi::LogicalSize::new(w, h))
         }
     };
+
+    if game_config().fullscreen {
+        window = window
+            .with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)));
+    }
 
     let window = window.build(&event_loop).unwrap();
     let window = Box::leak(Box::new(window));

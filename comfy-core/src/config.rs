@@ -80,6 +80,9 @@ pub struct GameConfig {
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
 
+    /// Initial config for fullscreen, only works on game launch.
+    pub fullscreen: bool,
+
     pub target_framerate: u32,
     pub vsync_enabled: bool,
     pub desired_maximum_frame_latency: u32,
@@ -123,6 +126,7 @@ impl Default for GameConfig {
 
             resolution,
             min_resolution,
+            fullscreen: false,
 
             target_framerate: 60,
             vsync_enabled: true,

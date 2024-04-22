@@ -2,7 +2,7 @@
 # EXAMPLE=animated_text
 # EXAMPLE=animated_sprites
 # EXAMPLE=alpha_sprite
-EXAMPLE=blood_canvas
+# EXAMPLE=blood_canvas
 # EXAMPLE=bloom
 # EXAMPLE=custom_config
 # EXAMPLE=cooldowns
@@ -15,6 +15,7 @@ EXAMPLE=blood_canvas
 # EXAMPLE=egui
 # EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
+EXAMPLE=fullscreen
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
