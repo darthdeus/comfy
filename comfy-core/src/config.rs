@@ -80,6 +80,10 @@ pub struct GameConfig {
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
 
+    /// Overrides the scale factor for the window. This is useful for making
+    /// egui independent of the system UI scaling.
+    pub scale_factor_override: Option<f32>,
+
     /// Initial config for fullscreen, only works on game launch.
     pub fullscreen: bool,
 
@@ -126,6 +130,8 @@ impl Default for GameConfig {
 
             resolution,
             min_resolution,
+
+            scale_factor_override: None,
             fullscreen: false,
 
             target_framerate: 60,

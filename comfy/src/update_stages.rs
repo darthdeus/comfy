@@ -7,6 +7,10 @@ pub(crate) fn run_early_update_stages(c: &mut EngineContext) {
         let mut state = GLOBAL_STATE.borrow_mut();
 
         state.fps = (1.0 / delta).round() as i32;
+        if let Some(scale_override) = game_config().scale_factor_override {
+            egui().set_pixels_per_point(scale_override);
+        }
+
         state.egui_scale_factor = egui().pixels_per_point();
     }
 

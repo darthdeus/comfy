@@ -355,13 +355,17 @@ impl WgpuRenderer {
             (config.width, config.height, config.format)
         };
 
+        let scale_factor = game_config()
+            .scale_factor_override
+            .unwrap_or(window.scale_factor() as f32);
+
         let egui_render_routine = EguiRenderRoutine::new(
             &context.device,
             format,
             1,
             width,
             height,
-            window.scale_factor() as f32,
+            scale_factor,
         );
 
         let screenshot_buffer = SizedBuffer::new(
@@ -1010,7 +1014,9 @@ impl WgpuRenderer {
     pub fn resize(&mut self, new_size: UVec2) {
         let _span = span!("resize");
 
-        let scale_factor = self.window.scale_factor() as f32;
+        let scale_factor = game_config()
+            .scale_factor_override
+            .unwrap_or(self.window.scale_factor() as f32);
 
         let size = winit::dpi::PhysicalSize::<u32>::new(new_size.x, new_size.y);
 

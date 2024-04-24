@@ -119,7 +119,10 @@ pub async fn run_comfy_main_async(
             .expect("Couldn't append canvas to document body.");
     }
 
-    info!("scale factor = {}", window.scale_factor());
+
+    let scale_factor = game_config()
+        .scale_factor_override
+        .unwrap_or(window.scale_factor() as f32);
 
     let egui_winit = egui_winit::State::new(
         // TODO: this is wrong, since we'll likely just end up with two contexts,
@@ -127,7 +130,7 @@ pub async fn run_comfy_main_async(
         egui().clone(),
         egui().viewport_id(),
         &window,
-        Some(window.scale_factor() as f32),
+        Some(scale_factor as f32),
         None,
     );
 
