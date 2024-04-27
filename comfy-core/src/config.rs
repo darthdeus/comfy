@@ -72,6 +72,13 @@ pub fn game_config_mut() -> AtomicRefMut<'static, GameConfig> {
         .borrow_mut()
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum PowerPreference {
+    None,
+    LowPower,
+    HighPerformance,
+}
+
 #[derive(Clone, Debug)]
 pub struct GameConfig {
     pub game_name: String,
@@ -79,6 +86,12 @@ pub struct GameConfig {
 
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
+
+    /// Overrides `wgpu`'s power preference for adapter selection. Should work around
+    /// a potential issue where when selecting `wgpu::PowerPreference::HighPerformance` is on
+    /// and the user has a laptop with a dual GPU setup where the dedicated GPU is not enabled,
+    /// `wgpu` would still choose it and then crash.
+    pub power_preference: PowerPreference,
 
     /// Overrides the scale factor for the window. This is useful for making
     /// egui independent of the system UI scaling.
@@ -130,6 +143,8 @@ impl Default for GameConfig {
 
             resolution,
             min_resolution,
+
+            power_preference: PowerPreference::None,
 
             scale_factor_override: None,
             fullscreen: false,

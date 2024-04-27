@@ -104,6 +104,18 @@ impl BufferType {
     }
 }
 
+pub fn power_preference_to_wgpu(
+    pref: PowerPreference,
+) -> wgpu::PowerPreference {
+    match pref {
+        PowerPreference::None => wgpu::PowerPreference::None,
+        PowerPreference::LowPower => wgpu::PowerPreference::LowPower,
+        PowerPreference::HighPerformance => {
+            wgpu::PowerPreference::HighPerformance
+        }
+    }
+}
+
 pub struct UniformBindGroup {
     pub bind_group: wgpu::BindGroup,
     pub layout: wgpu::BindGroupLayout,

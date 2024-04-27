@@ -28,8 +28,9 @@ pub async fn create_graphics_context(
 
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
-            // TODO: make this configurable
-            power_preference: wgpu::PowerPreference::HighPerformance,
+            power_preference: power_preference_to_wgpu(
+                game_config().power_preference,
+            ),
             compatible_surface: Some(&surface),
             force_fallback_adapter: false,
         })
