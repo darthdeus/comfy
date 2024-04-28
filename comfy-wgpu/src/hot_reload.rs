@@ -43,7 +43,7 @@ pub struct HotReload {
 
 impl HotReload {
     pub fn new() -> Self {
-        println!("SHADER HOT RELOADING ENABLED!");
+        info!("SHADER HOT RELOADING ENABLED!");
 
         let (tx, rx) = std::sync::mpsc::channel();
 

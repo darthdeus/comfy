@@ -364,7 +364,7 @@ pub fn create_render_pipeline(
 
     let shader = device.create_shader_module(wgpu_shader);
 
-    println!("CREATED SHADER, GOT {:?}", shader);
+    info!("CREATED SHADER, GOT {:?}", shader);
 
     let blend_state = match blend_mode {
         BlendMode::Alpha => Some(wgpu::BlendState::ALPHA_BLENDING),

@@ -47,7 +47,7 @@ impl CachedImageLoader {
         let mut failed = false;
 
         if !self.images.contains_key(path) {
-            println!("Loading uncached {}", path);
+            info!("Loading uncached egui image {}", path);
 
             let texture = texture_id_safe(path).or_else(|| {
                 Assets::error_loading_image(path);
