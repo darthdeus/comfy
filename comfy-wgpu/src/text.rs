@@ -172,7 +172,16 @@ impl TextRasterizer {
                 ))
                 .unwrap_or_else(|| panic!("FAILED TO FIT GLYPH {}", c));
 
-            info!("still have {} free space", self.atlas.free_space());
+            if self.atlas.free_space() < self.atlas.allocated_space() {
+                let used = self.atlas.free_space();
+                let total = self.atlas.size().area();
+                info!(
+                    "font atlas has {}/{} space ({:.2}%) used",
+                    used,
+                    total,
+                    (1.0 - used as f32 / total as f32) * 100.0
+                );
+            }
 
             let rect = allocation.rectangle.to_rect();
             let inset_rect = IRect::new(

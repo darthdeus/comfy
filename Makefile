@@ -15,7 +15,7 @@
 # EXAMPLE=egui
 # EXAMPLE=exr-hdr-image
 # EXAMPLE=full_game_loop
-EXAMPLE=fullscreen
+# EXAMPLE=fullscreen
 # EXAMPLE=framerate_vsync
 # EXAMPLE=fragment-shader
 # EXAMPLE=music
@@ -31,7 +31,7 @@ EXAMPLE=fullscreen
 # EXAMPLE=sprite
 # EXAMPLE=shapes
 # EXAMPLE=sound
-# EXAMPLE=text
+EXAMPLE=text
 # EXAMPLE=timed_draw
 # EXAMPLE=version
 # EXAMPLE=y_sort
