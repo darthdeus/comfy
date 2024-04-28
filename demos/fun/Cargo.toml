@@ -8,5 +8,4 @@ edition = "2021"
 [dependencies]
 # comfy = "0.3"
 comfy = { path = "../../comfy" }
-tobj = "4"
-gltf = "1"
+gilrs = "0.10.7"
