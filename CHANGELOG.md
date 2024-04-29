@@ -49,6 +49,10 @@
 - Upgraded `wgpu: 0.18 -> 0.19.3, winit: 0.28 -> 0.29, egui: 0.24 -> 0.26`.
 - Made `wgpu::PowerPreference` configurable & default to `None`, with the hope of fixing a potential
   issue where users have their dedicated GPU disabled on a dual GPU setup.
+- Add option to override `max_texture_dimension_2d` in `GameConfig`, this is useful for games that want to support
+  resolutions higher than 4K. It's not entirely clear to me whether we can safely just raise this and still work
+  on all machines, hence why it becomes an optional override. We're doing some more testing on this in our
+  game, and if it'll be safe we'll also change the default.
 
 # v0.3.0
 

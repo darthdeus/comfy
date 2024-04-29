@@ -41,15 +41,18 @@ pub async fn create_graphics_context(
 
     trace!("Requesting device");
 
+    let max_texture_dim_2d =
+        game_config().max_texture_dimension_2d_override.unwrap_or(4096);
+
     #[cfg(not(target_arch = "wasm32"))]
     let limits = wgpu::Limits {
-        max_texture_dimension_2d: 4096,
+        max_texture_dimension_2d: max_texture_dim_2d,
         ..wgpu::Limits::downlevel_defaults()
     };
 
     #[cfg(target_arch = "wasm32")]
     let limits = wgpu::Limits {
-        max_texture_dimension_2d: 4096,
+        max_texture_dimension_2d: max_texture_dim_2d,
         ..wgpu::Limits::downlevel_webgl2_defaults()
     };
 

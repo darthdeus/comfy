@@ -87,6 +87,8 @@ pub struct GameConfig {
     pub resolution: ResolutionConfig,
     pub min_resolution: ResolutionConfig,
 
+    pub max_texture_dimension_2d_override: Option<u32>,
+
     /// Overrides `wgpu`'s power preference for adapter selection. Should work around
     /// a potential issue where when selecting `wgpu::PowerPreference::HighPerformance` is on
     /// and the user has a laptop with a dual GPU setup where the dedicated GPU is not enabled,
@@ -140,6 +142,8 @@ impl Default for GameConfig {
         Self {
             game_name: "TODO_GAME_NAME".to_string(),
             version: "TODO_VERSION",
+
+            max_texture_dimension_2d_override: None,
 
             resolution,
             min_resolution,
