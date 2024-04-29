@@ -261,7 +261,7 @@ pub async fn run_comfy_main_async(
                                 vec2(position.x as f32, position.y as f32);
                         }
 
-                        WindowEvent::MouseInput { state, button, .. } => {\
+                        WindowEvent::MouseInput { state, button, .. } => {
                             let quad_button = match button {
                                 winit::event::MouseButton::Left => {
                                     MouseButton::Left
