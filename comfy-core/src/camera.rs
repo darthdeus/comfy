@@ -44,6 +44,16 @@ pub fn screen_height() -> f32 {
     GLOBAL_STATE.borrow().screen_size.y
 }
 
+/// Returns true if there was any mouse input during the current frame.
+pub fn mouse_input_this_frame() -> bool {
+    GLOBAL_STATE.borrow().mouse_input_this_frame
+}
+
+/// Returns true if the mouse was moved during the current frame.
+pub fn mouse_moved_this_frame() -> bool {
+    GLOBAL_STATE.borrow().mouse_moved_this_frame
+}
+
 pub fn screenshake(timer: f32, amount: f32) {
     let mut camera = main_camera_mut();
 

@@ -188,6 +188,8 @@ pub async fn run_comfy_main_async(
                         global_state.mouse_just_pressed.clear();
                         global_state.mouse_just_released.clear();
                         global_state.mouse_wheel = (0.0, 0.0);
+                        global_state.mouse_input_this_frame = false;
+                        global_state.mouse_moved_this_frame = false;
 
                         engine
                             .renderer
@@ -251,11 +253,15 @@ pub async fn run_comfy_main_async(
 
                     match event {
                         WindowEvent::CursorMoved { position, .. } => {
-                            GLOBAL_STATE.borrow_mut().mouse_position =
+                            let mut global_state = GLOBAL_STATE.borrow_mut();
+
+                            global_state.mouse_input_this_frame = true;
+                            global_state.mouse_moved_this_frame = true;
+                            global_state.mouse_position =
                                 vec2(position.x as f32, position.y as f32);
                         }
 
-                        WindowEvent::MouseInput { state, button, .. } => {
+                        WindowEvent::MouseInput { state, button, .. } => {\
                             let quad_button = match button {
                                 winit::event::MouseButton::Left => {
                                     MouseButton::Left
@@ -278,6 +284,8 @@ pub async fn run_comfy_main_async(
                             };
 
                             let mut global_state = GLOBAL_STATE.borrow_mut();
+
+                            global_state.mouse_input_this_frame = true;
 
                             match state {
                                 ElementState::Pressed => {
@@ -304,6 +312,8 @@ pub async fn run_comfy_main_async(
 
                         WindowEvent::MouseWheel { delta, .. } => {
                             let mut global_state = GLOBAL_STATE.borrow_mut();
+
+                            global_state.mouse_input_this_frame = true;
 
                             match delta {
                                 MouseScrollDelta::LineDelta(x, y) => {
