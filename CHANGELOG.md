@@ -54,7 +54,7 @@
   on all machines, hence why it becomes an optional override. We're doing some more testing on this in our
   game, and if it'll be safe we'll also change the default.
 - Added `mouse_input_this_frame()` and `mouse_moved_this_frame()` for determining whether the mouse had any input
-  in the current frame, or whether it was moved.
+  in the current frame, or whether it was moved. This can be useful for switching between mouse and gamepad input.
 
 # v0.3.0
 
