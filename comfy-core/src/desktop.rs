@@ -4,4 +4,4 @@ pub use rayon;
 pub use rayon::prelude::*;
 
 pub use pollster;
-pub use spin_sleep::{self, LoopHelper};
+pub use spin_sleep;
