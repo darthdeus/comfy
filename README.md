@@ -379,12 +379,10 @@ Comfy is free and open source and dual licensed under MIT and Apache 2.0 license
 
 # Games using comfy
 
-Comfy is being used by [LogLog Games](https://loglog.games/), and currently
-used in a few of our games, two of which you can check out on Steam.
-
-- [NANOVOID](https://store.steampowered.com/app/2326430/NANOVOID) - 2d top down tactical space shooter.
-- [BITGUN Survivors](https://store.steampowered.com/app/2081500/BITGUN_Survivors) - open world take on the vampire survivors genre, a spiritual successor to our last big Rust game [BITGUN](https://store.steampowered.com/app/1673940/BITGUN).
+Comfy is being used by [LogLog Games](https://loglog.games/), with one game released on Steam, namely [Unrelaxing Quacks](https://store.steampowered.com/app/2331980/Unrelaxing_Quacks/) - survivors, but fast!
 
 We've also used comfy in a few smaller games, e.g. our [1-bit jam
 entry](https://logloggames.itch.io/bitmob-1-bit-jam) where we experimented with
 CPU textures and 2D raytracing.
+
+Comfy has been supported by [Jetbrains](https://www.jetbrains.com/) through their opensource initiative and providing licenses for Comfy development.
