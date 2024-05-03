@@ -1,6 +1,6 @@
 [package]
 name = "comfy"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "A comfy 2d game engine in Rust."
@@ -42,9 +42,9 @@ ldtk = ["dep:comfy-ldtk"]
 exr = ["comfy-core/exr"]
 
 [dependencies]
-comfy-wgpu = { path = "../comfy-wgpu", version = "0.3.0", optional = true }
-comfy-core = { path = "../comfy-core", version = "0.3.0" }
-comfy-ldtk = { path = "../comfy-ldtk", version = "0.1.0", optional = true }
+comfy-wgpu = { path = "../comfy-wgpu", version = "0.4.0", optional = true }
+comfy-core = { path = "../comfy-core", version = "0.4.0" }
+comfy-ldtk = { path = "../comfy-ldtk", version = "0.2.0", optional = true }
 
 [[example]]
 name = "physics"

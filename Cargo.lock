@@ -533,7 +533,7 @@ dependencies = [
 
 [[package]]
 name = "comfy"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "comfy-core",
  "comfy-ldtk",
@@ -553,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "comfy-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "ahash 0.8.10",
  "anyhow",
@@ -633,7 +633,7 @@ checksum = "50eddb48ea406660a999cc6587f4cc858742f7f2dc9f70f7190efa7d570bee6f"
 
 [[package]]
 name = "comfy-ldtk"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "comfy-core",
  "grids",
@@ -644,7 +644,7 @@ dependencies = [
 
 [[package]]
 name = "comfy-wgpu"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bytemuck",
  "comfy-core",

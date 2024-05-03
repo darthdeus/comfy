@@ -1,6 +1,6 @@
 [package]
 name = "comfy-ldtk"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "LDTK editor support for the Comfy Engine."
@@ -17,7 +17,7 @@ ci-release = []
 # crate-type = ["dylib"]
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.3.0" }
+comfy-core = { path = "../comfy-core", version = "0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 notify = "6.1.1"
