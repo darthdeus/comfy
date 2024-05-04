@@ -13,7 +13,7 @@ tracy = []
 record-pngs = []
 
 [dependencies]
-comfy-core = { path = "../comfy-core", version = "0.3.0" }
+comfy-core = { path = "../comfy-core", version = "0.4.0" }
 
 macroquad = { version = "=0.4.4", default-features = false, features = [] }
 # egui-macroquad = { version = "0.15.0", default-features = false, features = [] }
