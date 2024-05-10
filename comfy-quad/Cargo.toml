@@ -20,6 +20,7 @@ macroquad = { version = "0.4.5", default-features = false, features = [] }
 
 # egui-macroquad = { version = "0.15.0", default-features = false, features = [] }
 # egui-macroquad = { git = "https://github.com/optozorax/egui-macroquad.git", default-features = false, features = [] }
+
 egui-macroquad = { git = "https://github.com/darthdeus/egui-macroquad.git", default-features = false, features = [
 ], branch = "pub-things" }
 # egui-macroquad = { path = "../../egui-macroquad" }

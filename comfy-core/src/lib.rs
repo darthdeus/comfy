@@ -1768,8 +1768,8 @@ fn test_vec_flip_h() {
     ]);
 }
 
-use image::RgbaImage;
 use chrono::{DateTime, Utc};
+use image::RgbaImage;
 
 pub struct ScreenshotItem {
     pub image: RgbaImage,

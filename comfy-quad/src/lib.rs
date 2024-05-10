@@ -2,8 +2,8 @@ use comfy_core::*;
 use macroquad::window::{screen_height, screen_width};
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-pub use macroquad;
 pub use egui_macroquad;
+pub use macroquad;
 
 mod text;
 
