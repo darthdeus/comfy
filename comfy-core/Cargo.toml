@@ -65,8 +65,11 @@ etagere = "0.2.10"
 # ], branch = "pub-things" }
 
 # macroquad = { version = "0.4.4", default-features = false, features = [] }
-egui-macroquad = { path = "../../egui-macroquad" }
 macroquad = { version = "0.4.5", default-features = false, features = [] }
+egui-macroquad = { git = "https://github.com/darthdeus/egui-macroquad.git", default-features = false, features = [
+], branch = "pub-things" }
+# egui-macroquad = { path = "../../egui-macroquad" }
+# macroquad = { path = "../../macroquad", features = [], default-features = false }
 
 jemalloc-ctl = { version = "0.5.0", optional = true }
 jemallocator = { version = "0.5.0", optional = true }

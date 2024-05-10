@@ -21,5 +21,6 @@ opt-level = 3
 # egui-wgpu = { path = "../egui/crates/egui-wgpu" }
 # egui-winit = { path = "../egui/crates/egui-winit" }
 # egui_plot = { path = "../egui/crates/egui_plot" }
+# macroquad = { path = "../macroquad" }
 
 # egui-macroquad = { path = "../egui-macroquad" }
