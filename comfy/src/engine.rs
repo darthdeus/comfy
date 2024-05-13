@@ -16,8 +16,8 @@ pub struct EngineState {
     pub dt_stats: MovingStats,
     pub fps_stats: MovingStats,
 
-    pub renderer: Option<WgpuRenderer>,
-    pub texture_creator: Option<Arc<AtomicRefCell<WgpuTextureCreator>>>,
+    pub renderer: Option<QuadRenderer>,
+    pub texture_creator: Option<Arc<AtomicRefCell<QuadTextureCreator>>>,
 
     pub meta: AnyMap,
 
@@ -124,9 +124,10 @@ impl EngineState {
     //     .secondary_frame_mark(tracy_client::frame_name!("update"));
 
     pub fn resize(&mut self, new_size: UVec2) {
-        self.renderer
-            .as_mut()
-            .expect("renderer must be initialized")
-            .resize(new_size);
+        todo!("figure out macroquad resizing")
+        // self.renderer
+        //     .as_mut()
+        //     .expect("renderer must be initialized")
+        //     .resize(new_size);
     }
 }

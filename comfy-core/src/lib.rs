@@ -111,7 +111,6 @@ pub use chrono;
 pub use crossbeam::atomic::AtomicCell;
 pub use egui;
 pub use egui_plot;
-pub use egui_winit;
 pub use env_logger;
 pub use epaint;
 pub use glam::{
@@ -1767,4 +1766,34 @@ fn test_vec_flip_h() {
     assert_eq!(vec![0, 0, 0, 1, 1, 2, 3, 3].flip(4), vec![
         1, 2, 3, 3, 0, 0, 0, 1
     ]);
+}
+
+use chrono::{DateTime, Utc};
+use image::RgbaImage;
+
+pub struct ScreenshotItem {
+    pub image: RgbaImage,
+    pub time: DateTime<Utc>,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct ScreenshotParams {
+    pub record_screenshots: bool,
+    /// When set to 1, a screenshot will be taken every frame.
+    /// When set to a higher number, a screenshot will be taken every n frames.
+    pub screenshot_interval_n: usize,
+    pub history_length: usize,
+
+    counter: usize,
+}
+
+impl Default for ScreenshotParams {
+    fn default() -> Self {
+        Self {
+            record_screenshots: false,
+            screenshot_interval_n: 1,
+            history_length: 10,
+            counter: 0,
+        }
+    }
 }

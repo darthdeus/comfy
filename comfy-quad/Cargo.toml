@@ -1,0 +1,26 @@
+[package]
+name = "comfy-quad"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+
+ci-release = []
+tracy = []
+record-pngs = []
+
+[dependencies]
+comfy-core = { path = "../comfy-core", version = "0.4.0" }
+
+macroquad = { version = "0.4.5", default-features = false, features = [] }
+# macroquad = { path = "../../macroquad", default-features = false, features = [] }
+
+# egui-macroquad = { version = "0.15.0", default-features = false, features = [] }
+# egui-macroquad = { git = "https://github.com/optozorax/egui-macroquad.git", default-features = false, features = [] }
+
+egui-macroquad = { git = "https://github.com/darthdeus/egui-macroquad.git", default-features = false, features = [
+], branch = "pub-things" }
+# egui-macroquad = { path = "../../egui-macroquad" }
