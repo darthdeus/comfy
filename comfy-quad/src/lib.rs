@@ -19,9 +19,9 @@ pub fn blood_canvas_reset() {}
 pub type TextureMap = HashMap<TextureHandle, TextureHandle>;
 
 pub fn load_texture_from_engine_bytes(
+    context: &GraphicsContext,
     name: &str,
     bytes: &[u8],
-    textures: &mut TextureMap,
     address_mode: AddressMode,
 ) {
 }
@@ -93,6 +93,7 @@ pub static BLOOD_CANVAS: OnceCell<AtomicRefCell<BloodCanvas>> = OnceCell::new();
 
 #[derive(Clone)]
 pub struct GraphicsContext {
+    pub texture_map: Arc<AtomicRefCell<TextureMap>>,
     pub texture_creator: Arc<AtomicRefCell<QuadTextureCreator>>,
 }
 
@@ -108,13 +109,43 @@ pub struct QuadRenderer {
 
 impl QuadRenderer {
     pub async fn new() -> Self {
+        trace!("Loading builtin engine textures");
+
+        let context = GraphicsContext {
+            texture_map: Arc::new(AtomicRefCell::new(TextureMap::new())),
+            texture_creator: Arc::new(AtomicRefCell::new(
+                QuadTextureCreator::new(),
+            )),
+        };
+
+        {
+            macro_rules! load_engine_tex {
+                ($name: literal) => {{
+                    load_texture_from_engine_bytes(
+                        &context,
+                        $name,
+                        include_bytes!(concat!(
+                            env!("CARGO_MANIFEST_DIR"),
+                            "/assets/",
+                            $name,
+                            ".png"
+                        )),
+                        AddressMode::ClampToEdge,
+                    );
+                }};
+            }
+
+            load_engine_tex!("error");
+            load_engine_tex!("1px");
+            load_engine_tex!("test-grid");
+            load_engine_tex!("_builtin-comfy");
+        }
+
+
         let texture_creator =
             Arc::new(AtomicRefCell::new(QuadTextureCreator::new()));
 
         let (tx_texture, rx_texture) = channel::<LoadedImage>();
-
-        let context =
-            GraphicsContext { texture_creator: texture_creator.clone() };
 
         QuadRenderer {
             text: RefCell::new(TextRasterizer::new(context.clone())),

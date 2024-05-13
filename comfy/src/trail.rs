@@ -148,9 +148,6 @@ impl Trail {
         }
 
         let tex = self.texture.unwrap_or(texture_id("1px"));
-        // let tex = texture_id("1px");
-
-        // let mut trail_length = 0.0;
 
         let mut vertices = vec![];
 
