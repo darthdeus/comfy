@@ -69,14 +69,16 @@ fn update(state: &mut GameState, c: &mut EngineContext) {
         });
 
     // When we switch a shader the uniforms will get their default value
+    // TODO: why does this need to be called twice?
+    use_shader(shader_id);
     use_shader(shader_id);
 
     let time = get_time() as f32;
 
-    // We can only set one and then draw and the other uniform will be set
-    // to the default value we specified when creating the shader.
     set_uniform_f32("time", time);
 
+    // We can only set one and then draw and the other uniform will be set
+    // to the default value we specified when creating the shader.
     draw_comfy(vec2(0.0, 0.0), WHITE, 0, splat(1.0));
 
     // This will set "intensity" while retaining "time" from the previous set in this frame, as
