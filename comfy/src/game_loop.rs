@@ -222,6 +222,32 @@ pub async fn run_comfy_main_async(
                     }
 
                     match event {
+                        WindowEvent::KeyboardInput {event, ..} => {
+                            if let Some(keycode) =
+                                KeyCode::try_from_winit(event.physical_key)
+                            {
+                                match event.state {
+                                    ElementState::Pressed => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.insert(keycode);
+                                        state.just_pressed.insert(keycode);
+                                        state.just_released.remove(&keycode);
+                                    }
+
+                                    ElementState::Released => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.remove(&keycode);
+                                        state.just_pressed.remove(&keycode);
+                                        state.just_released.insert(keycode);
+                                    }
+                                }
+                            }
+                        }
+
                         WindowEvent::CursorMoved { position, .. } => {
                             let mut global_state = GLOBAL_STATE.borrow_mut();
 
@@ -299,32 +325,6 @@ pub async fn run_comfy_main_async(
                             }
                         }
                         
-                        WindowEvent::KeyboardInput {event, ..} => {
-                            if let Some(keycode) =
-                                KeyCode::try_from_winit(event.physical_key)
-                            {
-                                match event.state {
-                                    ElementState::Pressed => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
-
-                                        state.pressed.insert(keycode);
-                                        state.just_pressed.insert(keycode);
-                                        state.just_released.remove(&keycode);
-                                    }
-
-                                    ElementState::Released => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
-
-                                        state.pressed.remove(&keycode);
-                                        state.just_pressed.remove(&keycode);
-                                        state.just_released.insert(keycode);
-                                    }
-                                }
-                            }
-                        }
-
                         WindowEvent::Resized(physical_size) => {
                             if physical_size.width > min_resolution.0 &&
                                 physical_size.height > min_resolution.1
