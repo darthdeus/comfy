@@ -147,7 +147,7 @@ pub async fn run_comfy_main_async(
                 Event::AboutToWait => {
                     let _span = span!("frame with vsync");
                     #[cfg(not(target_arch = "wasm32"))]
-                    let _ = loop_helper.loop_start();
+                        let _ = loop_helper.loop_start();
                     let frame_start = Instant::now();
 
                     set_delta(delta);
@@ -215,36 +215,6 @@ pub async fn run_comfy_main_async(
                     tracy_client::frame_mark();
                 }
 
-                Event::DeviceEvent { event, .. } => {
-                    match event {
-                        DeviceEvent::Key(input) => {
-                            if let Some(keycode) =
-                                KeyCode::try_from_winit(input.physical_key)
-                            {
-                                match input.state {
-                                    ElementState::Pressed => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
-
-                                        state.pressed.insert(keycode);
-                                        state.just_pressed.insert(keycode);
-                                        state.just_released.remove(&keycode);
-                                    }
-
-                                    ElementState::Released => {
-                                        let mut state =
-                                            GLOBAL_STATE.borrow_mut();
-
-                                        state.pressed.remove(&keycode);
-                                        state.just_pressed.remove(&keycode);
-                                        state.just_released.insert(keycode);
-                                    }
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
                 Event::WindowEvent { ref event, window_id: _ } => {
                     if engine.renderer.as_mut().unwrap().on_event(event, egui())
                     {
@@ -325,6 +295,32 @@ pub async fn run_comfy_main_async(
                                          implemented! {:?}",
                                         delta
                                     );
+                                }
+                            }
+                        }
+                        
+                        WindowEvent::KeyboardInput {event, ..} => {
+                            if let Some(keycode) =
+                                KeyCode::try_from_winit(event.physical_key)
+                            {
+                                match event.state {
+                                    ElementState::Pressed => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.insert(keycode);
+                                        state.just_pressed.insert(keycode);
+                                        state.just_released.remove(&keycode);
+                                    }
+
+                                    ElementState::Released => {
+                                        let mut state =
+                                            GLOBAL_STATE.borrow_mut();
+
+                                        state.pressed.remove(&keycode);
+                                        state.just_pressed.remove(&keycode);
+                                        state.just_released.insert(keycode);
+                                    }
                                 }
                             }
                         }
