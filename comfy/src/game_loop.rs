@@ -147,7 +147,7 @@ pub async fn run_comfy_main_async(
                 Event::AboutToWait => {
                     let _span = span!("frame with vsync");
                     #[cfg(not(target_arch = "wasm32"))]
-                        let _ = loop_helper.loop_start();
+                    let _ = loop_helper.loop_start();
                     let frame_start = Instant::now();
 
                     set_delta(delta);
