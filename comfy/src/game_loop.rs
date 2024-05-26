@@ -298,7 +298,7 @@ pub async fn run_comfy_main_async(
                                 }
                             }
                         }
-                        
+
                         WindowEvent::KeyboardInput { event, .. } => {
                             if let Some(keycode) =
                                 KeyCode::try_from_winit(event.physical_key)
