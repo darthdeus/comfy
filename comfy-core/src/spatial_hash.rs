@@ -355,13 +355,6 @@ impl SpatialHash {
             t += self.grid_size / (end - start).length();
         }
 
-        // draw_text(
-        //     &format!("{:.1?} {:.1?} {:#.1?}", start, end, closest_intersection),
-        //     start,
-        //     WHITE,
-        //     TextAlign::Center,
-        // );
-
         closest_intersection
     }
 }

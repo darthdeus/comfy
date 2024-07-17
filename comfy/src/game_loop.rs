@@ -53,7 +53,6 @@ pub fn comfy_one_frame(game: &mut impl GameLoop, engine: &mut EngineState) {
         //     .set_cursor_visible(!global_state.cursor_hidden);
     }
 
-
     set_frame_time(frame_start.elapsed().as_secs_f32());
     inc_frame_num();
 
@@ -207,7 +206,6 @@ pub fn comfy_one_frame(game: &mut impl GameLoop, engine: &mut EngineState) {
 //                             .window
 //                             .set_cursor_visible(!global_state.cursor_hidden);
 //                     }
-//
 //
 //                     set_frame_time(frame_start.elapsed().as_secs_f32());
 //                     inc_frame_num();
