@@ -46,7 +46,7 @@ pub type ContextFn =
     Box<dyn FnOnce(&mut EngineContext) + Sync + Send + 'static>;
 
 pub struct EngineContext<'a> {
-    pub renderer: &'a mut WgpuRenderer,
+    pub renderer: &'a mut QuadRenderer,
 
     pub delta: f32,
     pub frame: u64,
@@ -62,8 +62,8 @@ pub struct EngineContext<'a> {
     pub quit_flag: &'a mut bool,
     pub flags: &'a mut RefCell<HashSet<String>>,
 
-    // TODO: remove this, can be passed through GraphicsContext or WgpuRenderer
-    pub texture_creator: &'a Arc<AtomicRefCell<WgpuTextureCreator>>,
+    // TODO: remove this, can be passed through GraphicsContext or QuadRenderer
+    pub texture_creator: &'a Arc<AtomicRefCell<QuadTextureCreator>>,
 }
 
 impl<'a> EngineContext<'a> {
@@ -75,28 +75,30 @@ impl<'a> EngineContext<'a> {
     }
 
     pub fn load_texture_from_bytes(&self, name: &str, bytes: &[u8]) {
-        load_texture_from_engine_bytes(
-            &self.renderer.context,
-            name,
-            bytes,
-            &mut self.renderer.textures.lock(),
-            wgpu::AddressMode::ClampToEdge,
-        );
+        // load_texture_from_engine_bytes(
+        //     &self.renderer.context,
+        //     name,
+        //     bytes,
+        //     &mut self.renderer.textures.lock(),
+        //     AddressMode::ClampToEdge,
+        // );
+        todo!()
     }
 
     pub fn load_texture_from_bytes_ex(
         &self,
         name: &str,
         bytes: &[u8],
-        address_mode: wgpu::AddressMode,
+        address_mode: AddressMode,
     ) {
-        load_texture_from_engine_bytes(
-            &self.renderer.context,
-            name,
-            bytes,
-            &mut self.renderer.textures.lock(),
-            address_mode,
-        );
+        todo!()
+        // load_texture_from_engine_bytes(
+        //     &self.renderer.context,
+        //     name,
+        //     bytes,
+        //     &mut self.renderer.textures.lock(),
+        //     address_mode,
+        // );
     }
 
     pub fn load_fonts_from_bytes(&self, fonts: &[(&str, &[u8])]) {

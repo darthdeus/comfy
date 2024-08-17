@@ -15,27 +15,37 @@ macro_rules! define_main {
     ($name:literal, $game:ident, $config:ident $(,)?) => {
         $crate::define_versions!();
 
-        pub async fn run() {
-            $crate::init_game_config($name.to_string(), version_str(), $config);
-
-            let mut engine = $crate::EngineState::new();
-            let game = $game::new(&mut engine);
-
-            $crate::run_comfy_main_async(game, engine).await;
+        fn window_conf() -> $crate::macroquad::prelude::Conf {
+            $crate::macroquad::prelude::Conf {
+                window_title: "Comfy DEV".to_string(),
+                ..Default::default()
+            }
         }
 
-        fn main() {
+        #[macroquad::main(window_conf)]
+        async fn main() {
             #[cfg(feature = "color-backtrace")]
             $crate::color_backtrace::install();
 
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                $crate::pollster::block_on(run());
-            }
+            $crate::init_game_config($name.to_string(), version_str(), $config);
+            let _tracy = $crate::maybe_setup_tracy();
 
-            #[cfg(target_arch = "wasm32")]
-            {
-                $crate::wasm_bindgen_futures::spawn_local(run());
+            let mut engine = $crate::EngineState::new();
+            let mut game = $game::new(&mut engine);
+
+            let renderer = QuadRenderer::new().await;
+
+            engine.texture_creator = Some(renderer.texture_creator.clone());
+            engine.renderer = Some(renderer);
+
+            loop {
+                $crate::egui_macroquad::ui(|egui_ctx| {
+                    $crate::comfy_one_frame(&mut game, &mut engine);
+                });
+
+                egui_macroquad::draw();
+
+                $crate::macroquad::prelude::next_frame().await;
             }
         }
     };
