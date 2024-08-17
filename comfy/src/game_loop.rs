@@ -109,12 +109,12 @@ pub async fn run_comfy_main_async(
                 match &game_config().wasm_append_id {
                     Some(id) => {
                         let dst = doc.get_element_by_id(&id)?;
-                        let canvas = web_sys::Element::from(window.canvas());
+                        let canvas = web_sys::Element::from(window.canvas()?);
                         dst.append_child(&canvas).ok()?;
                     }
                     _ => {
                         let dst = doc.body()?;
-                        let canvas = web_sys::Element::from(window.canvas());
+                        let canvas = web_sys::Element::from(window.canvas()?);
                         dst.append_child(&canvas).ok()?;
                     }
                 };
