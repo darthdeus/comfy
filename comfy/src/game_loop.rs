@@ -92,7 +92,12 @@ pub async fn run_comfy_main_async(
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
-        window.set_inner_size(PhysicalSize::new(
+        window.set_min_inner_size(PhysicalSize::new(
+            resolution.width(),
+            resolution.height(),
+        ));
+
+        window.set_max_inner_size(PhysicalSize::new(
             resolution.width(),
             resolution.height(),
         ));
