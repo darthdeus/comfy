@@ -8,8 +8,55 @@
 
 # What is `comfy`?
 
-**Currently there's many performance improvements on Comfy's master branch that haven't
-been released yet. If you're struggling with performance, consider using the master branch. More info can be found [in the CHANGELOG](https://github.com/darthdeus/comfy/blob/master/CHANGELOG.md).**
+**_Comfy is now archived until further notice._ There's a few reasons for this.
+Mainly, due to real life circumstances I have much less time/capacity to
+dedicate to side projects. After [abandoning Rust for
+gamedev](https://loglog.games/blog/leaving-rust-gamedev/) Comfy became a small
+side project for fun, and while this worked for a little while, it's no longer
+the case, and I just don't have the energy to constantly play catchup to the
+Rust ecosystem.**
+
+It might not be obvious how much effort it takes to manage bugfixes in
+dependencies where every few weeks there's a new breaking API change in
+egui/winit/wgpu, and while these probably seem extremely minor to those who
+spend all their time building an engine on top of said libraries, sinking a day
+or two in figuring things out and fixing stuff on every release is a gigantic
+waste of time in my view.
+
+At this point I've fully switched to developing games in C++, and I'm _very_
+happy with this choice. There's a chance I might come back to Comfy and fix
+some of the current issues, but as of right now I really don't want to do that.
+
+I'd suggest those using Comfy to simply fork the repo and adopt things to their
+needs. The code should be simple enough for anyone who really cares to just do
+things and add/remove stuff without too much friction.
+
+But mainly I'd just suggest people either use Macroquad, or roll their own
+solution on top of OpenGL. Both of these are good choices for 2D. If you're
+making a 3D game, well, you better know what you're doing :)
+
+As a small tangent, personally, I've lost all faith in WebGPU/wgpu for
+2D games, and am really really really happy in OpenGL land in C++. I'm not
+saying C++ is a good language, and I'd probably suggest people use C# with
+MonoGame/FNA (which I've tried and works with hot reloading), or just use
+SDL/OpenTK or some variant (haven't tried too much, but I can't imagine there
+being major issues).
+
+Mainly, if your goal is to make a game, focus on the game and not the tech.
+Rust is a fun language, but please make your own decisions, instead of just
+following what the loud groups of people say. I can't count how many times
+people told me "but what about segfaults???" when I said I was switching from
+Rust & C# to C++, and honestly, segfaults are the least of my issues. Null
+pointers are also a complete non issue. At the risk of being controversial, I
+have very little faith in the experience of people saying this, because it
+seems that people outside of the Rust community also don't really consider
+these to be "a huge deal" compared to what the Rust community makes it sound
+like.
+
+**Currently there's many performance improvements on Comfy's master branch that
+haven't been released yet. If you're struggling with performance, consider
+using the master branch. More info can be found [in the
+CHANGELOG](https://github.com/darthdeus/comfy/blob/master/CHANGELOG.md).**
 
 **If you're new here, check out the [comfy announcement on our
 blog](https://comfyengine.org/blog/first/) and the [v0.2 release
