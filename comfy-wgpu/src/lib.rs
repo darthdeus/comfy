@@ -56,7 +56,7 @@ pub trait Vertex {
 const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
     0 => Float32x3,
     1 => Float32x2,
-    2 => Float32x4,
+    2 => Unorm8x4,
 ];
 
 impl Vertex for SpriteVertex {

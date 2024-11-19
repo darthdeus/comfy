@@ -609,7 +609,7 @@ pub struct RawDrawParams {
     pub pivot: Option<Vec2>,
 }
 
-const WHITE_ARRAY: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const WHITE_ARRAY: [u8; 4] = [255, 255, 255, 255];
 
 pub const QUAD_VERTICES: &[SpriteVertex] = &[
     SpriteVertex {
@@ -649,7 +649,7 @@ pub struct Mesh {
 pub struct SpriteVertex {
     pub position: [f32; 3],
     pub tex_coords: [f32; 2],
-    pub color: [f32; 4],
+    pub color: [u8; 4],
 }
 
 impl SpriteVertex {
@@ -657,7 +657,7 @@ impl SpriteVertex {
         Self {
             position: [position.x, position.y, position.z],
             tex_coords: [tex_coords.x, tex_coords.y],
-            color: [color.r, color.g, color.b, color.a],
+            color: color.to_array(),
         }
     }
 }
