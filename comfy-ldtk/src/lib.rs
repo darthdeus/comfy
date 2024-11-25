@@ -110,8 +110,13 @@ impl LdtkLayerExtensions for LayerInstance {
 
     fn px_to_world(&self, position: Vec2) -> Vec2 {
         let grid = self.grid_size as f32;
+        let px_offset_x = self.px_total_offset_x as f32;
+        let px_offset_y = self.px_total_offset_y as f32;
 
-        vec2(position.x / grid, self.c_hei as f32 - position.y / grid - 1.0)
+        vec2(
+            (position.x + px_offset_x) / grid,
+            self.c_hei as f32 - (position.y + px_offset_y) / grid - 1.0,
+        )
     }
 }
 
