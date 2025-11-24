@@ -16,6 +16,57 @@ side project for fun, and while this worked for a little while, it's no longer
 the case, and I just don't have the energy to constantly play catchup to the
 Rust ecosystem.**
 
+## Update Oct 24, 2025
+
+_It's been a year since the last update, and since some people still find comfy
+and read my content and make conclusions, I feel obligated to add more to up
+date information, as I've had many people ask me about C++ over the past year._
+
+TL;DR: I'm no longer using C++, but instead built my own programming language
+that compiles down to Lua, run it through LuaJIT to get FFI, to call into my
+own very small very simple C OpenGL game framework (GL/SDL/Soloud/Imgui), with
+full hot reloading support on the Lua side, full LSP with completion,
+diagnostics, etc. For those that care, the language's compiler is built in
+Rust, it's called Rock, and no it's not opensource.
+
+The whole Comfy experience has taught me many things, one of those being that I
+really don't want to be an opensource maintainer, and that while I very much
+enjoy the community aspect and talking to people, I also really don't like
+being responsible for other people's projects not working. At this point I'm
+pretty sure I did it for the wrong reasons, and that while I enjoyed the
+attention, I didn't enjoy the process of it.
+
+With Rock, I've built something that's meant just for me, where I don't have to
+justify any of my choices to anyone, and where I can write sloppy code to move
+past obstacles I don't care about. While I may be a perfectionist in spirit,
+the more actual code I write the more I realize that I just don't care enough
+to be a perfectionist in practice. There's too many things I want to do in life
+to spend my energy on things that I don't find meaning in.
+
+That being said, Rock might some day (maybe in not so distant future) become
+available through binary released in a closed beta (similar to Jai). Not
+because I want to build my own cult following (even tho I might enjoy that),
+but because I want to put my energy into interacting with people who care at
+least a little bit.
+
+If this is something you'd be interested in, feel free to reach out to me. I'm
+not going to put any contact information here. If you care enough, you can
+figure it out, it's not that hard :)
+
+I'm not promising anything, the whole thing is a big desperate experiment after
+spending 20+ years trying every programming language I could get my hands on,
+and finally realizing that it's just easier to build my own. Many things are
+ugly and don't work, so if you want to try it, don't expect perfect tutorials
+and hand holding, and don't expect timely responses from me when you run into
+issues. But all things considered, this is something I'm using to build an
+actually playable game.
+
+In either case, chances of me coming back to Comfy at this point are basically
+zero. It has served its purpose and taught me many things about gamedev,
+programming, and life. May it rest in peace :)
+
+## Update Sep 8, 2024
+
 It might not be obvious how much effort it takes to manage bugfixes in
 dependencies where every few weeks there's a new breaking API change in
 egui/winit/wgpu, and while these probably seem extremely minor to those who
