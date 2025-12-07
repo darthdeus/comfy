@@ -79,9 +79,9 @@ pub async fn create_graphics_context(
     info!("Supported formats: {:?}", supported_formats);
 
     #[cfg(not(target_arch = "wasm32"))]
-    let preferred_format = wgpu::TextureFormat::Bgra8UnormSrgb;
+    let preferred_format = wgpu::TextureFormat::Bgra8Unorm;
     #[cfg(target_arch = "wasm32")]
-    let preferred_format = wgpu::TextureFormat::Rgba8UnormSrgb;
+    let preferred_format = wgpu::TextureFormat::Bgra8Unorm;
 
     let monitor_surface_format =
         if supported_formats.contains(&preferred_format) {
